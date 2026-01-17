@@ -1,0 +1,7 @@
+# Android Recorder Prototype Dependencies
+# No external dependencies required - uses Python standard library only
+# - subprocess for ADB commands
+# - xml.etree.ElementTree for UI parsing
+# - json for workflow storage
+# - threading for event listening
+# - argparse for CLI
