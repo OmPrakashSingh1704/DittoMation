@@ -203,6 +203,17 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
         True if successful
     """
     try:
+        # Validate input
+        if not text:
+            return True  # Empty string is valid, just return success
+        
+        if len(text) > 5000:
+            print("Warning: Text too long, truncating to 5000 characters")
+            text = text[:5000]
+        
+        # Ensure chunk_size is reasonable
+        chunk_size = max(1, min(chunk_size, 50))
+        
         # Optionally clear existing text first
         if clear_first:
             # Select all and delete

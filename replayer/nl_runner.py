@@ -198,7 +198,8 @@ class NaturalLanguageRunner:
         target_clean = re.sub(r'\s*(app|icon|button|option|menu|item)$', '', target_lower).strip()
 
         candidates = []
-
+        
+        # First pass: look for exact matches (can return immediately)
         for elem in elements:
             if not (elem.get('clickable') or elem.get('long_clickable') or elem.get('focusable')):
                 continue
@@ -214,13 +215,28 @@ class NaturalLanguageRunner:
             if text.startswith('http') or text.startswith('www.') or '.com/' in text or '.org/' in text:
                 continue
 
-            # Exact matches (highest priority)
+            # Exact matches (highest priority) - return immediately
             if text == target_clean or text == target_lower:
                 return elem
             if desc == target_clean or desc == target_lower:
                 return elem
             if rid == target_clean or rid == target_lower:
                 return elem
+
+        # Second pass: look for partial matches
+        for elem in elements:
+            if not (elem.get('clickable') or elem.get('long_clickable') or elem.get('focusable')):
+                continue
+
+            text = elem.get('text', '').lower()
+            desc = elem.get('content_desc', '').lower()
+            rid = elem.get('resource_id', '').split('/')[-1].lower()
+
+            # Skip URL-related elements
+            if any(skip in rid for skip in ['url', 'address', 'omnibox', 'location_bar']):
+                continue
+            if text.startswith('http') or text.startswith('www.') or '.com/' in text or '.org/' in text:
+                continue
 
             # Partial matches
             score = 0
@@ -913,6 +929,14 @@ class NaturalLanguageRunner:
         Returns list of (success, message) tuples.
         """
         results = []
+        
+        # Validate input
+        if not instruction or not instruction.strip():
+            return [(False, "Empty instruction provided")]
+        
+        # Check for excessively long instructions
+        if len(instruction) > 10000:
+            return [(False, "Instruction too long (max 10000 characters)")]
 
         # Preserve quoted strings by replacing them with placeholders
         quoted_strings = []
@@ -943,23 +967,36 @@ class NaturalLanguageRunner:
             if not part:
                 continue
 
-            # Capture UI for each action
-            _, elements = capture_ui_fast()
+            # Capture UI for each action with error handling
+            try:
+                _, elements = capture_ui_fast()
+            except Exception as e:
+                results.append((False, f"Failed to capture UI: {e}"))
+                if self.verbose:
+                    print(f"  ✗ Failed to capture UI: {e}")
+                continue
 
             executed = False
             for pattern, handler in self.patterns:
                 match = re.search(pattern, part, re.IGNORECASE)
                 if match:
-                    success, message = handler(match, elements)
-                    results.append((success, message))
-                    if self.verbose:
-                        status = "✓" if success else "✗"
-                        print(f"  {status} {message}")
-                    executed = True
+                    try:
+                        success, message = handler(match, elements)
+                        results.append((success, message))
+                        if self.verbose:
+                            status = "✓" if success else "✗"
+                            print(f"  {status} {message}")
+                        executed = True
 
-                    # Delay between actions
-                    time.sleep(self.delay_ms / 1000.0)
-                    break
+                        # Delay between actions
+                        time.sleep(self.delay_ms / 1000.0)
+                        break
+                    except Exception as e:
+                        results.append((False, f"Action failed: {e}"))
+                        if self.verbose:
+                            print(f"  ✗ Action failed: {e}")
+                        executed = True
+                        break
 
             if not executed:
                 results.append((False, f"Could not understand: '{part}'"))
