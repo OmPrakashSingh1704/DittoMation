@@ -287,8 +287,19 @@ def make_call(phone_number: str) -> bool:
         True if successful
     """
     try:
-        # Clean the number
+        # Clean and validate the number
         number = ''.join(c for c in phone_number if c.isdigit() or c == '+')
+        
+        # Basic validation: must have at least 3 digits
+        if len(number.replace('+', '')) < 3:
+            print(f"Invalid phone number: {phone_number}")
+            return False
+        
+        # Limit length to prevent abuse
+        if len(number) > 20:
+            print(f"Phone number too long: {phone_number}")
+            return False
+        
         run_adb(['shell', 'am', 'start', '-a', 'android.intent.action.CALL', '-d', f'tel:{number}'])
         return True
     except Exception as e:
@@ -312,7 +323,19 @@ def dial_number(phone_number: str) -> bool:
         True if successful
     """
     try:
+        # Clean and validate the number
         number = ''.join(c for c in phone_number if c.isdigit() or c == '+')
+        
+        # Basic validation: must have at least 3 digits
+        if len(number.replace('+', '')) < 3:
+            print(f"Invalid phone number: {phone_number}")
+            return False
+        
+        # Limit length to prevent abuse
+        if len(number) > 20:
+            print(f"Phone number too long: {phone_number}")
+            return False
+        
         run_adb(['shell', 'am', 'start', '-a', 'android.intent.action.DIAL', '-d', f'tel:{number}'])
         return True
     except Exception as e:

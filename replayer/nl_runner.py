@@ -41,14 +41,48 @@ from recorder.ui_dumper import capture_ui_fast, get_center, pretty_print_element
 from replayer.executor import tap, long_press, swipe, press_back, press_home, input_text, make_call, end_call, dial_number, press_key
 
 
+# UI Element Detection Constants
+MIN_CLICKABLE_AREA_PX = 5000  # Minimum area for clickable elements
+MIN_LINK_WIDTH_PX = 100  # Minimum width for search result links
+MIN_LINK_HEIGHT_PX = 30  # Minimum height for search result links
+MIN_VIDEO_WIDTH_PX = 200  # Minimum width for video thumbnails
+
+# Layout Constants
+NAVBAR_HEIGHT_PX = 300  # Height of navigation bar area to skip
+BOTTOM_SWIPE_MARGIN_PX = 200  # Margin from bottom for swipe gestures
+
+# Gesture Distance Constants
+SCROLL_DISTANCE_PX = 600  # Distance for scroll gestures
+SWIPE_DISTANCE_PX = 400  # Distance for swipe gestures
+SCROLL_TO_DISTANCE_PX = 800  # Distance for scrolling to top/bottom
+DEFAULT_SWIPE_DISTANCE_PX = 500  # Default swipe distance
+
+# Gesture Duration Constants
+SCROLL_DURATION_MS = 400  # Duration for scroll gestures
+SWIPE_DURATION_MS = 200  # Duration for swipe gestures
+SCROLL_TO_DURATION_MS = 300  # Duration for scroll to top/bottom
+APP_DRAWER_SWIPE_DURATION_MS = 300  # Duration for opening app drawer
+
+# Video Detection Constants
+VIDEO_ASPECT_RATIO_MIN = 1.3  # Minimum aspect ratio for video thumbnails (wider than tall)
+SQUARE_ASPECT_RATIO_MIN = 0.8  # Lower bound for square aspect ratio
+SQUARE_ASPECT_RATIO_MAX = 1.2  # Upper bound for square aspect ratio
+MAX_AVATAR_AREA_PX = 50000  # Maximum area for channel avatars
+
+# Default Values
+DEFAULT_SCREEN_WIDTH = 1080
+DEFAULT_SCREEN_HEIGHT = 2400
+DEFAULT_ACTION_DELAY_MS = 800  # Default delay between actions
+
+
 class NaturalLanguageRunner:
     """Converts natural language to Android actions and executes them."""
 
-    def __init__(self, delay_ms: int = 800, verbose: bool = False):
+    def __init__(self, delay_ms: int = DEFAULT_ACTION_DELAY_MS, verbose: bool = False):
         self.delay_ms = delay_ms
         self.verbose = verbose
-        self.screen_width = 1080
-        self.screen_height = 2400
+        self.screen_width = DEFAULT_SCREEN_WIDTH
+        self.screen_height = DEFAULT_SCREEN_HEIGHT
 
         # Clipboard/state storage for "copy" and "paste" operations
         self.clipboard = None
@@ -207,7 +241,7 @@ class NaturalLanguageRunner:
 
         return None
 
-    def _get_swipe_coords(self, direction: str, distance: int = 500) -> Tuple[int, int, int, int]:
+    def _get_swipe_coords(self, direction: str, distance: int = DEFAULT_SWIPE_DISTANCE_PX) -> Tuple[int, int, int, int]:
         """Get swipe coordinates for direction."""
         cx, cy = self.screen_width // 2, self.screen_height // 2
 
@@ -268,22 +302,22 @@ class NaturalLanguageRunner:
 
     def _action_scroll(self, match, elements) -> Tuple[bool, str]:
         direction = match.group(1).lower()
-        x1, y1, x2, y2 = self._get_swipe_coords(direction, 600)
-        swipe(x1, y1, x2, y2, 400)
+        x1, y1, x2, y2 = self._get_swipe_coords(direction, SCROLL_DISTANCE_PX)
+        swipe(x1, y1, x2, y2, SCROLL_DURATION_MS)
         return True, f"Scrolled {direction}"
 
     def _action_swipe(self, match, elements) -> Tuple[bool, str]:
         direction = match.group(1).lower()
-        x1, y1, x2, y2 = self._get_swipe_coords(direction, 400)
-        swipe(x1, y1, x2, y2, 200)
+        x1, y1, x2, y2 = self._get_swipe_coords(direction, SWIPE_DISTANCE_PX)
+        swipe(x1, y1, x2, y2, SWIPE_DURATION_MS)
         return True, f"Swiped {direction}"
 
     def _action_scroll_to(self, match, elements) -> Tuple[bool, str]:
         target = match.group(1).lower()
         direction = 'up' if target == 'top' else 'down'
         for _ in range(5):  # Scroll multiple times
-            x1, y1, x2, y2 = self._get_swipe_coords(direction, 800)
-            swipe(x1, y1, x2, y2, 300)
+            x1, y1, x2, y2 = self._get_swipe_coords(direction, SCROLL_TO_DISTANCE_PX)
+            swipe(x1, y1, x2, y2, SCROLL_TO_DURATION_MS)
             time.sleep(0.3)
         return True, f"Scrolled to {target}"
 
@@ -448,9 +482,17 @@ class NaturalLanguageRunner:
         """Navigate to a URL using Android intent."""
         url = match.group(1).strip()
 
+        # Basic URL validation
+        if not url:
+            return False, "Empty URL provided"
+        
         # Add https:// if no protocol
         if not url.startswith('http'):
             url = 'https://' + url
+        
+        # Basic URL sanity check - must have a domain
+        if not re.match(r'https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', url):
+            return False, f"Invalid URL format: {url}"
 
         from recorder.adb_wrapper import run_adb
         try:
@@ -516,7 +558,7 @@ class NaturalLanguageRunner:
 
         # Swipe up to open app drawer
         cx, cy = self.screen_width // 2, self.screen_height // 2
-        swipe(cx, self.screen_height - 200, cx, cy - 400, 300)
+        swipe(cx, self.screen_height - BOTTOM_SWIPE_MARGIN_PX, cx, cy - SWIPE_DISTANCE_PX, APP_DRAWER_SWIPE_DURATION_MS)
         time.sleep(1)
 
         # Capture UI to find search box in app drawer
@@ -573,7 +615,7 @@ class NaturalLanguageRunner:
 
             # App icons are typically square-ish and reasonably sized
             # Skip very small elements (just text labels)
-            if area < 5000:
+            if area < MIN_CLICKABLE_AREA_PX:
                 continue
 
             # Prefer elements where content_desc contains app name (usually the actual icon)
@@ -747,12 +789,12 @@ class NaturalLanguageRunner:
             width = bounds[2] - bounds[0]
             height = bounds[3] - bounds[1]
 
-            # Skip elements at very top (navbar, search bar area - usually < 300px)
-            if y_pos < 300:
+            # Skip elements at very top (navbar, search bar area)
+            if y_pos < NAVBAR_HEIGHT_PX:
                 continue
 
             # Skip very small elements
-            if width < 100 or height < 30:
+            if width < MIN_LINK_WIDTH_PX or height < MIN_LINK_HEIGHT_PX:
                 continue
 
             # Skip full-width elements (usually containers, not actual links)
@@ -774,7 +816,7 @@ class NaturalLanguageRunner:
             if 'url' in rid or 'title' in rid or 'link' in rid or 'result' in rid:
                 priority += 3
 
-            if priority > 0 or (text and width > 200):
+            if priority > 0 or (text and width > MIN_VIDEO_WIDTH_PX):
                 candidates.append((priority, y_pos, elem))
 
         if candidates:
@@ -829,7 +871,7 @@ class NaturalLanguageRunner:
             # Skip elements that are too square (likely channel avatars/icons)
             # Video thumbnails have aspect ratio around 16:9 (1.77) or wider
             aspect_ratio = width / height if height > 0 else 0
-            if 0.8 < aspect_ratio < 1.2 and area < 50000:  # Square-ish and small = likely avatar
+            if SQUARE_ASPECT_RATIO_MIN < aspect_ratio < SQUARE_ASPECT_RATIO_MAX and area < MAX_AVATAR_AREA_PX:  # Square-ish and small = likely avatar
                 continue
 
             priority = 0
@@ -840,7 +882,7 @@ class NaturalLanguageRunner:
             elif 'thumbnail' in desc or 'video' in desc:
                 priority = 4
             # Medium priority: has video-like aspect ratio (wider than tall)
-            elif aspect_ratio > 1.3 and width > 200:
+            elif aspect_ratio > VIDEO_ASPECT_RATIO_MIN and width > MIN_VIDEO_WIDTH_PX:
                 priority = 3
             # Check for duration pattern in description (e.g., "10:30", "1:23:45")
             elif re.search(r'\d{1,2}:\d{2}', desc):
@@ -981,7 +1023,7 @@ Natural language examples:
     parser.add_argument('instruction', nargs='?', help='Natural language instruction')
     parser.add_argument('-f', '--file', help='File with instructions (one per line)')
     parser.add_argument('-i', '--interactive', action='store_true', help='Interactive mode')
-    parser.add_argument('-d', '--delay', type=int, default=800, help='Delay between actions (ms)')
+    parser.add_argument('-d', '--delay', type=int, default=DEFAULT_ACTION_DELAY_MS, help='Delay between actions (ms)')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
 
     args = parser.parse_args()
