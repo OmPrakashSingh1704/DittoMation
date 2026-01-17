@@ -308,11 +308,3 @@ for chunk in split_into_chunks(text, size=10):
 3. **Complex Gestures**: Multi-finger gestures beyond pinch are not fully supported.
 
 4. **Root Access**: Some advanced features may require rooted devices.
-
-## Future Improvements
-
-- [ ] Image-based element matching (OpenCV/ML)
-- [ ] Record and replay multi-app workflows
-- [ ] Cloud device farm integration
-- [ ] Visual workflow editor
-- [ ] Test assertion framework
