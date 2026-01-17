@@ -99,23 +99,23 @@ def build_xpath(element: Dict[str, Any]) -> str:
     Returns:
         XPath expression string
     """
-    class_name = element['class']
+    class_name = element.get('class', 'node')
     parts = [f"//{class_name}"]
 
     conditions = []
 
     # Add resource-id condition
-    if element['resource_id']:
+    if element.get('resource_id'):
         conditions.append(f"@resource-id='{element['resource_id']}'")
 
     # Add text condition
-    if element['text']:
+    if element.get('text'):
         # Escape quotes in text
         text = element['text'].replace("'", "\\'")
         conditions.append(f"@text='{text}'")
 
     # Add content-desc condition
-    if element['content_desc']:
+    if element.get('content_desc'):
         desc = element['content_desc'].replace("'", "\\'")
         conditions.append(f"@content-desc='{desc}'")
 
@@ -145,24 +145,34 @@ def build_locator(element: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Locator dict with primary strategy and fallbacks
     """
+    if not element:
+        return {
+            "primary": {
+                "strategy": "bounds",
+                "value": (0, 0, 0, 0)
+            },
+            "fallbacks": [],
+            "bounds": (0, 0, 0, 0)
+        }
+    
     locators = []
 
     # Strategy 1: Resource ID
-    if element['resource_id']:
+    if element.get('resource_id'):
         locators.append({
             "strategy": "id",
             "value": element['resource_id']
         })
 
     # Strategy 2: Content Description
-    if element['content_desc']:
+    if element.get('content_desc'):
         locators.append({
             "strategy": "content_desc",
             "value": element['content_desc']
         })
 
     # Strategy 3: Text
-    if element['text']:
+    if element.get('text'):
         locators.append({
             "strategy": "text",
             "value": element['text']
@@ -176,9 +186,10 @@ def build_locator(element: Dict[str, Any]) -> Dict[str, Any]:
     })
 
     # Strategy 5: Bounds (always included as final fallback)
+    bounds = element.get('bounds', (0, 0, 0, 0))
     locators.append({
         "strategy": "bounds",
-        "value": element['bounds']
+        "value": bounds
     })
 
     # First locator is primary, rest are fallbacks
@@ -186,13 +197,13 @@ def build_locator(element: Dict[str, Any]) -> Dict[str, Any]:
         return {
             "primary": locators[0],
             "fallbacks": locators[1:],
-            "bounds": element['bounds']
+            "bounds": bounds
         }
     else:
         return {
             "primary": locators[0],
             "fallbacks": [],
-            "bounds": element['bounds']
+            "bounds": bounds
         }
 
 

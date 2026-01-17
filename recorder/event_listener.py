@@ -301,7 +301,15 @@ class TouchEventListener:
         self._running = False
 
         if self._process:
-            self._process.terminate()
+            try:
+                self._process.terminate()
+                self._process.wait(timeout=2.0)
+            except subprocess.TimeoutExpired:
+                # Force kill if terminate didn't work
+                self._process.kill()
+                self._process.wait()
+            except Exception as e:
+                print(f"Warning: Error stopping process: {e}")
 
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=2.0)
