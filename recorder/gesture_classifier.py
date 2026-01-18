@@ -275,7 +275,7 @@ class GestureClassifier:
 
         final_distance = self._calculate_finger_distance()
 
-        # Calculate scale factor
+        # Calculate scale factor with division by zero check
         if self._initial_finger_distance > 0:
             scale = final_distance / self._initial_finger_distance
         else:
@@ -291,10 +291,13 @@ class GestureClassifier:
         else:
             center_x = center_y = start_x = start_y = 0
 
-        # Duration from first touch
-        min_start = min(t.start.timestamp for t in tracks)
-        max_end = max(t.current.timestamp for t in tracks)
-        duration_ms = int((max_end - min_start) * 1000)
+        # Duration from first touch with additional check
+        if tracks:
+            min_start = min(t.start.timestamp for t in tracks)
+            max_end = max(t.current.timestamp for t in tracks)
+            duration_ms = int((max_end - min_start) * 1000)
+        else:
+            duration_ms = 0
 
         return Gesture(
             type="pinch",

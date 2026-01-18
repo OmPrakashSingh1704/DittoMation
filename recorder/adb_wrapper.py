@@ -17,7 +17,7 @@ def get_adb_path() -> str:
     Auto-detect ADB location.
 
     Checks in order:
-    1. ANDROID_HOME/platform-tools/adb.exe
+    1. ANDROID_HOME/platform-tools/adb (or adb.exe on Windows)
     2. User's local Android SDK
     3. System PATH
 
@@ -27,30 +27,52 @@ def get_adb_path() -> str:
     Raises:
         FileNotFoundError: If ADB cannot be found
     """
+    import platform
+    
+    # Determine adb executable name based on OS
+    is_windows = platform.system() == 'Windows'
+    adb_name = 'adb.exe' if is_windows else 'adb'
+    
     # Check ANDROID_HOME environment variable
     android_home = os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT')
     if android_home:
-        adb_path = os.path.join(android_home, 'platform-tools', 'adb.exe')
+        adb_path = os.path.join(android_home, 'platform-tools', adb_name)
         if os.path.exists(adb_path):
             return adb_path
 
-    # Check common Windows location
-    local_app_data = os.environ.get('LOCALAPPDATA', '')
-    if local_app_data:
-        adb_path = os.path.join(local_app_data, 'Android', 'Sdk', 'platform-tools', 'adb.exe')
-        if os.path.exists(adb_path):
-            return adb_path
+    # Check common locations based on OS
+    if is_windows:
+        # Check Windows-specific locations
+        local_app_data = os.environ.get('LOCALAPPDATA', '')
+        if local_app_data:
+            adb_path = os.path.join(local_app_data, 'Android', 'Sdk', 'platform-tools', adb_name)
+            if os.path.exists(adb_path):
+                return adb_path
 
-    # Check user profile path
-    user_profile = os.environ.get('USERPROFILE', '')
-    if user_profile:
-        adb_path = os.path.join(user_profile, 'AppData', 'Local', 'Android', 'Sdk', 'platform-tools', 'adb.exe')
-        if os.path.exists(adb_path):
-            return adb_path
+        # Check user profile path
+        user_profile = os.environ.get('USERPROFILE', '')
+        if user_profile:
+            adb_path = os.path.join(user_profile, 'AppData', 'Local', 'Android', 'Sdk', 'platform-tools', adb_name)
+            if os.path.exists(adb_path):
+                return adb_path
+    else:
+        # Check Unix-like OS locations
+        home = os.path.expanduser('~')
+        common_paths = [
+            os.path.join(home, 'Android', 'Sdk', 'platform-tools', adb_name),
+            os.path.join(home, 'Library', 'Android', 'sdk', 'platform-tools', adb_name),  # macOS
+            '/usr/local/bin/adb',
+            '/usr/bin/adb',
+        ]
+        for adb_path in common_paths:
+            if os.path.exists(adb_path):
+                return adb_path
 
     # Try system PATH
     try:
-        result = subprocess.run(['where', 'adb'], capture_output=True, text=True)
+        # Use 'where' on Windows, 'which' on Unix-like
+        path_cmd = 'where' if is_windows else 'which'
+        result = subprocess.run([path_cmd, 'adb'], capture_output=True, text=True)
         if result.returncode == 0:
             return result.stdout.strip().split('\n')[0]
     except Exception:
@@ -124,7 +146,9 @@ def get_device_serial() -> Optional[str]:
         lines = output.strip().split('\n')
         for line in lines[1:]:  # Skip header
             if '\tdevice' in line:
-                return line.split('\t')[0]
+                parts = line.split('\t')
+                if len(parts) >= 1:
+                    return parts[0]
     except Exception:
         pass
     return None
@@ -416,9 +440,17 @@ def shell_stream(cmd: str) -> Generator[str, None, None]:
     try:
         for line in process.stdout:
             yield line.rstrip('\n\r')
+    except Exception as e:
+        print(f"Error in shell stream: {e}")
     finally:
-        process.terminate()
-        process.wait()
+        try:
+            process.terminate()
+            process.wait(timeout=2.0)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+        except Exception:
+            pass
 
 
 def get_current_app() -> Tuple[str, str]:

@@ -25,9 +25,15 @@ def parse_bounds(bounds_str: str) -> Tuple[int, int, int, int]:
     Returns:
         Tuple of (x1, y1, x2, y2)
     """
+    if not bounds_str:
+        return (0, 0, 0, 0)
+    
     match = re.match(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', bounds_str)
     if match:
-        return tuple(int(x) for x in match.groups())
+        try:
+            return tuple(int(x) for x in match.groups())
+        except ValueError:
+            return (0, 0, 0, 0)
     return (0, 0, 0, 0)
 
 
@@ -41,7 +47,16 @@ def get_center(bounds: Tuple[int, int, int, int]) -> Tuple[int, int]:
     Returns:
         Tuple of (center_x, center_y)
     """
+    if not bounds or len(bounds) != 4:
+        return (0, 0)
+    
     x1, y1, x2, y2 = bounds
+    # Ensure valid bounds (x2 >= x1, y2 >= y1)
+    if x2 < x1:
+        x1, x2 = x2, x1
+    if y2 < y1:
+        y1, y2 = y2, y1
+    
     return (x1 + x2) // 2, (y1 + y2) // 2
 
 

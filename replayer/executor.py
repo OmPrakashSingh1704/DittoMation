@@ -28,6 +28,12 @@ def tap(x: int, y: int) -> bool:
         True if successful
     """
     try:
+        # Validate coordinates
+        if x < 0 or y < 0:
+            print(f"Warning: Invalid negative coordinates ({x}, {y}), clamping to 0")
+            x = max(0, x)
+            y = max(0, y)
+        
         run_adb(['shell', 'input', 'tap', str(x), str(y)])
         return True
     except Exception as e:
@@ -50,6 +56,12 @@ def long_press(x: int, y: int, duration_ms: int = 1000) -> bool:
         True if successful
     """
     try:
+        # Validate coordinates
+        if x < 0 or y < 0:
+            print(f"Warning: Invalid negative coordinates ({x}, {y}), clamping to 0")
+            x = max(0, x)
+            y = max(0, y)
+        
         # Long press is simulated as a swipe with same start/end point
         run_adb(['shell', 'input', 'swipe',
                 str(x), str(y), str(x), str(y), str(duration_ms)])
@@ -80,6 +92,14 @@ def swipe(
         True if successful
     """
     try:
+        # Validate coordinates
+        if x1 < 0 or y1 < 0 or x2 < 0 or y2 < 0:
+            print(f"Warning: Invalid negative coordinates, clamping to 0")
+            x1 = max(0, x1)
+            y1 = max(0, y1)
+            x2 = max(0, x2)
+            y2 = max(0, y2)
+        
         run_adb(['shell', 'input', 'swipe',
                 str(x1), str(y1), str(x2), str(y2), str(duration_ms)])
         return True
@@ -183,6 +203,17 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
         True if successful
     """
     try:
+        # Validate input
+        if not text:
+            return True  # Empty string is valid, just return success
+        
+        if len(text) > 5000:
+            print("Warning: Text too long, truncating to 5000 characters")
+            text = text[:5000]
+        
+        # Ensure chunk_size is reasonable
+        chunk_size = max(1, min(chunk_size, 50))
+        
         # Optionally clear existing text first
         if clear_first:
             # Select all and delete
@@ -199,10 +230,8 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
             for char in chunk:
                 if char == ' ':
                     escaped += '%s'
-                elif char in '\'"&<>()|;\\`$!#*?[]{}':
+                elif char in '\'"&<>()|;\\`$!#*?[]{}.':
                     escaped += '\\' + char
-                elif char == '.':
-                    escaped += '\\.'
                 else:
                     escaped += char
 
@@ -269,8 +298,19 @@ def make_call(phone_number: str) -> bool:
         True if successful
     """
     try:
-        # Clean the number
+        # Clean and validate the number
         number = ''.join(c for c in phone_number if c.isdigit() or c == '+')
+        
+        # Basic validation: must have at least 3 digits
+        if len(number.replace('+', '')) < 3:
+            print(f"Invalid phone number: {phone_number}")
+            return False
+        
+        # Limit length to prevent abuse
+        if len(number) > 20:
+            print(f"Phone number too long: {phone_number}")
+            return False
+        
         run_adb(['shell', 'am', 'start', '-a', 'android.intent.action.CALL', '-d', f'tel:{number}'])
         return True
     except Exception as e:
@@ -294,7 +334,19 @@ def dial_number(phone_number: str) -> bool:
         True if successful
     """
     try:
+        # Clean and validate the number
         number = ''.join(c for c in phone_number if c.isdigit() or c == '+')
+        
+        # Basic validation: must have at least 3 digits
+        if len(number.replace('+', '')) < 3:
+            print(f"Invalid phone number: {phone_number}")
+            return False
+        
+        # Limit length to prevent abuse
+        if len(number) > 20:
+            print(f"Phone number too long: {phone_number}")
+            return False
+        
         run_adb(['shell', 'am', 'start', '-a', 'android.intent.action.DIAL', '-d', f'tel:{number}'])
         return True
     except Exception as e:
