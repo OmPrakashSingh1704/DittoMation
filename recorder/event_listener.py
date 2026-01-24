@@ -5,16 +5,27 @@ Parses the output of `adb shell getevent` to capture touch events
 and converts them to screen coordinates.
 """
 
+import os
 import re
+import sys
 import time
 import threading
 import subprocess
 from typing import Callable, Optional, List, Dict, Any
 
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 try:
     from recorder.adb_wrapper import _get_adb, get_input_device, get_input_max_values, get_screen_size
 except ImportError:
     from adb_wrapper import _get_adb, get_input_device, get_input_max_values, get_screen_size
+
+from core.logging_config import get_logger
+from core.exceptions import InvalidInputDeviceError, EventParseError
+
+# Module logger
+logger = get_logger("event_listener")
 
 
 # Linux input event codes for touch events
@@ -115,9 +126,9 @@ class TouchEventListener:
         self._max_x, self._max_y = get_input_max_values(self.device_path)
         self._screen_width, self._screen_height = get_screen_size()
 
-        print(f"Touch device: {self.device_path}")
-        print(f"Input range: {self._max_x} x {self._max_y}")
-        print(f"Screen size: {self._screen_width} x {self._screen_height}")
+        logger.info(f"Touch device: {self.device_path}")
+        logger.info(f"Input range: {self._max_x} x {self._max_y}")
+        logger.info(f"Screen size: {self._screen_width} x {self._screen_height}")
 
     def _raw_to_screen(self, raw_x: int, raw_y: int) -> tuple:
         """
@@ -159,7 +170,7 @@ class TouchEventListener:
             try:
                 callback(event)
             except Exception as e:
-                print(f"Error in event callback: {e}")
+                logger.error(f"Error in event callback: {e}")
 
     def _parse_line(self, line: str) -> None:
         """
@@ -279,7 +290,7 @@ class TouchEventListener:
                     line_buffer += byte
         except Exception as e:
             if self._running:
-                print(f"Error in event listener: {e}")
+                logger.error(f"Error in event listener: {e}")
         finally:
             if self._process:
                 self._process.terminate()
@@ -294,7 +305,7 @@ class TouchEventListener:
         self._running = True
         self._thread = threading.Thread(target=self._listen_loop, daemon=True)
         self._thread.start()
-        print("Touch event listener started")
+        logger.info("Touch event listener started")
 
     def stop(self) -> None:
         """Stop listening."""
@@ -309,12 +320,12 @@ class TouchEventListener:
                 self._process.kill()
                 self._process.wait()
             except Exception as e:
-                print(f"Warning: Error stopping process: {e}")
+                logger.warning(f"Error stopping process: {e}")
 
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=2.0)
 
-        print("Touch event listener stopped")
+        logger.info("Touch event listener stopped")
 
     def is_running(self) -> bool:
         """Check if listener is currently running."""

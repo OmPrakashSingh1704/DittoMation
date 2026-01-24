@@ -1,0 +1,69 @@
+{
+  "logging": {
+    "level": "INFO",
+    "log_to_file": true,
+    "log_to_console": true,
+    "log_dir": "logs",
+    "json_format": false,
+    "max_file_size_mb": 10,
+    "backup_count": 5
+  },
+  "adb": {
+    "path": null,
+    "timeout": 30,
+    "retry_count": 3,
+    "retry_delay": 1.0,
+    "retry_backoff": 2.0
+  },
+  "recording": {
+    "output_dir": "output",
+    "default_workflow_file": "workflow.json",
+    "capture_screenshots": false,
+    "double_tap_threshold_ms": 300,
+    "double_tap_distance_px": 50
+  },
+  "replay": {
+    "default_delay_ms": 500,
+    "element_timeout_ms": 5000,
+    "retry_on_failure": true,
+    "max_retries": 3,
+    "screenshot_on_failure": false
+  },
+  "nl_runner": {
+    "default_delay_ms": 800,
+    "scroll_distance_px": 600,
+    "swipe_distance_px": 400,
+    "scroll_duration_ms": 400,
+    "swipe_duration_ms": 200,
+    "min_clickable_area_px": 5000
+  },
+  "gestures": {
+    "tap_max_duration_ms": 500,
+    "tap_max_movement_px": 50,
+    "swipe_min_distance_px": 50,
+    "long_press_duration_ms": 1000,
+    "pinch_distance_threshold": 30
+  },
+  "ui_capture": {
+    "max_retries": 5,
+    "retry_delay_ms": 1000,
+    "loading_screen_timeout_ms": 10000
+  },
+  "device": {
+    "default_device": null,
+    "screen_width": null,
+    "screen_height": null
+  },
+  "ad_filter": {
+    "enabled": true,
+    "strict_mode": false,
+    "log_filtered": true,
+    "custom_patterns": {
+      "resource_id": [],
+      "text": [],
+      "content_desc": [],
+      "package": [],
+      "class": []
+    }
+  }
+}

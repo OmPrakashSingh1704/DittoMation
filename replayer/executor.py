@@ -14,6 +14,11 @@ from typing import Optional, Tuple, Dict, Any
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from recorder.adb_wrapper import run_adb
+from core.logging_config import get_logger
+from core.exceptions import GestureExecutionError, InvalidGestureError
+
+# Module logger
+logger = get_logger("executor")
 
 
 def tap(x: int, y: int) -> bool:
@@ -30,14 +35,14 @@ def tap(x: int, y: int) -> bool:
     try:
         # Validate coordinates
         if x < 0 or y < 0:
-            print(f"Warning: Invalid negative coordinates ({x}, {y}), clamping to 0")
+            logger.warning(f"Invalid negative coordinates ({x}, {y}), clamping to 0")
             x = max(0, x)
             y = max(0, y)
         
         run_adb(['shell', 'input', 'tap', str(x), str(y)])
         return True
     except Exception as e:
-        print(f"Tap failed: {e}")
+        logger.error(f"Tap failed: {e}")
         return False
 
 
@@ -58,7 +63,7 @@ def long_press(x: int, y: int, duration_ms: int = 1000) -> bool:
     try:
         # Validate coordinates
         if x < 0 or y < 0:
-            print(f"Warning: Invalid negative coordinates ({x}, {y}), clamping to 0")
+            logger.warning(f"Invalid negative coordinates ({x}, {y}), clamping to 0")
             x = max(0, x)
             y = max(0, y)
         
@@ -67,7 +72,7 @@ def long_press(x: int, y: int, duration_ms: int = 1000) -> bool:
                 str(x), str(y), str(x), str(y), str(duration_ms)])
         return True
     except Exception as e:
-        print(f"Long press failed: {e}")
+        logger.error(f"Long press failed: {e}")
         return False
 
 
@@ -94,7 +99,7 @@ def swipe(
     try:
         # Validate coordinates
         if x1 < 0 or y1 < 0 or x2 < 0 or y2 < 0:
-            print(f"Warning: Invalid negative coordinates, clamping to 0")
+            logger.warning("Invalid negative coordinates, clamping to 0")
             x1 = max(0, x1)
             y1 = max(0, y1)
             x2 = max(0, x2)
@@ -104,7 +109,7 @@ def swipe(
                 str(x1), str(y1), str(x2), str(y2), str(duration_ms)])
         return True
     except Exception as e:
-        print(f"Swipe failed: {e}")
+        logger.error(f"Swipe failed: {e}")
         return False
 
 
@@ -186,7 +191,7 @@ def pinch(
 
         return True
     except Exception as e:
-        print(f"Pinch failed: {e}")
+        logger.error(f"Pinch failed: {e}")
         return False
 
 
@@ -208,7 +213,7 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
             return True  # Empty string is valid, just return success
         
         if len(text) > 5000:
-            print("Warning: Text too long, truncating to 5000 characters")
+            logger.warning("Text too long, truncating to 5000 characters")
             text = text[:5000]
         
         # Ensure chunk_size is reasonable
@@ -243,7 +248,7 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
 
         return True
     except Exception as e:
-        print(f"Input text failed: {e}")
+        logger.error(f"Input text failed: {e}")
         return False
 
 
@@ -268,7 +273,7 @@ def press_key(keycode: str) -> bool:
         run_adb(['shell', 'input', 'keyevent', str(keycode)])
         return True
     except Exception as e:
-        print(f"Key press failed: {e}")
+        logger.error(f"Key press failed: {e}")
         return False
 
 
@@ -303,18 +308,18 @@ def make_call(phone_number: str) -> bool:
         
         # Basic validation: must have at least 3 digits
         if len(number.replace('+', '')) < 3:
-            print(f"Invalid phone number: {phone_number}")
+            logger.error(f"Invalid phone number: {phone_number}")
             return False
         
         # Limit length to prevent abuse
         if len(number) > 20:
-            print(f"Phone number too long: {phone_number}")
+            logger.error(f"Phone number too long: {phone_number}")
             return False
         
         run_adb(['shell', 'am', 'start', '-a', 'android.intent.action.CALL', '-d', f'tel:{number}'])
         return True
     except Exception as e:
-        print(f"Call failed: {e}")
+        logger.error(f"Call failed: {e}")
         return False
 
 
@@ -339,18 +344,18 @@ def dial_number(phone_number: str) -> bool:
         
         # Basic validation: must have at least 3 digits
         if len(number.replace('+', '')) < 3:
-            print(f"Invalid phone number: {phone_number}")
+            logger.error(f"Invalid phone number: {phone_number}")
             return False
         
         # Limit length to prevent abuse
         if len(number) > 20:
-            print(f"Phone number too long: {phone_number}")
+            logger.error(f"Phone number too long: {phone_number}")
             return False
         
         run_adb(['shell', 'am', 'start', '-a', 'android.intent.action.DIAL', '-d', f'tel:{number}'])
         return True
     except Exception as e:
-        print(f"Dial failed: {e}")
+        logger.error(f"Dial failed: {e}")
         return False
 
 
@@ -422,7 +427,7 @@ def execute_gesture(
         return pinch(x, y, scale, duration_ms)
 
     else:
-        print(f"Unknown gesture type: {gesture_type}")
+        logger.warning(f"Unknown gesture type: {gesture_type}")
         return False
 
 
