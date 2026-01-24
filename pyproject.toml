@@ -47,9 +47,9 @@ dev = [
 ditto = "core.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/OmPrakashSingh1704/DittoMations"
-Repository = "https://github.com/OmPrakashSingh1704/DittoMations"
-Issues = "https://github.com/OmPrakashSingh1704/DittoMations/issues"
+Homepage = "https://github.com/OmPrakashSingh1704/DittoMation"
+Repository = "https://github.com/OmPrakashSingh1704/DittoMation"
+Issues = "https://github.com/OmPrakashSingh1704/DittoMation/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
