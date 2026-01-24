@@ -7,9 +7,13 @@ supporting save/load operations for workflow files.
 
 import json
 import os
+import sys
 import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from recorder.gesture_classifier import Gesture
@@ -18,10 +22,17 @@ except ImportError:
     from gesture_classifier import Gesture
     from adb_wrapper import get_screen_size, get_current_app, get_device_serial
 
+from core.logging_config import get_logger
+from core.exceptions import WorkflowLoadError, WorkflowSaveError
+from core.config_manager import get_config_value
 
-# Deduplication thresholds
-DOUBLE_TAP_TIME_MS = 300  # Max time between taps to consider double-tap
-DOUBLE_TAP_DISTANCE_PX = 50  # Max distance between taps
+# Module logger
+logger = get_logger("workflow")
+
+
+# Deduplication thresholds (from config or defaults)
+DOUBLE_TAP_TIME_MS = get_config_value("recording.double_tap_threshold_ms", 300)
+DOUBLE_TAP_DISTANCE_PX = get_config_value("recording.double_tap_distance_px", 50)
 
 
 class WorkflowStep:
@@ -116,7 +127,7 @@ class WorkflowRecorder:
                 "recorded_at": datetime.now().isoformat()
             }
         except Exception as e:
-            print(f"Warning: Could not initialize metadata: {e}")
+            logger.warning(f"Could not initialize metadata: {e}")
             self.metadata = {
                 "app_package": "",
                 "device": "unknown",
@@ -248,16 +259,23 @@ class WorkflowRecorder:
 
         Args:
             filepath: Output file path
+
+        Raises:
+            WorkflowSaveError: If the workflow cannot be saved
         """
-        workflow_data = {
-            "metadata": self.metadata,
-            "steps": [step.to_dict() for step in self.steps]
-        }
+        try:
+            workflow_data = {
+                "metadata": self.metadata,
+                "steps": [step.to_dict() for step in self.steps]
+            }
 
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(workflow_data, f, indent=2, ensure_ascii=False)
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(workflow_data, f, indent=2, ensure_ascii=False)
 
-        print(f"Workflow saved: {filepath} ({len(self.steps)} steps)")
+            logger.info(f"Workflow saved: {filepath} ({len(self.steps)} steps)")
+        except Exception as e:
+            logger.error(f"Failed to save workflow: {e}")
+            raise WorkflowSaveError(filepath, str(e))
 
     @classmethod
     def load(cls, filepath: str) -> 'WorkflowRecorder':
@@ -269,18 +287,29 @@ class WorkflowRecorder:
 
         Returns:
             WorkflowRecorder with loaded steps
+
+        Raises:
+            WorkflowLoadError: If the workflow cannot be loaded
         """
-        with open(filepath, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
 
-        recorder = cls()
-        recorder.metadata = data.get("metadata", {})
-        recorder.steps = [
-            WorkflowStep.from_dict(step_data)
-            for step_data in data.get("steps", [])
-        ]
+            recorder = cls()
+            recorder.metadata = data.get("metadata", {})
+            recorder.steps = [
+                WorkflowStep.from_dict(step_data)
+                for step_data in data.get("steps", [])
+            ]
 
-        return recorder
+            logger.info(f"Workflow loaded: {filepath} ({len(recorder.steps)} steps)")
+            return recorder
+        except FileNotFoundError:
+            raise WorkflowLoadError(filepath, "File not found")
+        except json.JSONDecodeError as e:
+            raise WorkflowLoadError(filepath, f"Invalid JSON: {e}")
+        except Exception as e:
+            raise WorkflowLoadError(filepath, str(e))
 
     def get_ui_snapshot_path(self, step_id: int) -> str:
         """

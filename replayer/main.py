@@ -30,6 +30,13 @@ from recorder.workflow import WorkflowRecorder, WorkflowStep, format_step
 from replayer.locator import ElementLocator, describe_location_result
 from replayer.executor import GestureExecutor
 
+from core.logging_config import setup_replayer_logging, get_logger
+from core.config_manager import init_config, get_config_value
+from core.exceptions import WorkflowLoadError, DittoMationError
+
+# Module logger
+logger = get_logger("replayer.main")
+
 
 class ReplaySession:
     """
@@ -75,17 +82,19 @@ class ReplaySession:
         """
         try:
             self.workflow = WorkflowRecorder.load(self.workflow_path)
-            print(f"Loaded workflow: {len(self.workflow)} steps")
+            logger.info(f"Loaded workflow: {len(self.workflow)} steps")
 
             if self.verbose:
-                print("\n" + self.workflow.summary())
+                logger.info(self.workflow.summary())
 
             return True
-        except FileNotFoundError:
-            print(f"Error: Workflow file not found: {self.workflow_path}")
+        except WorkflowLoadError as e:
+            logger.error(f"Error loading workflow: {e.message}")
+            if e.hint:
+                logger.info(f"Hint: {e.hint}")
             return False
         except Exception as e:
-            print(f"Error loading workflow: {e}")
+            logger.error(f"Error loading workflow: {e}")
             return False
 
     def run(self) -> bool:
@@ -96,30 +105,30 @@ class ReplaySession:
             True if all steps succeeded
         """
         if not self.workflow:
-            print("Error: No workflow loaded")
+            logger.error("No workflow loaded")
             return False
 
         if len(self.workflow) == 0:
-            print("Warning: Workflow is empty")
+            logger.warning("Workflow is empty")
             return True
 
-        print("\n" + "=" * 50)
-        print("Starting replay...")
-        print("=" * 50 + "\n")
+        logger.info("=" * 50)
+        logger.info("Starting replay...")
+        logger.info("=" * 50)
 
         self._running = True
         self.results = []
 
         for step in self.workflow:
             if self._stop_requested:
-                print("\nReplay stopped by user")
+                logger.info("Replay stopped by user")
                 break
 
             result = self._replay_step(step)
             self.results.append(result)
 
             if not result["success"]:
-                print(f"  [FAILED] {result.get('error', 'Unknown error')}")
+                logger.error(f"Step {step.step_id} FAILED: {result.get('error', 'Unknown error')}")
 
         self._running = False
         return self._print_summary()
@@ -143,14 +152,14 @@ class ReplaySession:
             "error": None
         }
 
-        print(f"Step {step.step_id}: {step.action.upper()}", end=" ")
+        logger.info(f"Step {step.step_id}: {step.action.upper()}")
 
         try:
             # Capture current UI
             ui_tree, elements = capture_ui_fast()
 
             if not elements:
-                print("(no UI)")
+                logger.debug("No UI elements found, using coordinates")
                 # Fall back to recorded coordinates
                 coordinates = self._get_fallback_coordinates(step)
                 success = self.executor.execute(step.gesture, coordinates)
@@ -166,9 +175,9 @@ class ReplaySession:
                 strategy_info = f"{loc_result.strategy_used}"
                 if loc_result.fallback_level > 0:
                     strategy_info += f" (fallback #{loc_result.fallback_level})"
-                print(f"({strategy_info})")
+                logger.debug(f"Element found using: {strategy_info}")
             else:
-                print("(coordinates)")
+                logger.debug("Element not found, using coordinates")
 
             # Execute gesture
             success = self.executor.execute(step.gesture, loc_result.coordinates)
@@ -179,15 +188,15 @@ class ReplaySession:
 
             if self.verbose and loc_result.element:
                 elem = loc_result.element
-                print(f"    Element: {elem.get('class', '').split('.')[-1]}")
+                logger.debug(f"Element: {elem.get('class', '').split('.')[-1]}")
                 if elem.get('resource_id'):
-                    print(f"    ID: {elem['resource_id'].split('/')[-1]}")
+                    logger.debug(f"ID: {elem['resource_id'].split('/')[-1]}")
                 if elem.get('text'):
-                    print(f"    Text: {elem['text'][:50]}")
+                    logger.debug(f"Text: {elem['text'][:50]}")
 
         except Exception as e:
             result["error"] = str(e)
-            print(f"(error: {e})")
+            logger.error(f"Step execution error: {e}")
 
         return result
 
@@ -212,17 +221,17 @@ class ReplaySession:
         Returns:
             True if all steps succeeded
         """
-        print("\n" + "=" * 50)
-        print("Replay Summary")
-        print("=" * 50)
+        logger.info("=" * 50)
+        logger.info("Replay Summary")
+        logger.info("=" * 50)
 
         total = len(self.results)
         success = sum(1 for r in self.results if r["success"])
         failed = total - success
 
-        print(f"Total steps: {total}")
-        print(f"Successful: {success}")
-        print(f"Failed: {failed}")
+        logger.info(f"Total steps: {total}")
+        logger.info(f"Successful: {success}")
+        logger.info(f"Failed: {failed}")
 
         # Strategy breakdown
         strategy_counts: Dict[str, int] = {}
@@ -237,24 +246,24 @@ class ReplaySession:
                 fallback_counts[level] = fallback_counts.get(level, 0) + 1
 
         if strategy_counts:
-            print("\nStrategies used:")
+            logger.info("Strategies used:")
             for strategy, count in sorted(strategy_counts.items()):
-                print(f"  {strategy}: {count}")
+                logger.info(f"  {strategy}: {count}")
 
         if any(level > 0 for level in fallback_counts):
-            print("\nFallback usage:")
+            logger.info("Fallback usage:")
             for level, count in sorted(fallback_counts.items()):
                 if level == 0:
-                    print(f"  Primary worked: {count}")
+                    logger.info(f"  Primary worked: {count}")
                 else:
-                    print(f"  Fallback #{level}: {count}")
+                    logger.info(f"  Fallback #{level}: {count}")
 
         # Failed steps
         if failed > 0:
-            print("\nFailed steps:")
+            logger.error("Failed steps:")
             for r in self.results:
                 if not r["success"]:
-                    print(f"  Step {r['step_id']}: {r.get('error', 'Unknown')}")
+                    logger.error(f"  Step {r['step_id']}: {r.get('error', 'Unknown')}")
 
         return failed == 0
 
@@ -272,6 +281,7 @@ def main():
 Examples:
   python -m replayer.main --workflow my_workflow.json
   python -m replayer.main -w test.json --delay 1000 --verbose
+  python -m replayer.main -w test.json --log-level DEBUG
 
 The replayer will:
 1. Load the workflow file
@@ -306,13 +316,44 @@ The replayer will:
         help="Show what would be done without executing"
     )
 
+    parser.add_argument(
+        "--config",
+        help="Path to configuration file (JSON or YAML)"
+    )
+
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        default="INFO",
+        help="Log level (default: INFO)"
+    )
+
+    parser.add_argument(
+        "--log-file",
+        action="store_true",
+        help="Enable logging to file"
+    )
+
     args = parser.parse_args()
+
+    # Initialize configuration
+    if args.config:
+        init_config(args.config)
+
+    # Setup logging
+    setup_replayer_logging(
+        level=args.log_level,
+        log_to_file=args.log_file,
+        log_to_console=True
+    )
+
+    logger.info("DittoMation Replayer starting...")
 
     # Check device connection
     if not args.dry_run:
         if not check_device_connected():
-            print("Error: No Android device connected.")
-            print("Please connect a device or start an emulator.")
+            logger.error("No Android device connected.")
+            logger.error("Please connect a device or start an emulator.")
             sys.exit(1)
 
     # Create session
@@ -324,7 +365,7 @@ The replayer will:
 
     # Handle signals
     def signal_handler(sig, frame):
-        print("\nStopping replay...")
+        logger.info("Stopping replay...")
         session.stop()
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -336,14 +377,23 @@ The replayer will:
 
     # Dry run mode
     if args.dry_run:
-        print("\n[DRY RUN] Steps that would be executed:\n")
+        logger.info("[DRY RUN] Steps that would be executed:")
         for step in session.workflow:
-            print(f"  {format_step(step)}")
+            logger.info(f"  {format_step(step)}")
         sys.exit(0)
 
     # Run replay
-    success = session.run()
-    sys.exit(0 if success else 1)
+    try:
+        success = session.run()
+        sys.exit(0 if success else 1)
+    except DittoMationError as e:
+        logger.error(f"Error: {e.message}")
+        if e.hint:
+            logger.info(f"Hint: {e.hint}")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -14,10 +14,14 @@ Flow:
 """
 
 import argparse
+import os
 import signal
 import sys
 import time
 from typing import Optional, Dict, Any, List
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from recorder.adb_wrapper import check_device_connected, get_screen_size, wait_for_device
@@ -33,6 +37,13 @@ except ImportError:
     from element_matcher import match_element_at_point, describe_match
     from gesture_classifier import GestureClassifier, Gesture, describe_gesture
     from workflow import WorkflowRecorder, format_step
+
+from core.logging_config import setup_recorder_logging, get_logger
+from core.config_manager import init_config, get_config_value
+from core.exceptions import DeviceNotFoundError, DittoMationError
+
+# Module logger
+logger = get_logger("recorder.main")
 
 
 class RecordingSession:
@@ -79,9 +90,9 @@ class RecordingSession:
                 step_num = len(self.workflow) + 1
                 xml_path = self.workflow.get_ui_snapshot_path(step_num)
                 self._pending_ui_tree, self._pending_elements = capture_ui(xml_path)
-                print(f"  UI captured ({len(self._pending_elements)} elements)")
+                logger.debug(f"UI captured ({len(self._pending_elements)} elements)")
             except Exception as e:
-                print(f"  Warning: UI capture failed: {e}")
+                logger.warning(f"UI capture failed: {e}")
                 self._pending_ui_tree = None
                 self._pending_elements = []
 
@@ -100,17 +111,17 @@ class RecordingSession:
         Args:
             gesture: Classified Gesture
         """
-        print(f"\n{describe_gesture(gesture)}")
+        logger.info(f"{describe_gesture(gesture)}")
 
         # Match element at gesture start point
         x, y = gesture.start
         element, locator = match_element_at_point(self._pending_elements, x, y)
 
         if element:
-            print(f"  Element: {pretty_print_element(element)}")
-            print(f"  Locator: {describe_match(element, locator)}")
+            logger.debug(f"Element: {pretty_print_element(element)}")
+            logger.debug(f"Locator: {describe_match(element, locator)}")
         else:
-            print(f"  No element matched at ({x}, {y})")
+            logger.debug(f"No element matched at ({x}, {y})")
 
         # Add step to workflow
         step_num = len(self.workflow) + 1
@@ -123,7 +134,7 @@ class RecordingSession:
             ui_xml_file=xml_path
         )
 
-        print(f"  -> {format_step(step)}")
+        logger.info(f"Step recorded: {format_step(step)}")
 
     def _check_scrollable(self, x: int, y: int) -> bool:
         """Check if coordinates are in a scrollable container."""
@@ -135,21 +146,21 @@ class RecordingSession:
 
     def start(self) -> None:
         """Start the recording session."""
-        print("=" * 50)
-        print("Android Recorder")
-        print("=" * 50)
+        logger.info("=" * 50)
+        logger.info("Android Recorder")
+        logger.info("=" * 50)
 
         # Check device connection
         if not check_device_connected():
-            print("No device detected. Waiting for device...")
+            logger.info("No device detected. Waiting for device...")
             if not wait_for_device(timeout=60):
-                print("Error: No Android device connected.")
-                print("Please connect a device or start an emulator.")
+                logger.error("No Android device connected.")
+                logger.error("Please connect a device or start an emulator.")
                 sys.exit(1)
 
         # Get screen info (with retry for slow boot)
         width, height = get_screen_size()
-        print(f"Screen size: {width}x{height}")
+        logger.info(f"Screen size: {width}x{height}")
 
         # Initialize components
         self.workflow = WorkflowRecorder(output_dir=self.output_dir)
@@ -160,14 +171,14 @@ class RecordingSession:
         self.listener.on_event(self._on_touch_event)
 
         # Start listening
-        print("\nStarting touch event capture...")
+        logger.info("Starting touch event capture...")
         self.listener.start()
         self._running = True
 
-        print("\n" + "=" * 50)
-        print("Recording started. Interact with the device.")
-        print("Press Ctrl+C to stop and save.")
-        print("=" * 50 + "\n")
+        logger.info("=" * 50)
+        logger.info("Recording started. Interact with the device.")
+        logger.info("Press Ctrl+C to stop and save.")
+        logger.info("=" * 50)
 
     def stop(self) -> None:
         """Stop the recording session and save workflow."""
@@ -177,22 +188,22 @@ class RecordingSession:
             self.listener.stop()
 
         if self.workflow and len(self.workflow) > 0:
-            print("\n" + "=" * 50)
-            print("Recording stopped.")
-            print("=" * 50)
+            logger.info("=" * 50)
+            logger.info("Recording stopped.")
+            logger.info("=" * 50)
 
             # Deduplicate
             removed = self.workflow.deduplicate()
             if removed > 0:
-                print(f"Removed {removed} duplicate step(s)")
+                logger.info(f"Removed {removed} duplicate step(s)")
 
             # Save workflow
             self.workflow.save(self.output_path)
 
             # Print summary
-            print("\n" + self.workflow.summary())
+            logger.info(self.workflow.summary())
         else:
-            print("\nNo steps recorded.")
+            logger.info("No steps recorded.")
 
     def wait(self) -> None:
         """Wait for recording to complete (Ctrl+C)."""
@@ -212,6 +223,7 @@ def main():
 Examples:
   python -m recorder.main --output my_workflow.json
   python -m recorder.main -o test.json --output-dir ./snapshots
+  python -m recorder.main --log-level DEBUG
 
 The recorder will:
 1. Capture touch events from the connected Android device
@@ -233,7 +245,38 @@ The recorder will:
         help="Directory for UI snapshots (default: output)"
     )
 
+    parser.add_argument(
+        "--config",
+        help="Path to configuration file (JSON or YAML)"
+    )
+
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        default="INFO",
+        help="Log level (default: INFO)"
+    )
+
+    parser.add_argument(
+        "--log-file",
+        action="store_true",
+        help="Enable logging to file"
+    )
+
     args = parser.parse_args()
+
+    # Initialize configuration
+    if args.config:
+        init_config(args.config)
+
+    # Setup logging
+    setup_recorder_logging(
+        level=args.log_level,
+        log_to_file=args.log_file,
+        log_to_console=True
+    )
+
+    logger.info(f"DittoMation Recorder starting...")
 
     # Create session
     session = RecordingSession(
@@ -253,6 +296,14 @@ The recorder will:
     try:
         session.start()
         session.wait()
+    except DittoMationError as e:
+        logger.error(f"Error: {e.message}")
+        if e.hint:
+            logger.info(f"Hint: {e.hint}")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        sys.exit(1)
     finally:
         session.stop()
 

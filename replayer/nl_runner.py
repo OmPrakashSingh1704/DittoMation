@@ -39,6 +39,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from recorder.adb_wrapper import check_device_connected, get_screen_size, wait_for_device
 from recorder.ui_dumper import capture_ui_fast, get_center, pretty_print_element
 from replayer.executor import tap, long_press, swipe, press_back, press_home, input_text, make_call, end_call, dial_number, press_key
+from core.ad_filter import get_ad_filter, is_ad_element, is_sponsored_content
+from core.logging_config import get_logger
+
+# Module logger
+logger = get_logger("nl_runner")
 
 
 # UI Element Detection Constants
@@ -190,18 +195,25 @@ class NaturalLanguageRunner:
             (r'\bgo\s+to\s+["\']?(.+?)["\']?(?:\s|$)', self._action_tap),
         ]
 
-    def _find_element(self, target: str, elements: List[Dict]) -> Optional[Dict]:
-        """Find element by text, content-desc, or resource-id."""
+    def _find_element(self, target: str, elements: List[Dict], filter_ads: bool = True) -> Optional[Dict]:
+        """Find element by text, content-desc, or resource-id, optionally filtering ads."""
         target_lower = target.lower().strip()
 
         # Remove common suffixes
         target_clean = re.sub(r'\s*(app|icon|button|option|menu|item)$', '', target_lower).strip()
 
+        # Get ad filter if enabled
+        ad_filter = get_ad_filter() if filter_ads else None
+
         candidates = []
-        
+
         # First pass: look for exact matches (can return immediately)
         for elem in elements:
             if not (elem.get('clickable') or elem.get('long_clickable') or elem.get('focusable')):
+                continue
+
+            # Skip ad elements
+            if ad_filter and ad_filter.is_ad(elem):
                 continue
 
             text = elem.get('text', '').lower()
@@ -226,6 +238,10 @@ class NaturalLanguageRunner:
         # Second pass: look for partial matches
         for elem in elements:
             if not (elem.get('clickable') or elem.get('long_clickable') or elem.get('focusable')):
+                continue
+
+            # Skip ad elements
+            if ad_filter and ad_filter.is_ad(elem):
                 continue
 
             text = elem.get('text', '').lower()
@@ -788,9 +804,12 @@ class NaturalLanguageRunner:
         return False, f"Could not find filter option for '{filter_type}'"
 
     def _action_click_first_result(self, match, elements) -> Tuple[bool, str]:
-        """Click the first search result (works for web search, app stores, etc.)."""
+        """Click the first search result (works for web search, app stores, etc.), skipping ads."""
         # Refresh UI
         _, elements = capture_ui_fast()
+
+        # Get ad filter
+        ad_filter = get_ad_filter()
 
         # For web search results, look for clickable links below the search bar
         # Google search results typically have titles as clickable links
@@ -798,6 +817,23 @@ class NaturalLanguageRunner:
 
         for elem in elements:
             if not elem.get('clickable'):
+                continue
+
+            # Skip ad/sponsored elements
+            if ad_filter.is_ad(elem):
+                logger.debug(f"Skipping ad result: {elem.get('text', '')[:30]}")
+                continue
+
+            # Additional ad detection
+            text = elem.get('text', '').lower()
+            desc = elem.get('content_desc', '').lower()
+            rid = elem.get('resource_id', '').lower()
+
+            # Skip sponsored/ad results
+            if any(ad_word in text for ad_word in ['sponsored', 'ad', 'promoted', 'advertisement']):
+                logger.debug(f"Skipping sponsored result: {text[:30]}")
+                continue
+            if any(ad_word in rid for ad_word in ['ad_', '_ad', 'sponsor', 'promo']):
                 continue
 
             bounds = elem.get('bounds', (0, 0, 0, 0))
@@ -817,22 +853,20 @@ class NaturalLanguageRunner:
             if width > self.screen_width * 0.98:
                 continue
 
-            text = elem.get('text', '')
-            desc = elem.get('content_desc', '')
-            rid = elem.get('resource_id', '').lower()
+            text_orig = elem.get('text', '')
 
             # Prioritize elements that look like search results
             priority = 0
 
             # Links/titles usually have text
-            if text and len(text) > 5:
+            if text_orig and len(text_orig) > 5:
                 priority += 2
 
             # Google search result indicators
             if 'url' in rid or 'title' in rid or 'link' in rid or 'result' in rid:
                 priority += 3
 
-            if priority > 0 or (text and width > MIN_VIDEO_WIDTH_PX):
+            if priority > 0 or (text_orig and width > MIN_VIDEO_WIDTH_PX):
                 candidates.append((priority, y_pos, elem))
 
         if candidates:
@@ -848,15 +882,74 @@ class NaturalLanguageRunner:
         return False, "Could not find a search result to click"
 
     def _action_play_first(self, match, elements) -> Tuple[bool, str]:
-        """Play/tap the first video or result."""
+        """Play/tap the first video or result (skipping ads/sponsored content)."""
         # Refresh UI
         _, elements = capture_ui_fast()
 
-        # Look for video thumbnails - need to distinguish from channel banners
+        # Get ad filter
+        ad_filter = get_ad_filter()
+
+        # First pass: Find all "Sponsored" label elements and get their positions
+        # YouTube shows "Sponsored" as a separate label below ad videos
+        sponsored_regions = []
+        for elem in elements:
+            text = elem.get('text', '').lower().strip()
+            desc = elem.get('content_desc', '').lower().strip()
+
+            # Check for sponsored labels
+            if text in ['sponsored', 'ad', 'promoted', 'advertisement'] or \
+               desc in ['sponsored', 'ad', 'promoted', 'advertisement']:
+                bounds = elem.get('bounds', (0, 0, 0, 0))
+                # Mark a region above the sponsored label as "ad zone"
+                # Typically the video thumbnail is directly above the label
+                # Expand the region to cover typical video thumbnail area
+                ad_zone = (
+                    bounds[0] - 50,   # x1 with padding
+                    bounds[1] - 400,  # y1: go up 400px to cover thumbnail
+                    bounds[2] + 50,   # x2 with padding
+                    bounds[3] + 50    # y2 with padding
+                )
+                sponsored_regions.append(ad_zone)
+                logger.debug(f"Found sponsored label at {bounds}, marking ad zone: {ad_zone}")
+
+        def is_in_sponsored_region(elem_bounds):
+            """Check if element is within any sponsored region."""
+            ex1, ey1, ex2, ey2 = elem_bounds
+            elem_center_x = (ex1 + ex2) // 2
+            elem_center_y = (ey1 + ey2) // 2
+
+            for zone in sponsored_regions:
+                zx1, zy1, zx2, zy2 = zone
+                if zx1 <= elem_center_x <= zx2 and zy1 <= elem_center_y <= zy2:
+                    return True
+            return False
+
+        # Look for video thumbnails - need to distinguish from channel banners and ads
         candidates = []
 
         for elem in elements:
             if not elem.get('clickable'):
+                continue
+
+            # Skip ad/sponsored elements
+            if ad_filter.is_ad(elem):
+                logger.debug(f"Skipping ad element: {elem.get('content_desc', '')[:30] or elem.get('text', '')[:30]}")
+                continue
+
+            # Additional ad detection for YouTube-specific patterns
+            rid = elem.get('resource_id', '').lower()
+            desc = elem.get('content_desc', '').lower()
+            text = elem.get('text', '').lower()
+
+            # Skip sponsored/promoted content
+            if any(ad_word in text for ad_word in ['sponsored', 'ad', 'promoted', 'advertisement']):
+                logger.debug(f"Skipping sponsored text: {text[:30]}")
+                continue
+            if any(ad_word in desc for ad_word in ['sponsored', 'ad ', ' ad', 'promoted', 'advertisement']):
+                logger.debug(f"Skipping sponsored desc: {desc[:30]}")
+                continue
+            if any(ad_word in rid for ad_word in ['ad_', '_ad', 'sponsor', 'promo']):
+                logger.debug(f"Skipping ad resource ID: {rid}")
                 continue
 
             bounds = elem.get('bounds', (0, 0, 0, 0))
@@ -871,10 +964,6 @@ class NaturalLanguageRunner:
             # Skip elements at the very top (usually navigation)
             if bounds[1] < 250:
                 continue
-
-            rid = elem.get('resource_id', '').lower()
-            desc = elem.get('content_desc', '').lower()
-            text = elem.get('text', '').lower()
 
             # Skip channel-related elements
             if any(skip in rid for skip in ['channel', 'avatar', 'subscribe', 'profile']):

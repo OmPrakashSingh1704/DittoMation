@@ -5,14 +5,25 @@ Uses uiautomator to dump the view hierarchy and parses it into
 a structured format for element matching.
 """
 
+import os
 import re
+import sys
 import xml.etree.ElementTree as ET
 from typing import Optional, Tuple, List, Dict, Any
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from recorder.adb_wrapper import dump_ui, run_adb
 except ImportError:
     from adb_wrapper import dump_ui, run_adb
+
+from core.logging_config import get_logger
+from core.exceptions import UIHierarchyError, InvalidBoundsError
+
+# Module logger
+logger = get_logger("ui_dumper")
 
 
 def parse_bounds(bounds_str: str) -> Tuple[int, int, int, int]:
@@ -172,9 +183,13 @@ def capture_ui_fast(max_retries: int = 5, retry_delay: float = 1.0) -> Tuple[Opt
     try:
         root = dump_ui(max_retries=max_retries, retry_delay=retry_delay)
         elements = get_all_elements(root)
+        logger.debug(f"Captured UI with {len(elements)} elements")
         return root, elements
+    except UIHierarchyError as e:
+        logger.warning(f"UI dump failed: {e.message}")
+        return None, []
     except Exception as e:
-        print(f"Warning: UI dump failed: {e}")
+        logger.warning(f"UI dump failed: {e}")
         return None, []
 
 

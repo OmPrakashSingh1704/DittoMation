@@ -1,0 +1,15 @@
+{
+  "_comment": "Example device-specific configuration. Copy and rename to your device ID.",
+  "device": {
+    "screen_width": 1080,
+    "screen_height": 2400
+  },
+  "gestures": {
+    "tap_max_movement_px": 60,
+    "swipe_min_distance_px": 40
+  },
+  "nl_runner": {
+    "scroll_distance_px": 700,
+    "navbar_height_px": 350
+  }
+}
