@@ -459,7 +459,6 @@ def build_xpath(element: Dict[str, Any]) -> str:
     return f"({parts[0]})[{element.get('index', 0) + 1}]"
 
 
-
 def build_locator(element: Dict[str, Any]) -> Dict[str, Any]:
     """
     Generate locator with fallback chain.

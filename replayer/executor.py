@@ -419,7 +419,9 @@ def execute_gesture(
         # Calculate end point relative to new start if coordinates were overridden
         if coordinates:
             orig_start = gesture.get("start", [0, 0])
-            if isinstance(orig_start, (list, tuple)) and len(orig_start) >= 2:
+            # Ensure both orig_start and end are valid before calculating delta
+            if (isinstance(orig_start, (list, tuple)) and len(orig_start) >= 2 and
+                isinstance(end, (list, tuple)) and len(end) >= 2):
                 dx = end[0] - orig_start[0]
                 dy = end[1] - orig_start[1]
                 end_x = x + dx
@@ -432,7 +434,9 @@ def execute_gesture(
         # Similar to swipe
         if coordinates:
             orig_start = gesture.get("start", [0, 0])
-            if isinstance(orig_start, (list, tuple)) and len(orig_start) >= 2:
+            # Ensure both orig_start and end are valid before calculating delta
+            if (isinstance(orig_start, (list, tuple)) and len(orig_start) >= 2 and
+                isinstance(end, (list, tuple)) and len(end) >= 2):
                 dx = end[0] - orig_start[0]
                 dy = end[1] - orig_start[1]
                 end_x = x + dx
