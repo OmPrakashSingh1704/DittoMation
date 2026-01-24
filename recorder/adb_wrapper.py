@@ -17,7 +17,7 @@ import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
-from typing import Optional, Tuple, List, Generator
+from typing import Optional, Tuple, List, Generator, Dict
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -130,6 +130,9 @@ def get_adb_path() -> str:
 
 # Cache ADB path after first detection
 _adb_path: Optional[str] = None
+
+# Cache screen size per device
+_screen_size_cache: Dict[str, Tuple[int, int]] = {}
 
 
 def _get_adb() -> str:
@@ -301,7 +304,7 @@ def get_connected_devices() -> List[dict]:
 
 def get_screen_size() -> Tuple[int, int]:
     """
-    Get device screen size.
+    Get device screen size (cached per device).
 
     Returns:
         Tuple of (width, height) in pixels
@@ -309,6 +312,11 @@ def get_screen_size() -> Tuple[int, int]:
     Raises:
         ADBCommandError: If screen size cannot be determined
     """
+    # Check cache first
+    device_serial = get_device_serial()
+    if device_serial and device_serial in _screen_size_cache:
+        return _screen_size_cache[device_serial]
+    
     # Try wm size first
     try:
         output = run_adb(['shell', 'wm', 'size'])
@@ -317,6 +325,9 @@ def get_screen_size() -> Tuple[int, int]:
         if match:
             width, height = int(match.group(1)), int(match.group(2))
             logger.debug(f"Screen size from wm: {width}x{height}")
+            # Cache the result
+            if device_serial:
+                _screen_size_cache[device_serial] = (width, height)
             return width, height
     except Exception as e:
         logger.debug(f"wm size failed: {e}")
@@ -329,12 +340,16 @@ def get_screen_size() -> Tuple[int, int]:
         if match:
             width, height = int(match.group(1)), int(match.group(2))
             logger.debug(f"Screen size from SurfaceFlinger: {width}x{height}")
+            if device_serial:
+                _screen_size_cache[device_serial] = (width, height)
             return width, height
         # Look for "w/h:1080x2400" pattern
         match = re.search(r'w/h:(\d+)x(\d+)', output)
         if match:
             width, height = int(match.group(1)), int(match.group(2))
             logger.debug(f"Screen size from SurfaceFlinger (w/h): {width}x{height}")
+            if device_serial:
+                _screen_size_cache[device_serial] = (width, height)
             return width, height
     except Exception as e:
         logger.debug(f"SurfaceFlinger failed: {e}")
@@ -346,12 +361,16 @@ def get_screen_size() -> Tuple[int, int]:
         if match:
             width, height = int(match.group(1)), int(match.group(2))
             logger.debug(f"Screen size from display: {width}x{height}")
+            if device_serial:
+                _screen_size_cache[device_serial] = (width, height)
             return width, height
         # Alternative pattern
         match = re.search(r'(\d+)\s*x\s*(\d+)', output)
         if match:
             width, height = int(match.group(1)), int(match.group(2))
             logger.debug(f"Screen size from display (alt): {width}x{height}")
+            if device_serial:
+                _screen_size_cache[device_serial] = (width, height)
             return width, height
     except Exception as e:
         logger.debug(f"dumpsys display failed: {e}")
@@ -363,6 +382,8 @@ def get_screen_size() -> Tuple[int, int]:
         if width_out.strip() and height_out.strip():
             width, height = int(width_out.strip()), int(height_out.strip())
             logger.debug(f"Screen size from getprop: {width}x{height}")
+            if device_serial:
+                _screen_size_cache[device_serial] = (width, height)
             return width, height
     except Exception as e:
         logger.debug(f"getprop failed: {e}")
@@ -372,7 +393,10 @@ def get_screen_size() -> Tuple[int, int]:
     config_height = get_config_value("device.screen_height")
     if config_width and config_height:
         logger.info(f"Using screen size from config: {config_width}x{config_height}")
-        return config_width, config_height
+        result = (config_width, config_height)
+        if device_serial:
+            _screen_size_cache[device_serial] = result
+        return result
 
     logger.warning("Could not detect screen size, using default 1080x1920")
     return 1080, 1920

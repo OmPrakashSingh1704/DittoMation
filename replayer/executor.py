@@ -231,14 +231,21 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
             chunk = text[i:i + chunk_size]
 
             # Escape special characters for shell
+            # Using shlex-like approach for better security
             escaped = ''
             for char in chunk:
                 if char == ' ':
                     escaped += '%s'
-                elif char in '\'"&<>()|;\\`$!#*?[]{}.':
+                elif char in '\'"&<>()|;\\`$!#*?[]{}.\n\r\t':
+                    # Add backslash escaping for shell-sensitive chars
                     escaped += '\\' + char
                 else:
-                    escaped += char
+                    # Only allow printable ASCII characters
+                    if ord(char) >= 32 and ord(char) < 127:
+                        escaped += char
+                    else:
+                        # Skip non-printable characters for security
+                        continue
 
             run_adb(['shell', 'input', 'text', escaped])
 
