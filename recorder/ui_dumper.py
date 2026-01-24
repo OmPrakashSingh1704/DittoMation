@@ -91,10 +91,16 @@ def element_to_dict(element: ET.Element, parent_path: str = "") -> Dict[str, Any
 
     # Build xpath
     class_name = attrib.get('class', 'node')
-    index = attrib.get('index', '0')
+    index_str = attrib.get('index', '0')
+    
+    # Safely parse index
+    try:
+        index = int(index_str)
+    except (ValueError, TypeError):
+        index = 0
 
     if parent_path:
-        xpath = f"{parent_path}/{class_name}[{int(index) + 1}]"
+        xpath = f"{parent_path}/{class_name}[{index + 1}]"
     else:
         xpath = f"//{class_name}"
 
@@ -114,7 +120,7 @@ def element_to_dict(element: ET.Element, parent_path: str = "") -> Dict[str, Any
         "checkable": attrib.get('checkable', 'false') == 'true',
         "checked": attrib.get('checked', 'false') == 'true',
         "package": attrib.get('package', ''),
-        "index": int(index),
+        "index": index,
         "xpath": xpath,
     }
 
