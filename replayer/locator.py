@@ -210,9 +210,12 @@ class ElementLocator:
         if recorded_bounds:
             if len(recorded_bounds) == 4:
                 center = get_center(tuple(recorded_bounds))
-            else:
+            elif len(recorded_bounds) >= 2:
                 # Treat as point
                 center = (recorded_bounds[0], recorded_bounds[1])
+            else:
+                # Invalid bounds, return failure
+                return LocatorResult(found=False, confidence=0.0)
 
             return LocatorResult(
                 found=False,

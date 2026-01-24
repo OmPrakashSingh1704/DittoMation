@@ -307,9 +307,16 @@ class ConfigManager:
             # Type check
             expected_type = schema.get("type")
             if expected_type and not isinstance(value, expected_type):
-                errors.append(
-                    f"{key_path}: expected {expected_type.__name__}, got {type(value).__name__}"
-                )
+                # Handle tuple of types (e.g., (int, float))
+                if isinstance(expected_type, tuple):
+                    type_names = " or ".join(t.__name__ for t in expected_type)
+                    errors.append(
+                        f"{key_path}: expected {type_names}, got {type(value).__name__}"
+                    )
+                else:
+                    errors.append(
+                        f"{key_path}: expected {expected_type.__name__}, got {type(value).__name__}"
+                    )
                 continue
 
             # Allowed values check
