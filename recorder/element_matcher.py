@@ -436,17 +436,20 @@ def build_xpath(element: Dict[str, Any]) -> str:
 
     # Add resource-id condition
     if element.get('resource_id'):
-        conditions.append(f"@resource-id='{element['resource_id']}'")
+        # Escape single quotes for XPath
+        rid = element['resource_id'].replace("'", "&apos;")
+        conditions.append(f"@resource-id='{rid}'")
 
     # Add text condition
     if element.get('text'):
-        # Escape quotes in text
-        text = element['text'].replace("'", "\\'")
+        # Escape quotes in text for XPath
+        text = element['text'].replace("'", "&apos;").replace('"', "&quot;")
         conditions.append(f"@text='{text}'")
 
     # Add content-desc condition
     if element.get('content_desc'):
-        desc = element['content_desc'].replace("'", "\\'")
+        # Escape quotes for XPath
+        desc = element['content_desc'].replace("'", "&apos;").replace('"', "&quot;")
         conditions.append(f"@content-desc='{desc}'")
 
     if conditions:
@@ -454,6 +457,7 @@ def build_xpath(element: Dict[str, Any]) -> str:
 
     # Fall back to class + index
     return f"({parts[0]})[{element.get('index', 0) + 1}]"
+
 
 
 def build_locator(element: Dict[str, Any]) -> Dict[str, Any]:

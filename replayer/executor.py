@@ -387,11 +387,21 @@ def execute_gesture(
         x, y = coordinates
     else:
         start = gesture.get("start", [0, 0])
-        x, y = start[0], start[1]
+        # Ensure start has at least 2 elements
+        if isinstance(start, (list, tuple)) and len(start) >= 2:
+            x, y = start[0], start[1]
+        else:
+            logger.warning(f"Invalid gesture start coordinates: {start}, using (0, 0)")
+            x, y = 0, 0
 
     # Get end coordinates for swipe/scroll
     end = gesture.get("end", [x, y])
-    end_x, end_y = end[0], end[1]
+    # Ensure end has at least 2 elements
+    if isinstance(end, (list, tuple)) and len(end) >= 2:
+        end_x, end_y = end[0], end[1]
+    else:
+        logger.warning(f"Invalid gesture end coordinates: {end}, using start coordinates")
+        end_x, end_y = x, y
 
     # Get duration
     duration_ms = gesture.get("duration_ms", 100)
@@ -409,10 +419,11 @@ def execute_gesture(
         # Calculate end point relative to new start if coordinates were overridden
         if coordinates:
             orig_start = gesture.get("start", [0, 0])
-            dx = end[0] - orig_start[0]
-            dy = end[1] - orig_start[1]
-            end_x = x + dx
-            end_y = y + dy
+            if isinstance(orig_start, (list, tuple)) and len(orig_start) >= 2:
+                dx = end[0] - orig_start[0]
+                dy = end[1] - orig_start[1]
+                end_x = x + dx
+                end_y = y + dy
 
         swipe_duration = max(duration_ms, 200)
         return swipe(x, y, end_x, end_y, swipe_duration)
@@ -421,10 +432,11 @@ def execute_gesture(
         # Similar to swipe
         if coordinates:
             orig_start = gesture.get("start", [0, 0])
-            dx = end[0] - orig_start[0]
-            dy = end[1] - orig_start[1]
-            end_x = x + dx
-            end_y = y + dy
+            if isinstance(orig_start, (list, tuple)) and len(orig_start) >= 2:
+                dx = end[0] - orig_start[0]
+                dy = end[1] - orig_start[1]
+                end_x = x + dx
+                end_y = y + dy
 
         scroll_duration = max(duration_ms, 300)
         return scroll(x, y, end_x, end_y, scroll_duration)
