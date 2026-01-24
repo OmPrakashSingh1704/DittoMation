@@ -13,8 +13,10 @@ Features:
 
 import os
 import re
+import shlex
 import subprocess
 import sys
+import threading
 import time
 import xml.etree.ElementTree as ET
 from typing import Optional, Tuple, List, Generator
@@ -130,15 +132,17 @@ def get_adb_path() -> str:
 
 # Cache ADB path after first detection
 _adb_path: Optional[str] = None
+_adb_path_lock = threading.Lock()
 
 
 def _get_adb() -> str:
-    """Get cached ADB path."""
+    """Get cached ADB path (thread-safe)."""
     global _adb_path
-    if _adb_path is None:
-        _adb_path = get_adb_path()
-        logger.info(f"ADB path: {_adb_path}")
-    return _adb_path
+    with _adb_path_lock:
+        if _adb_path is None:
+            _adb_path = get_adb_path()
+            logger.info(f"ADB path: {_adb_path}")
+        return _adb_path
 
 
 def run_adb_with_retry(
@@ -523,9 +527,9 @@ def dump_ui(output_path: Optional[str] = None, max_retries: Optional[int] = None
                 )
                 time.sleep(0.5)
 
-            # Dump UI - use quoted command to avoid path escaping issues
+            # Dump UI - use separate command arguments to avoid injection
             dump_result = subprocess.run(
-                [adb, 'shell', f'uiautomator dump {device_path}'],
+                [adb, 'shell', 'uiautomator', 'dump', device_path],
                 capture_output=True,
                 timeout=60  # Increased timeout
             )
@@ -542,7 +546,7 @@ def dump_ui(output_path: Optional[str] = None, max_retries: Optional[int] = None
 
             # Pull the file content
             cat_result = subprocess.run(
-                [adb, 'shell', f'cat {device_path}'],
+                [adb, 'shell', 'cat', device_path],
                 capture_output=True,
                 timeout=10
             )
@@ -563,7 +567,7 @@ def dump_ui(output_path: Optional[str] = None, max_retries: Optional[int] = None
 
             # Clean up device file (ignore errors)
             subprocess.run(
-                [adb, 'shell', f'rm {device_path}'],
+                [adb, 'shell', 'rm', device_path],
                 capture_output=True,
                 timeout=5
             )

@@ -336,8 +336,8 @@ class Automation:
                     if self.screenshot_on_failure:
                         try:
                             self.android.screenshot(f"failure_step_{i+1}.png")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            logger.warning(f"Could not capture screenshot: {e}")
 
                     if step.on_failure == "stop" or (self.stop_on_failure and not step.optional):
                         error_msg = f"Step {i+1} failed: {result.error}"

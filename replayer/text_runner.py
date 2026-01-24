@@ -268,8 +268,9 @@ Examples:
     runner = TextRunner(delay_ms=args.delay, verbose=args.verbose)
     try:
         runner.screen_width, runner.screen_height = get_screen_size()
-    except:
-        pass
+    except Exception as e:
+        print(f"Warning: Could not get screen size: {e}. Using defaults.")
+        # Continue with default screen size values
 
     print("=" * 50)
     print("Text Workflow Runner")

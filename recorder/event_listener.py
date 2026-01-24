@@ -101,8 +101,10 @@ class TouchEventListener:
         """
         self.device_path = device_path
         self._running = False
+        self._running_lock = threading.Lock()
         self._thread: Optional[threading.Thread] = None
         self._process: Optional[subprocess.Popen] = None
+        self._process_lock = threading.Lock()
         self._callbacks: List[Callable[[TouchEvent], None]] = []
 
         # Calibration values
@@ -267,18 +269,31 @@ class TouchEventListener:
 
         cmd = [adb, 'shell', getevent_cmd]
 
-        self._process = subprocess.Popen(
+        process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             bufsize=0  # Unbuffered
         )
+        
+        with self._process_lock:
+            self._process = process
 
         try:
             # Read byte by byte to avoid buffering issues
             line_buffer = b''
-            while self._running:
-                byte = self._process.stdout.read(1)
+            # Check _running flag safely
+            with self._running_lock:
+                running = self._running
+            
+            while running:
+                with self._process_lock:
+                    process = self._process
+                
+                if not process:
+                    break
+                    
+                byte = process.stdout.read(1)
                 if not byte:
                     break
                 if byte == b'\n':
@@ -288,39 +303,49 @@ class TouchEventListener:
                         self._parse_line(line)
                 else:
                     line_buffer += byte
+                
+                # Check if still running
+                with self._running_lock:
+                    running = self._running
+                    
         except Exception as e:
-            if self._running:
-                logger.error(f"Error in event listener: {e}")
+            with self._running_lock:
+                if self._running:
+                    logger.error(f"Error in event listener: {e}")
         finally:
-            if self._process:
-                self._process.terminate()
-                self._process.wait()
+            with self._process_lock:
+                if self._process:
+                    self._process.terminate()
+                    self._process.wait()
 
     def start(self) -> None:
         """Begin listening to touch device."""
-        if self._running:
-            return
+        with self._running_lock:
+            if self._running:
+                return
+            self._running = True
 
         self._calibrate()
-        self._running = True
         self._thread = threading.Thread(target=self._listen_loop, daemon=True)
         self._thread.start()
         logger.info("Touch event listener started")
 
     def stop(self) -> None:
         """Stop listening."""
-        self._running = False
+        with self._running_lock:
+            self._running = False
 
-        if self._process:
-            try:
-                self._process.terminate()
-                self._process.wait(timeout=2.0)
-            except subprocess.TimeoutExpired:
-                # Force kill if terminate didn't work
-                self._process.kill()
-                self._process.wait()
-            except Exception as e:
-                logger.warning(f"Error stopping process: {e}")
+        with self._process_lock:
+            if self._process:
+                try:
+                    self._process.terminate()
+                    self._process.wait(timeout=2.0)
+                except subprocess.TimeoutExpired:
+                    # Force kill if terminate didn't work
+                    self._process.kill()
+                    self._process.wait()
+                except Exception as e:
+                    logger.warning(f"Error stopping process: {e}")
 
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=2.0)
