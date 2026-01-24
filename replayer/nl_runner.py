@@ -1169,8 +1169,8 @@ Natural language examples:
 
     try:
         runner.screen_width, runner.screen_height = get_screen_size()
-    except:
-        pass
+    except Exception as e:
+        logger.warning(f"Could not detect screen size, using default {runner.screen_width}x{runner.screen_height}. Error: {e}")
 
     print("=" * 50)
     print("Natural Language Workflow Runner")

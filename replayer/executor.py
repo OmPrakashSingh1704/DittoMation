@@ -26,21 +26,26 @@ def tap(x: int, y: int) -> bool:
     Execute tap gesture.
 
     Args:
-        x: X coordinate
-        y: Y coordinate
+        x: X coordinate (must be non-negative)
+        y: Y coordinate (must be non-negative)
 
     Returns:
         True if successful
+        
+    Raises:
+        InvalidGestureError: If coordinates are negative
     """
     try:
-        # Validate coordinates
+        # Validate coordinates - reject negative values
         if x < 0 or y < 0:
-            logger.warning(f"Invalid negative coordinates ({x}, {y}), clamping to 0")
-            x = max(0, x)
-            y = max(0, y)
+            error_msg = f"Invalid negative coordinates ({x}, {y}). Coordinates must be non-negative."
+            logger.error(error_msg)
+            raise InvalidGestureError(error_msg)
         
         run_adb(['shell', 'input', 'tap', str(x), str(y)])
         return True
+    except InvalidGestureError:
+        raise  # Re-raise validation errors
     except Exception as e:
         logger.error(f"Tap failed: {e}")
         return False
@@ -200,21 +205,26 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
     Input text string.
 
     Args:
-        text: Text to input
+        text: Text to input (max 5000 characters)
         chunk_size: Characters per chunk (smaller = slower but more reliable)
         clear_first: If True, clear the field before typing
 
     Returns:
         True if successful
+        
+    Raises:
+        InvalidGestureError: If text is too long (>5000 chars)
     """
     try:
         # Validate input
         if not text:
             return True  # Empty string is valid, just return success
         
+        # Enforce text length limit
         if len(text) > 5000:
-            logger.warning("Text too long, truncating to 5000 characters")
-            text = text[:5000]
+            error_msg = f"Text too long ({len(text)} characters). Maximum is 5000 characters."
+            logger.error(error_msg)
+            raise InvalidGestureError(error_msg)
         
         # Ensure chunk_size is reasonable
         chunk_size = max(1, min(chunk_size, 50))
