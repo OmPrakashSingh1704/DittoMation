@@ -4,27 +4,23 @@ import json
 import logging
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
-import pytest
-
+from core.exceptions import DittoMationError
 from core.logging_config import (
-    JsonFormatter,
     ContextAdapter,
-    get_log_level,
-    setup_logging,
-    get_logger,
-    log_exception,
+    JsonFormatter,
     LoggerMixin,
+    get_global_logger,
+    get_log_level,
+    get_logger,
+    init_logging,
+    log_exception,
+    setup_logging,
+    setup_nl_runner_logging,
     setup_recorder_logging,
     setup_replayer_logging,
-    setup_nl_runner_logging,
-    init_logging,
-    get_global_logger,
-    LOG_LEVELS,
-    DEFAULT_FORMAT,
 )
-from core.exceptions import DittoMationError
 
 
 class TestGetLogLevel:
@@ -100,6 +96,7 @@ class TestJsonFormatter:
             raise ValueError("Test exception")
         except ValueError:
             import sys
+
             exc_info = sys.exc_info()
 
         record = logging.LogRecord(
@@ -172,10 +169,7 @@ class TestSetupLogging:
         with tempfile.TemporaryDirectory() as tmpdir:
             log_dir = Path(tmpdir)
             logger = setup_logging(
-                log_to_file=True,
-                log_to_console=False,
-                log_dir=log_dir,
-                component="test"
+                log_to_file=True, log_to_console=False, log_dir=log_dir, component="test"
             )
 
             # Log something
@@ -275,6 +269,7 @@ class TestGlobalLogger:
     def test_get_global_logger_initializes_if_needed(self):
         # Reset global logger
         import core.logging_config as lc
+
         lc._global_logger = None
 
         logger = get_global_logger()

@@ -5,14 +5,15 @@ This module provides a hierarchy of exceptions for different error types,
 enabling better error handling and user-friendly error messages.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 
 class DittoMationError(Exception):
     """Base exception for all DittoMation errors."""
 
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None,
-                 hint: Optional[str] = None):
+    def __init__(
+        self, message: str, details: Optional[Dict[str, Any]] = None, hint: Optional[str] = None
+    ):
         """
         Initialize the exception.
 
@@ -38,7 +39,7 @@ class DittoMationError(Exception):
             "error_type": self.__class__.__name__,
             "message": self.message,
             "details": self.details,
-            "hint": self.hint
+            "hint": self.hint,
         }
 
 
@@ -46,16 +47,19 @@ class DittoMationError(Exception):
 # Device Errors
 # ============================================================================
 
+
 class DeviceError(DittoMationError):
     """Base exception for device-related errors."""
+
     pass
 
 
 class DeviceNotFoundError(DeviceError):
     """Raised when no Android device is connected or detected."""
 
-    def __init__(self, message: str = "No Android device found",
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, message: str = "No Android device found", details: Optional[Dict[str, Any]] = None
+    ):
         hint = (
             "Make sure your device is connected via USB and USB debugging is enabled. "
             "Run 'adb devices' to check connected devices."
@@ -66,9 +70,12 @@ class DeviceNotFoundError(DeviceError):
 class DeviceConnectionError(DeviceError):
     """Raised when connection to the device fails."""
 
-    def __init__(self, message: str = "Failed to connect to device",
-                 device_id: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        message: str = "Failed to connect to device",
+        device_id: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         hint = (
             "Try disconnecting and reconnecting the USB cable. "
             "You may also try 'adb kill-server' followed by 'adb start-server'."
@@ -82,8 +89,7 @@ class DeviceConnectionError(DeviceError):
 class DeviceOfflineError(DeviceError):
     """Raised when device is detected but offline."""
 
-    def __init__(self, device_id: str,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(self, device_id: str, details: Optional[Dict[str, Any]] = None):
         message = f"Device '{device_id}' is offline"
         hint = (
             "The device may need to be authorized. Check the device screen "
@@ -97,8 +103,7 @@ class DeviceOfflineError(DeviceError):
 class DeviceUnauthorizedError(DeviceError):
     """Raised when device is not authorized for debugging."""
 
-    def __init__(self, device_id: str,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(self, device_id: str, details: Optional[Dict[str, Any]] = None):
         message = f"Device '{device_id}' is not authorized"
         hint = (
             "Check the device screen for an authorization dialog. "
@@ -113,8 +118,10 @@ class DeviceUnauthorizedError(DeviceError):
 # ADB Errors
 # ============================================================================
 
+
 class ADBError(DittoMationError):
     """Base exception for ADB-related errors."""
+
     pass
 
 
@@ -136,17 +143,24 @@ class ADBNotFoundError(ADBError):
 class ADBCommandError(ADBError):
     """Raised when an ADB command fails."""
 
-    def __init__(self, command: str, returncode: int,
-                 stdout: str = "", stderr: str = "",
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        command: str,
+        returncode: int,
+        stdout: str = "",
+        stderr: str = "",
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"ADB command failed with exit code {returncode}"
         details = details or {}
-        details.update({
-            "command": command,
-            "returncode": returncode,
-            "stdout": stdout[:500] if stdout else "",
-            "stderr": stderr[:500] if stderr else ""
-        })
+        details.update(
+            {
+                "command": command,
+                "returncode": returncode,
+                "stdout": stdout[:500] if stdout else "",
+                "stderr": stderr[:500] if stderr else "",
+            }
+        )
         hint = None
         if "device not found" in stderr.lower():
             hint = "No device connected. Check USB connection and USB debugging settings."
@@ -158,14 +172,10 @@ class ADBCommandError(ADBError):
 class ADBTimeoutError(ADBError):
     """Raised when an ADB command times out."""
 
-    def __init__(self, command: str, timeout: int,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(self, command: str, timeout: int, details: Optional[Dict[str, Any]] = None):
         message = f"ADB command timed out after {timeout} seconds"
         details = details or {}
-        details.update({
-            "command": command,
-            "timeout": timeout
-        })
+        details.update({"command": command, "timeout": timeout})
         hint = (
             "The command took too long to complete. The device may be unresponsive "
             "or the operation may require more time. Try increasing the timeout."
@@ -177,16 +187,21 @@ class ADBTimeoutError(ADBError):
 # UI Errors
 # ============================================================================
 
+
 class UIError(DittoMationError):
     """Base exception for UI-related errors."""
+
     pass
 
 
 class UIHierarchyError(UIError):
     """Raised when UI hierarchy cannot be captured or parsed."""
 
-    def __init__(self, message: str = "Failed to capture UI hierarchy",
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        message: str = "Failed to capture UI hierarchy",
+        details: Optional[Dict[str, Any]] = None,
+    ):
         hint = (
             "The UI hierarchy dump may have failed. Wait for the screen to stabilize "
             "and try again. Some screens (like video players) may not dump properly."
@@ -197,8 +212,9 @@ class UIHierarchyError(UIError):
 class ElementNotFoundError(UIError):
     """Raised when a UI element cannot be found."""
 
-    def __init__(self, locator: str, strategy: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, locator: str, strategy: Optional[str] = None, details: Optional[Dict[str, Any]] = None
+    ):
         message = f"Element not found: {locator}"
         details = details or {}
         details["locator"] = locator
@@ -214,14 +230,10 @@ class ElementNotFoundError(UIError):
 class MultipleElementsFoundError(UIError):
     """Raised when multiple elements match when only one was expected."""
 
-    def __init__(self, locator: str, count: int,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(self, locator: str, count: int, details: Optional[Dict[str, Any]] = None):
         message = f"Multiple elements ({count}) found for locator: {locator}"
         details = details or {}
-        details.update({
-            "locator": locator,
-            "count": count
-        })
+        details.update({"locator": locator, "count": count})
         hint = (
             "Make the locator more specific to match only one element. "
             "Consider using a more unique attribute like resource-id."
@@ -232,8 +244,12 @@ class MultipleElementsFoundError(UIError):
 class InvalidBoundsError(UIError):
     """Raised when element bounds are invalid."""
 
-    def __init__(self, bounds: str, element_info: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        bounds: str,
+        element_info: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"Invalid element bounds: {bounds}"
         details = details or {}
         details["bounds"] = bounds
@@ -247,16 +263,19 @@ class InvalidBoundsError(UIError):
 # Workflow Errors
 # ============================================================================
 
+
 class WorkflowError(DittoMationError):
     """Base exception for workflow-related errors."""
+
     pass
 
 
 class WorkflowLoadError(WorkflowError):
     """Raised when a workflow file cannot be loaded."""
 
-    def __init__(self, filepath: str, reason: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, filepath: str, reason: Optional[str] = None, details: Optional[Dict[str, Any]] = None
+    ):
         message = f"Failed to load workflow: {filepath}"
         if reason:
             message += f" ({reason})"
@@ -272,8 +291,9 @@ class WorkflowLoadError(WorkflowError):
 class WorkflowSaveError(WorkflowError):
     """Raised when a workflow cannot be saved."""
 
-    def __init__(self, filepath: str, reason: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, filepath: str, reason: Optional[str] = None, details: Optional[Dict[str, Any]] = None
+    ):
         message = f"Failed to save workflow: {filepath}"
         if reason:
             message += f" ({reason})"
@@ -286,8 +306,7 @@ class WorkflowSaveError(WorkflowError):
 class WorkflowValidationError(WorkflowError):
     """Raised when a workflow fails validation."""
 
-    def __init__(self, errors: List[str],
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(self, errors: List[str], details: Optional[Dict[str, Any]] = None):
         message = f"Workflow validation failed with {len(errors)} error(s)"
         details = details or {}
         details["validation_errors"] = errors
@@ -298,14 +317,12 @@ class WorkflowValidationError(WorkflowError):
 class StepExecutionError(WorkflowError):
     """Raised when a workflow step fails to execute."""
 
-    def __init__(self, step_id: int, action: str, reason: str,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, step_id: int, action: str, reason: str, details: Optional[Dict[str, Any]] = None
+    ):
         message = f"Step {step_id} ({action}) failed: {reason}"
         details = details or {}
-        details.update({
-            "step_id": step_id,
-            "action": action
-        })
+        details.update({"step_id": step_id, "action": action})
         super().__init__(message, details)
 
 
@@ -313,16 +330,17 @@ class StepExecutionError(WorkflowError):
 # Gesture Errors
 # ============================================================================
 
+
 class GestureError(DittoMationError):
     """Base exception for gesture-related errors."""
+
     pass
 
 
 class InvalidGestureError(GestureError):
     """Raised when a gesture is invalid or cannot be performed."""
 
-    def __init__(self, gesture_type: str, reason: str,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(self, gesture_type: str, reason: str, details: Optional[Dict[str, Any]] = None):
         message = f"Invalid gesture '{gesture_type}': {reason}"
         details = details or {}
         details["gesture_type"] = gesture_type
@@ -332,17 +350,18 @@ class InvalidGestureError(GestureError):
 class GestureExecutionError(GestureError):
     """Raised when a gesture fails to execute."""
 
-    def __init__(self, gesture_type: str, coordinates: tuple,
-                 reason: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        gesture_type: str,
+        coordinates: tuple,
+        reason: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"Failed to execute {gesture_type} at {coordinates}"
         if reason:
             message += f": {reason}"
         details = details or {}
-        details.update({
-            "gesture_type": gesture_type,
-            "coordinates": coordinates
-        })
+        details.update({"gesture_type": gesture_type, "coordinates": coordinates})
         hint = (
             "The gesture may have failed due to the screen changing during execution. "
             "Try adding a wait before the gesture."
@@ -354,8 +373,10 @@ class GestureExecutionError(GestureError):
 # Input Errors
 # ============================================================================
 
+
 class InputError(DittoMationError):
     """Base exception for input-related errors."""
+
     pass
 
 
@@ -374,8 +395,12 @@ class InvalidInputDeviceError(InputError):
 class EventParseError(InputError):
     """Raised when an input event cannot be parsed."""
 
-    def __init__(self, event_line: str, reason: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        event_line: str,
+        reason: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = "Failed to parse input event"
         if reason:
             message += f": {reason}"
@@ -388,16 +413,19 @@ class EventParseError(InputError):
 # Configuration Errors
 # ============================================================================
 
+
 class ConfigurationError(DittoMationError):
     """Base exception for configuration-related errors."""
+
     pass
 
 
 class ConfigLoadError(ConfigurationError):
     """Raised when configuration cannot be loaded."""
 
-    def __init__(self, filepath: str, reason: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, filepath: str, reason: Optional[str] = None, details: Optional[Dict[str, Any]] = None
+    ):
         message = f"Failed to load configuration: {filepath}"
         if reason:
             message += f" ({reason})"
@@ -410,8 +438,7 @@ class ConfigLoadError(ConfigurationError):
 class ConfigValidationError(ConfigurationError):
     """Raised when configuration fails validation."""
 
-    def __init__(self, errors: List[str],
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(self, errors: List[str], details: Optional[Dict[str, Any]] = None):
         message = f"Configuration validation failed with {len(errors)} error(s)"
         details = details or {}
         details["validation_errors"] = errors
@@ -422,15 +449,12 @@ class ConfigValidationError(ConfigurationError):
 class InvalidConfigValueError(ConfigurationError):
     """Raised when a configuration value is invalid."""
 
-    def __init__(self, key: str, value: Any, expected: str,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, key: str, value: Any, expected: str, details: Optional[Dict[str, Any]] = None
+    ):
         message = f"Invalid configuration value for '{key}': {value} (expected {expected})"
         details = details or {}
-        details.update({
-            "key": key,
-            "value": value,
-            "expected": expected
-        })
+        details.update({"key": key, "value": value, "expected": expected})
         super().__init__(message, details)
 
 
@@ -438,16 +462,19 @@ class InvalidConfigValueError(ConfigurationError):
 # Natural Language Errors
 # ============================================================================
 
+
 class NaturalLanguageError(DittoMationError):
     """Base exception for natural language processing errors."""
+
     pass
 
 
 class CommandParseError(NaturalLanguageError):
     """Raised when a natural language command cannot be parsed."""
 
-    def __init__(self, command: str, reason: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, command: str, reason: Optional[str] = None, details: Optional[Dict[str, Any]] = None
+    ):
         message = f"Failed to parse command: '{command}'"
         if reason:
             message += f" ({reason})"
@@ -463,9 +490,12 @@ class CommandParseError(NaturalLanguageError):
 class UnknownActionError(NaturalLanguageError):
     """Raised when a natural language action is not recognized."""
 
-    def __init__(self, action: str,
-                 similar_actions: Optional[List[str]] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        action: str,
+        similar_actions: Optional[List[str]] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"Unknown action: '{action}'"
         details = details or {}
         details["action"] = action
@@ -484,11 +514,16 @@ class UnknownActionError(NaturalLanguageError):
 # Expression & Variable Errors
 # ============================================================================
 
+
 class ExpressionError(DittoMationError):
     """Base exception for expression evaluation errors."""
 
-    def __init__(self, expression: str, reason: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        expression: str,
+        reason: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"Expression evaluation failed: {expression}"
         if reason:
             message += f" ({reason})"
@@ -504,8 +539,7 @@ class ExpressionError(DittoMationError):
 class UnsafeExpressionError(ExpressionError):
     """Raised when expression contains unsafe operations."""
 
-    def __init__(self, reason: str, expression: str = "",
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(self, reason: str, expression: str = "", details: Optional[Dict[str, Any]] = None):
         message = f"Unsafe expression blocked: {reason}"
         details = details or {}
         details["reason"] = reason
@@ -522,8 +556,12 @@ class UnsafeExpressionError(ExpressionError):
 class VariableNotFoundError(DittoMationError):
     """Raised when a referenced variable doesn't exist."""
 
-    def __init__(self, variable: str, available: Optional[List[str]] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        variable: str,
+        available: Optional[List[str]] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"Variable not found: '{variable}'"
         details = details or {}
         details["variable"] = variable
@@ -544,23 +582,26 @@ class VariableNotFoundError(DittoMationError):
 # Control Flow Errors
 # ============================================================================
 
+
 class ControlFlowError(DittoMationError):
     """Base exception for control flow errors."""
+
     pass
 
 
 class LoopLimitError(ControlFlowError):
     """Raised when a loop exceeds its maximum iterations."""
 
-    def __init__(self, loop_type: str, max_iterations: int,
-                 condition: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        loop_type: str,
+        max_iterations: int,
+        condition: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"{loop_type} loop exceeded maximum iterations ({max_iterations})"
         details = details or {}
-        details.update({
-            "loop_type": loop_type,
-            "max_iterations": max_iterations
-        })
+        details.update({"loop_type": loop_type, "max_iterations": max_iterations})
         if condition:
             details["condition"] = condition
         hint = (
@@ -598,8 +639,12 @@ class InvalidControlFlowError(ControlFlowError):
 class AssertionFailedError(DittoMationError):
     """Raised when an assert action fails."""
 
-    def __init__(self, condition: str, message_text: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        condition: str,
+        message_text: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"Assertion failed: {condition}"
         if message_text:
             message += f" - {message_text}"
@@ -613,16 +658,22 @@ class AssertionFailedError(DittoMationError):
 # Emulator Errors
 # ============================================================================
 
+
 class EmulatorError(DittoMationError):
     """Base exception for emulator-related errors."""
+
     pass
 
 
 class AVDNotFoundError(EmulatorError):
     """Raised when an AVD (Android Virtual Device) is not found."""
 
-    def __init__(self, avd_name: str, available_avds: Optional[List[str]] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        avd_name: str,
+        available_avds: Optional[List[str]] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"AVD not found: '{avd_name}'"
         details = details or {}
         details["avd_name"] = avd_name
@@ -640,8 +691,9 @@ class AVDNotFoundError(EmulatorError):
 class EmulatorStartError(EmulatorError):
     """Raised when an emulator fails to start."""
 
-    def __init__(self, avd_name: str, reason: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, avd_name: str, reason: Optional[str] = None, details: Optional[Dict[str, Any]] = None
+    ):
         message = f"Failed to start emulator: '{avd_name}'"
         if reason:
             message += f" ({reason})"
@@ -657,14 +709,16 @@ class EmulatorStartError(EmulatorError):
 class EmulatorBootTimeoutError(EmulatorError):
     """Raised when an emulator fails to boot within the timeout period."""
 
-    def __init__(self, avd_name: str, timeout: int, serial: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        avd_name: str,
+        timeout: int,
+        serial: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"Emulator '{avd_name}' failed to boot within {timeout} seconds"
         details = details or {}
-        details.update({
-            "avd_name": avd_name,
-            "timeout": timeout
-        })
+        details.update({"avd_name": avd_name, "timeout": timeout})
         if serial:
             details["serial"] = serial
         hint = (
@@ -677,8 +731,7 @@ class EmulatorBootTimeoutError(EmulatorError):
 class EmulatorNotRunningError(EmulatorError):
     """Raised when an operation requires a running emulator but none is found."""
 
-    def __init__(self, serial: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(self, serial: Optional[str] = None, details: Optional[Dict[str, Any]] = None):
         if serial:
             message = f"Emulator '{serial}' is not running"
         else:
@@ -694,12 +747,17 @@ class EmulatorNotRunningError(EmulatorError):
 # Cloud Provider Errors
 # ============================================================================
 
+
 class CloudProviderError(DittoMationError):
     """Base exception for cloud provider errors."""
 
-    def __init__(self, provider: str, message: str,
-                 details: Optional[Dict[str, Any]] = None,
-                 hint: Optional[str] = None):
+    def __init__(
+        self,
+        provider: str,
+        message: str,
+        details: Optional[Dict[str, Any]] = None,
+        hint: Optional[str] = None,
+    ):
         details = details or {}
         details["provider"] = provider
         super().__init__(f"[{provider}] {message}", details, hint)
@@ -708,8 +766,9 @@ class CloudProviderError(DittoMationError):
 class CloudAuthenticationError(CloudProviderError):
     """Raised when cloud provider authentication fails."""
 
-    def __init__(self, provider: str, reason: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, provider: str, reason: Optional[str] = None, details: Optional[Dict[str, Any]] = None
+    ):
         message = "Authentication failed"
         if reason:
             message += f": {reason}"
@@ -731,17 +790,18 @@ class CloudAuthenticationError(CloudProviderError):
 class CloudDeviceNotAvailableError(CloudProviderError):
     """Raised when a requested cloud device is not available."""
 
-    def __init__(self, provider: str, device_model: str,
-                 os_version: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        provider: str,
+        device_model: str,
+        os_version: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"Device not available: {device_model}"
         if os_version:
             message += f" (OS {os_version})"
         details = details or {}
-        details.update({
-            "device_model": device_model,
-            "os_version": os_version
-        })
+        details.update({"device_model": device_model, "os_version": os_version})
         hint = (
             f"The requested device may not exist or is currently unavailable. "
             f"Use 'ditto cloud list-devices --provider {provider}' to see available devices."
@@ -752,8 +812,13 @@ class CloudDeviceNotAvailableError(CloudProviderError):
 class CloudTestRunError(CloudProviderError):
     """Raised when a cloud test run fails."""
 
-    def __init__(self, provider: str, run_id: str, reason: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        provider: str,
+        run_id: str,
+        reason: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = f"Test run failed: {run_id}"
         if reason:
             message += f" ({reason})"
@@ -769,8 +834,12 @@ class CloudTestRunError(CloudProviderError):
 class CloudQuotaExceededError(CloudProviderError):
     """Raised when cloud provider quota is exceeded."""
 
-    def __init__(self, provider: str, quota_type: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        provider: str,
+        quota_type: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
         message = "Quota exceeded"
         if quota_type:
             message += f" ({quota_type})"
@@ -787,13 +856,11 @@ class CloudQuotaExceededError(CloudProviderError):
 class CloudTimeoutError(CloudProviderError):
     """Raised when a cloud operation times out."""
 
-    def __init__(self, provider: str, operation: str, timeout: int,
-                 details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, provider: str, operation: str, timeout: int, details: Optional[Dict[str, Any]] = None
+    ):
         message = f"Operation timed out: {operation} (after {timeout}s)"
         details = details or {}
-        details.update({
-            "operation": operation,
-            "timeout": timeout
-        })
+        details.update({"operation": operation, "timeout": timeout})
         hint = "The operation took too long. Try increasing the timeout or retry later."
         super().__init__(provider, message, details, hint)

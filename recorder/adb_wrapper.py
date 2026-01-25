@@ -17,23 +17,23 @@ import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
-from typing import Optional, Tuple, List, Generator, Dict
+from typing import Dict, Generator, List, Optional, Tuple
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from core.config_manager import get_config_value
 from core.exceptions import (
-    ADBNotFoundError,
     ADBCommandError,
+    ADBNotFoundError,
     ADBTimeoutError,
     DeviceNotFoundError,
     DeviceOfflineError,
     DeviceUnauthorizedError,
-    UIHierarchyError,
     InvalidInputDeviceError,
+    UIHierarchyError,
 )
 from core.logging_config import get_logger
-from core.config_manager import get_config_value
 
 # Module logger
 logger = get_logger("adb_wrapper")
@@ -66,13 +66,13 @@ def get_adb_path() -> str:
         return config_path
 
     # Determine adb executable name based on OS
-    is_windows = platform.system() == 'Windows'
-    adb_name = 'adb.exe' if is_windows else 'adb'
+    is_windows = platform.system() == "Windows"
+    adb_name = "adb.exe" if is_windows else "adb"
 
     # Check ANDROID_HOME environment variable
-    android_home = os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT')
+    android_home = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
     if android_home:
-        adb_path = os.path.join(android_home, 'platform-tools', adb_name)
+        adb_path = os.path.join(android_home, "platform-tools", adb_name)
         searched_paths.append(adb_path)
         if os.path.exists(adb_path):
             logger.debug(f"Found ADB at ANDROID_HOME: {adb_path}")
@@ -81,30 +81,32 @@ def get_adb_path() -> str:
     # Check common locations based on OS
     if is_windows:
         # Check Windows-specific locations
-        local_app_data = os.environ.get('LOCALAPPDATA', '')
+        local_app_data = os.environ.get("LOCALAPPDATA", "")
         if local_app_data:
-            adb_path = os.path.join(local_app_data, 'Android', 'Sdk', 'platform-tools', adb_name)
+            adb_path = os.path.join(local_app_data, "Android", "Sdk", "platform-tools", adb_name)
             searched_paths.append(adb_path)
             if os.path.exists(adb_path):
                 logger.debug(f"Found ADB at LocalAppData: {adb_path}")
                 return adb_path
 
         # Check user profile path
-        user_profile = os.environ.get('USERPROFILE', '')
+        user_profile = os.environ.get("USERPROFILE", "")
         if user_profile:
-            adb_path = os.path.join(user_profile, 'AppData', 'Local', 'Android', 'Sdk', 'platform-tools', adb_name)
+            adb_path = os.path.join(
+                user_profile, "AppData", "Local", "Android", "Sdk", "platform-tools", adb_name
+            )
             searched_paths.append(adb_path)
             if os.path.exists(adb_path):
                 logger.debug(f"Found ADB at UserProfile: {adb_path}")
                 return adb_path
     else:
         # Check Unix-like OS locations
-        home = os.path.expanduser('~')
+        home = os.path.expanduser("~")
         common_paths = [
-            os.path.join(home, 'Android', 'Sdk', 'platform-tools', adb_name),
-            os.path.join(home, 'Library', 'Android', 'sdk', 'platform-tools', adb_name),  # macOS
-            '/usr/local/bin/adb',
-            '/usr/bin/adb',
+            os.path.join(home, "Android", "Sdk", "platform-tools", adb_name),
+            os.path.join(home, "Library", "Android", "sdk", "platform-tools", adb_name),  # macOS
+            "/usr/local/bin/adb",
+            "/usr/bin/adb",
         ]
         for adb_path in common_paths:
             searched_paths.append(adb_path)
@@ -115,10 +117,10 @@ def get_adb_path() -> str:
     # Try system PATH
     try:
         # Use 'where' on Windows, 'which' on Unix-like
-        path_cmd = 'where' if is_windows else 'which'
-        result = subprocess.run([path_cmd, 'adb'], capture_output=True, text=True)
+        path_cmd = "where" if is_windows else "which"
+        result = subprocess.run([path_cmd, "adb"], capture_output=True, text=True)
         if result.returncode == 0:
-            adb_path = result.stdout.strip().split('\n')[0]
+            adb_path = result.stdout.strip().split("\n")[0]
             logger.debug(f"Found ADB in PATH: {adb_path}")
             return adb_path
     except Exception:
@@ -149,7 +151,7 @@ def run_adb_with_retry(
     timeout: Optional[int] = None,
     retry_count: Optional[int] = None,
     retry_delay: Optional[float] = None,
-    retry_backoff: Optional[float] = None
+    retry_backoff: Optional[float] = None,
 ) -> str:
     """
     Execute ADB command with exponential backoff retry.
@@ -171,29 +173,31 @@ def run_adb_with_retry(
     # Get defaults from config
     timeout = timeout or get_config_value("adb.timeout", 30)
     retry_count = retry_count if retry_count is not None else get_config_value("adb.retry_count", 3)
-    retry_delay = retry_delay if retry_delay is not None else get_config_value("adb.retry_delay", 1.0)
-    retry_backoff = retry_backoff if retry_backoff is not None else get_config_value("adb.retry_backoff", 2.0)
+    retry_delay = (
+        retry_delay if retry_delay is not None else get_config_value("adb.retry_delay", 1.0)
+    )
+    retry_backoff = (
+        retry_backoff if retry_backoff is not None else get_config_value("adb.retry_backoff", 2.0)
+    )
 
     adb = _get_adb()
     cmd = [adb] + args
-    cmd_str = ' '.join(args)
+    cmd_str = " ".join(args)
 
     last_error = None
     current_delay = retry_delay
 
     for attempt in range(retry_count + 1):
         try:
-            logger.debug(f"Executing ADB command (attempt {attempt + 1}/{retry_count + 1}): {cmd_str}")
-
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                timeout=timeout
+            logger.debug(
+                f"Executing ADB command (attempt {attempt + 1}/{retry_count + 1}): {cmd_str}"
             )
 
+            result = subprocess.run(cmd, capture_output=True, timeout=timeout)
+
             # Decode with UTF-8, ignoring errors for special characters
-            stdout = result.stdout.decode('utf-8', errors='ignore')
-            stderr = result.stderr.decode('utf-8', errors='ignore')
+            stdout = result.stdout.decode("utf-8", errors="ignore")
+            stderr = result.stderr.decode("utf-8", errors="ignore")
 
             if result.returncode != 0:
                 # Check for specific device errors
@@ -204,7 +208,9 @@ def run_adb_with_retry(
                     raise DeviceOfflineError(device_serial or "unknown", details={"stderr": stderr})
                 if "device unauthorized" in stderr.lower():
                     device_serial = get_device_serial()
-                    raise DeviceUnauthorizedError(device_serial or "unknown", details={"stderr": stderr})
+                    raise DeviceUnauthorizedError(
+                        device_serial or "unknown", details={"stderr": stderr}
+                    )
 
                 raise ADBCommandError(cmd_str, result.returncode, stdout, stderr)
 
@@ -222,7 +228,12 @@ def run_adb_with_retry(
                 continue
             raise last_error
 
-        except (ADBCommandError, DeviceNotFoundError, DeviceOfflineError, DeviceUnauthorizedError) as e:
+        except (
+            ADBCommandError,
+            DeviceNotFoundError,
+            DeviceOfflineError,
+            DeviceUnauthorizedError,
+        ) as e:
             last_error = e
 
             # Don't retry on device-level errors
@@ -265,11 +276,11 @@ def get_device_serial() -> Optional[str]:
         Device serial or None if no device connected
     """
     try:
-        output = run_adb(['devices'])
-        lines = output.strip().split('\n')
+        output = run_adb(["devices"])
+        lines = output.strip().split("\n")
         for line in lines[1:]:  # Skip header
-            if '\tdevice' in line:
-                parts = line.split('\t')
+            if "\tdevice" in line:
+                parts = line.split("\t")
                 if len(parts) >= 1:
                     logger.debug(f"Found device: {parts[0]}")
                     return parts[0]
@@ -287,15 +298,12 @@ def get_connected_devices() -> List[dict]:
     """
     devices = []
     try:
-        output = run_adb(['devices'])
-        lines = output.strip().split('\n')
+        output = run_adb(["devices"])
+        lines = output.strip().split("\n")
         for line in lines[1:]:  # Skip header
-            parts = line.split('\t')
+            parts = line.split("\t")
             if len(parts) >= 2:
-                devices.append({
-                    'serial': parts[0],
-                    'status': parts[1]
-                })
+                devices.append({"serial": parts[0], "status": parts[1]})
         logger.debug(f"Found {len(devices)} connected device(s)")
     except Exception as e:
         logger.warning(f"Failed to get connected devices: {e}")
@@ -316,12 +324,12 @@ def get_screen_size() -> Tuple[int, int]:
     device_serial = get_device_serial()
     if device_serial and device_serial in _screen_size_cache:
         return _screen_size_cache[device_serial]
-    
+
     # Try wm size first
     try:
-        output = run_adb(['shell', 'wm', 'size'])
+        output = run_adb(["shell", "wm", "size"])
         # Output format: "Physical size: 1080x2340"
-        match = re.search(r'(\d+)x(\d+)', output)
+        match = re.search(r"(\d+)x(\d+)", output)
         if match:
             width, height = int(match.group(1)), int(match.group(2))
             logger.debug(f"Screen size from wm: {width}x{height}")
@@ -334,9 +342,9 @@ def get_screen_size() -> Tuple[int, int]:
 
     # Fallback: try SurfaceFlinger (works on Android 13+)
     try:
-        output = run_adb(['shell', 'dumpsys', 'SurfaceFlinger'])
+        output = run_adb(["shell", "dumpsys", "SurfaceFlinger"])
         # Look for "size=[1080 2400]" pattern
-        match = re.search(r'size=\[(\d+)\s+(\d+)\]', output)
+        match = re.search(r"size=\[(\d+)\s+(\d+)\]", output)
         if match:
             width, height = int(match.group(1)), int(match.group(2))
             logger.debug(f"Screen size from SurfaceFlinger: {width}x{height}")
@@ -344,7 +352,7 @@ def get_screen_size() -> Tuple[int, int]:
                 _screen_size_cache[device_serial] = (width, height)
             return width, height
         # Look for "w/h:1080x2400" pattern
-        match = re.search(r'w/h:(\d+)x(\d+)', output)
+        match = re.search(r"w/h:(\d+)x(\d+)", output)
         if match:
             width, height = int(match.group(1)), int(match.group(2))
             logger.debug(f"Screen size from SurfaceFlinger (w/h): {width}x{height}")
@@ -356,8 +364,8 @@ def get_screen_size() -> Tuple[int, int]:
 
     # Fallback: try dumpsys display
     try:
-        output = run_adb(['shell', 'dumpsys', 'display'])
-        match = re.search(r'mDisplayWidth=(\d+).*?mDisplayHeight=(\d+)', output, re.DOTALL)
+        output = run_adb(["shell", "dumpsys", "display"])
+        match = re.search(r"mDisplayWidth=(\d+).*?mDisplayHeight=(\d+)", output, re.DOTALL)
         if match:
             width, height = int(match.group(1)), int(match.group(2))
             logger.debug(f"Screen size from display: {width}x{height}")
@@ -365,7 +373,7 @@ def get_screen_size() -> Tuple[int, int]:
                 _screen_size_cache[device_serial] = (width, height)
             return width, height
         # Alternative pattern
-        match = re.search(r'(\d+)\s*x\s*(\d+)', output)
+        match = re.search(r"(\d+)\s*x\s*(\d+)", output)
         if match:
             width, height = int(match.group(1)), int(match.group(2))
             logger.debug(f"Screen size from display (alt): {width}x{height}")
@@ -377,8 +385,8 @@ def get_screen_size() -> Tuple[int, int]:
 
     # Fallback: try getprop
     try:
-        width_out = run_adb(['shell', 'getprop', 'persist.sys.lcd_density_width'])
-        height_out = run_adb(['shell', 'getprop', 'persist.sys.lcd_density_height'])
+        width_out = run_adb(["shell", "getprop", "persist.sys.lcd_density_width"])
+        height_out = run_adb(["shell", "getprop", "persist.sys.lcd_density_height"])
         if width_out.strip() and height_out.strip():
             width, height = int(width_out.strip()), int(height_out.strip())
             logger.debug(f"Screen size from getprop: {width}x{height}")
@@ -409,21 +417,21 @@ def get_input_devices() -> List[dict]:
     Returns:
         List of device info dicts with 'path' and 'name' keys
     """
-    output = run_adb(['shell', 'getevent', '-pl'])
+    output = run_adb(["shell", "getevent", "-pl"])
     devices = []
     current_device = None
 
-    for line in output.split('\n'):
-        if line.startswith('add device'):
+    for line in output.split("\n"):
+        if line.startswith("add device"):
             # Parse: "add device 1: /dev/input/event1"
-            match = re.search(r'/dev/input/event\d+', line)
+            match = re.search(r"/dev/input/event\d+", line)
             if match:
-                current_device = {'path': match.group(0), 'name': ''}
-        elif 'name:' in line and current_device:
+                current_device = {"path": match.group(0), "name": ""}
+        elif "name:" in line and current_device:
             # Parse: '  name:     "device_name"'
             match = re.search(r'name:\s+"([^"]+)"', line)
             if match:
-                current_device['name'] = match.group(1)
+                current_device["name"] = match.group(1)
                 devices.append(current_device)
                 current_device = None
 
@@ -449,23 +457,23 @@ def get_input_device() -> str:
 
     # Sort by event number to prefer lower numbered devices (usually the primary)
     def get_event_num(d):
-        match = re.search(r'event(\d+)', d['path'])
+        match = re.search(r"event(\d+)", d["path"])
         return int(match.group(1)) if match else 999
 
     devices.sort(key=get_event_num)
 
     # Look for touch-related devices
-    touch_keywords = ['touch', 'touchscreen', 'ts', 'input']
+    touch_keywords = ["touch", "touchscreen", "ts", "input"]
 
     for device in devices:
-        name_lower = device['name'].lower()
+        name_lower = device["name"].lower()
         if any(kw in name_lower for kw in touch_keywords):
             logger.info(f"Found touch device: {device['path']} ({device['name']})")
-            return device['path']
+            return device["path"]
 
     # Fallback: return first event device
     logger.warning(f"No touch-specific device found, using first device: {devices[0]['path']}")
-    return devices[0]['path']
+    return devices[0]["path"]
 
 
 def get_input_max_values(device: str) -> Tuple[int, int]:
@@ -478,31 +486,31 @@ def get_input_max_values(device: str) -> Tuple[int, int]:
     Returns:
         Tuple of (max_x, max_y)
     """
-    output = run_adb(['shell', 'getevent', '-pl'])
+    output = run_adb(["shell", "getevent", "-pl"])
 
     max_x = 0
     max_y = 0
     in_device_section = False
 
-    for line in output.split('\n'):
+    for line in output.split("\n"):
         if device in line:
             in_device_section = True
-        elif line.startswith('add device') and in_device_section:
+        elif line.startswith("add device") and in_device_section:
             break
         elif in_device_section:
             # Look for ABS_MT_POSITION_X or ABS_MT_POSITION_Y
-            if 'ABS_MT_POSITION_X' in line or '0035' in line:
-                match = re.search(r'max\s+(\d+)', line)
+            if "ABS_MT_POSITION_X" in line or "0035" in line:
+                match = re.search(r"max\s+(\d+)", line)
                 if match:
                     max_x = int(match.group(1))
-            elif 'ABS_MT_POSITION_Y' in line or '0036' in line:
-                match = re.search(r'max\s+(\d+)', line)
+            elif "ABS_MT_POSITION_Y" in line or "0036" in line:
+                match = re.search(r"max\s+(\d+)", line)
                 if match:
                     max_y = int(match.group(1))
 
     # Fallback to screen size if not found
     if max_x == 0 or max_y == 0:
-        logger.debug(f"Could not get input max values, falling back to screen size")
+        logger.debug("Could not get input max values, falling back to screen size")
         width, height = get_screen_size()
         return width, height
 
@@ -510,8 +518,11 @@ def get_input_max_values(device: str) -> Tuple[int, int]:
     return max_x, max_y
 
 
-def dump_ui(output_path: Optional[str] = None, max_retries: Optional[int] = None,
-            retry_delay: Optional[float] = None) -> ET.Element:
+def dump_ui(
+    output_path: Optional[str] = None,
+    max_retries: Optional[int] = None,
+    retry_delay: Optional[float] = None,
+) -> ET.Element:
     """
     Capture UI hierarchy XML and return parsed tree.
 
@@ -526,12 +537,18 @@ def dump_ui(output_path: Optional[str] = None, max_retries: Optional[int] = None
     Raises:
         UIHierarchyError: If UI dump fails after all retries
     """
-    max_retries = max_retries if max_retries is not None else get_config_value("ui_capture.max_retries", 5)
-    retry_delay_ms = retry_delay if retry_delay is not None else get_config_value("ui_capture.retry_delay_ms", 1000)
+    max_retries = (
+        max_retries if max_retries is not None else get_config_value("ui_capture.max_retries", 5)
+    )
+    retry_delay_ms = (
+        retry_delay
+        if retry_delay is not None
+        else get_config_value("ui_capture.retry_delay_ms", 1000)
+    )
     retry_delay = retry_delay_ms / 1000.0 if retry_delay is None else retry_delay
 
     adb = _get_adb()
-    device_path = '/sdcard/window_dump.xml'
+    device_path = "/sdcard/window_dump.xml"
 
     last_error = None
 
@@ -541,24 +558,22 @@ def dump_ui(output_path: Optional[str] = None, max_retries: Optional[int] = None
             if attempt > 0:
                 logger.debug(f"UI dump attempt {attempt + 1}/{max_retries}")
                 subprocess.run(
-                    [adb, 'shell', 'pkill', '-f', 'uiautomator'],
-                    capture_output=True,
-                    timeout=5
+                    [adb, "shell", "pkill", "-f", "uiautomator"], capture_output=True, timeout=5
                 )
                 time.sleep(0.5)
 
             # Dump UI - use quoted command to avoid path escaping issues
             dump_result = subprocess.run(
-                [adb, 'shell', f'uiautomator dump {device_path}'],
+                [adb, "shell", f"uiautomator dump {device_path}"],
                 capture_output=True,
-                timeout=60  # Increased timeout
+                timeout=60,  # Increased timeout
             )
 
-            dump_stdout = dump_result.stdout.decode('utf-8', errors='ignore')
-            dump_stderr = dump_result.stderr.decode('utf-8', errors='ignore')
+            dump_stdout = dump_result.stdout.decode("utf-8", errors="ignore")
+            dump_stderr = dump_result.stderr.decode("utf-8", errors="ignore")
 
             # Check for common errors indicating UI not ready
-            if 'null root node' in dump_stdout or 'null root node' in dump_stderr:
+            if "null root node" in dump_stdout or "null root node" in dump_stderr:
                 logger.debug("UI not ready (null root node), retrying...")
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay)
@@ -566,15 +581,13 @@ def dump_ui(output_path: Optional[str] = None, max_retries: Optional[int] = None
 
             # Pull the file content
             cat_result = subprocess.run(
-                [adb, 'shell', f'cat {device_path}'],
-                capture_output=True,
-                timeout=10
+                [adb, "shell", f"cat {device_path}"], capture_output=True, timeout=10
             )
 
-            xml_content = cat_result.stdout.decode('utf-8', errors='ignore')
-            cat_stderr = cat_result.stderr.decode('utf-8', errors='ignore')
+            xml_content = cat_result.stdout.decode("utf-8", errors="ignore")
+            cat_stderr = cat_result.stderr.decode("utf-8", errors="ignore")
 
-            if not xml_content or not xml_content.strip().startswith('<?xml'):
+            if not xml_content or not xml_content.strip().startswith("<?xml"):
                 last_error = f"{dump_stderr} {cat_stderr}"
                 logger.debug(f"Invalid XML content: {last_error[:100]}")
                 if attempt < max_retries - 1:
@@ -582,19 +595,15 @@ def dump_ui(output_path: Optional[str] = None, max_retries: Optional[int] = None
                     continue
                 raise UIHierarchyError(
                     f"UI dump failed: {last_error}",
-                    details={"attempt": attempt + 1, "max_retries": max_retries}
+                    details={"attempt": attempt + 1, "max_retries": max_retries},
                 )
 
             # Clean up device file (ignore errors)
-            subprocess.run(
-                [adb, 'shell', f'rm {device_path}'],
-                capture_output=True,
-                timeout=5
-            )
+            subprocess.run([adb, "shell", f"rm {device_path}"], capture_output=True, timeout=5)
 
             # Save to output if requested
             if output_path:
-                with open(output_path, 'w', encoding='utf-8') as f:
+                with open(output_path, "w", encoding="utf-8") as f:
                     f.write(xml_content)
                 logger.debug(f"Saved UI dump to: {output_path}")
 
@@ -612,12 +621,10 @@ def dump_ui(output_path: Optional[str] = None, max_retries: Optional[int] = None
 
         except subprocess.TimeoutExpired as e:
             last_error = f"Timeout: {e}"
-            logger.warning(f"UI dump timed out")
+            logger.warning("UI dump timed out")
             # Kill stuck uiautomator on timeout
             subprocess.run(
-                [adb, 'shell', 'pkill', '-f', 'uiautomator'],
-                capture_output=True,
-                timeout=5
+                [adb, "shell", "pkill", "-f", "uiautomator"], capture_output=True, timeout=5
             )
             if attempt < max_retries - 1:
                 time.sleep(retry_delay)
@@ -625,7 +632,7 @@ def dump_ui(output_path: Optional[str] = None, max_retries: Optional[int] = None
 
     raise UIHierarchyError(
         f"UI dump failed after {max_retries} attempts",
-        details={"last_error": str(last_error), "max_retries": max_retries}
+        details={"last_error": str(last_error), "max_retries": max_retries},
     )
 
 
@@ -640,21 +647,17 @@ def shell_stream(cmd: str) -> Generator[str, None, None]:
         Lines of output from the command
     """
     adb = _get_adb()
-    full_cmd = [adb, 'shell', cmd]
+    full_cmd = [adb, "shell", cmd]
 
     logger.debug(f"Starting shell stream: {cmd}")
 
     process = subprocess.Popen(
-        full_cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1
+        full_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1
     )
 
     try:
         for line in process.stdout:
-            yield line.rstrip('\n\r')
+            yield line.rstrip("\n\r")
     except Exception as e:
         logger.error(f"Error in shell stream: {e}")
     finally:
@@ -678,10 +681,10 @@ def get_current_app() -> Tuple[str, str]:
         Tuple of (package_name, activity_name)
     """
     try:
-        output = run_adb(['shell', 'dumpsys', 'activity', 'activities'])
+        output = run_adb(["shell", "dumpsys", "activity", "activities"])
 
         # Look for mResumedActivity or mFocusedActivity
-        for pattern in [r'mResumedActivity.*?(\S+)/(\S+)', r'mFocusedActivity.*?(\S+)/(\S+)']:
+        for pattern in [r"mResumedActivity.*?(\S+)/(\S+)", r"mFocusedActivity.*?(\S+)/(\S+)"]:
             match = re.search(pattern, output)
             if match:
                 package, activity = match.group(1), match.group(2)
@@ -689,8 +692,8 @@ def get_current_app() -> Tuple[str, str]:
                 return package, activity
 
         # Alternative: use window focus
-        output = run_adb(['shell', 'dumpsys', 'window', 'windows'])
-        match = re.search(r'mCurrentFocus.*?(\S+)/(\S+)', output)
+        output = run_adb(["shell", "dumpsys", "window", "windows"])
+        match = re.search(r"mCurrentFocus.*?(\S+)/(\S+)", output)
         if match:
             package, activity = match.group(1), match.group(2)
             logger.debug(f"Current app (from window): {package}/{activity}")
@@ -698,14 +701,14 @@ def get_current_app() -> Tuple[str, str]:
     except Exception as e:
         logger.warning(f"Failed to get current app: {e}")
 
-    return '', ''
+    return "", ""
 
 
 def check_device_connected() -> bool:
     """Check if a device is connected and ready."""
     try:
-        output = run_adb(['devices'])
-        connected = '\tdevice' in output
+        output = run_adb(["devices"])
+        connected = "\tdevice" in output
         logger.debug(f"Device connected: {connected}")
         return connected
     except Exception as e:
@@ -727,7 +730,7 @@ def wait_for_device(timeout: int = 60) -> bool:
 
     # First wait for device to appear
     try:
-        run_adb(['wait-for-device'], timeout=timeout)
+        run_adb(["wait-for-device"], timeout=timeout)
     except Exception as e:
         logger.error(f"Failed waiting for device: {e}")
         return False
@@ -736,8 +739,8 @@ def wait_for_device(timeout: int = 60) -> bool:
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            output = run_adb(['shell', 'getprop', 'sys.boot_completed'])
-            if output.strip() == '1':
+            output = run_adb(["shell", "getprop", "sys.boot_completed"])
+            if output.strip() == "1":
                 logger.info("Device ready")
                 return True
         except Exception:

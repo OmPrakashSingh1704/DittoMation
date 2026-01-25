@@ -10,21 +10,21 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
+    from recorder.adb_wrapper import get_current_app, get_device_serial, get_screen_size
     from recorder.gesture_classifier import Gesture
-    from recorder.adb_wrapper import get_screen_size, get_current_app, get_device_serial
 except ImportError:
+    from adb_wrapper import get_current_app, get_device_serial, get_screen_size
     from gesture_classifier import Gesture
-    from adb_wrapper import get_screen_size, get_current_app, get_device_serial
 
-from core.logging_config import get_logger
-from core.exceptions import WorkflowLoadError, WorkflowSaveError
 from core.config_manager import get_config_value
+from core.exceptions import WorkflowLoadError, WorkflowSaveError
+from core.logging_config import get_logger
 
 # Module logger
 logger = get_logger("workflow")
@@ -46,7 +46,7 @@ class WorkflowStep:
         gesture: Dict[str, Any],
         element_snapshot: Optional[Dict[str, Any]] = None,
         ui_xml_file: Optional[str] = None,
-        timestamp: Optional[float] = None
+        timestamp: Optional[float] = None,
     ):
         self.step_id = step_id
         self.action = action
@@ -75,7 +75,7 @@ class WorkflowStep:
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'WorkflowStep':
+    def from_dict(cls, data: Dict[str, Any]) -> "WorkflowStep":
         """Create WorkflowStep from dictionary."""
         return cls(
             step_id=data["step_id"],
@@ -84,7 +84,7 @@ class WorkflowStep:
             gesture=data["gesture"],
             element_snapshot=data.get("element_snapshot"),
             ui_xml_file=data.get("ui_xml_file"),
-            timestamp=data.get("timestamp")
+            timestamp=data.get("timestamp"),
         )
 
 
@@ -124,7 +124,7 @@ class WorkflowRecorder:
                 "app_activity": activity,
                 "device": device or "unknown",
                 "screen_size": [width, height],
-                "recorded_at": datetime.now().isoformat()
+                "recorded_at": datetime.now().isoformat(),
             }
         except Exception as e:
             logger.warning(f"Could not initialize metadata: {e}")
@@ -132,7 +132,7 @@ class WorkflowRecorder:
                 "app_package": "",
                 "device": "unknown",
                 "screen_size": [0, 0],
-                "recorded_at": datetime.now().isoformat()
+                "recorded_at": datetime.now().isoformat(),
             }
 
     def add_step(
@@ -140,7 +140,7 @@ class WorkflowRecorder:
         gesture: Gesture,
         element: Optional[Dict[str, Any]],
         locator: Dict[str, Any],
-        ui_xml_file: Optional[str] = None
+        ui_xml_file: Optional[str] = None,
     ) -> WorkflowStep:
         """
         Add a recorded step to the workflow.
@@ -166,7 +166,7 @@ class WorkflowRecorder:
                 "content_desc": element.get("content_desc"),
                 "bounds": element.get("bounds"),
                 "clickable": element.get("clickable"),
-                "scrollable": element.get("scrollable")
+                "scrollable": element.get("scrollable"),
             }
 
         step = WorkflowStep(
@@ -175,7 +175,7 @@ class WorkflowRecorder:
             locator=locator,
             gesture=gesture.to_dict(),
             element_snapshot=element_snapshot,
-            ui_xml_file=ui_xml_file
+            ui_xml_file=ui_xml_file,
         )
 
         self.steps.append(step)
@@ -266,10 +266,10 @@ class WorkflowRecorder:
         try:
             workflow_data = {
                 "metadata": self.metadata,
-                "steps": [step.to_dict() for step in self.steps]
+                "steps": [step.to_dict() for step in self.steps],
             }
 
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(workflow_data, f, indent=2, ensure_ascii=False)
 
             logger.info(f"Workflow saved: {filepath} ({len(self.steps)} steps)")
@@ -278,7 +278,7 @@ class WorkflowRecorder:
             raise WorkflowSaveError(filepath, str(e))
 
     @classmethod
-    def load(cls, filepath: str) -> 'WorkflowRecorder':
+    def load(cls, filepath: str) -> "WorkflowRecorder":
         """
         Load workflow from JSON file.
 
@@ -292,14 +292,13 @@ class WorkflowRecorder:
             WorkflowLoadError: If the workflow cannot be loaded
         """
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
 
             recorder = cls()
             recorder.metadata = data.get("metadata", {})
             recorder.steps = [
-                WorkflowStep.from_dict(step_data)
-                for step_data in data.get("steps", [])
+                WorkflowStep.from_dict(step_data) for step_data in data.get("steps", [])
             ]
 
             logger.info(f"Workflow loaded: {filepath} ({len(recorder.steps)} steps)")
@@ -336,7 +335,7 @@ class WorkflowRecorder:
             f"Screen: {self.metadata.get('screen_size', [0, 0])}",
             f"Recorded: {self.metadata.get('recorded_at', 'unknown')}",
             f"Steps: {len(self.steps)}",
-            ""
+            "",
         ]
 
         # Action counts

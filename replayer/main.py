@@ -18,21 +18,19 @@ import argparse
 import os
 import signal
 import sys
-import time
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from recorder.adb_wrapper import check_device_connected, get_screen_size
+from core.config_manager import init_config
+from core.exceptions import DittoMationError, WorkflowLoadError
+from core.logging_config import get_logger, setup_replayer_logging
+from recorder.adb_wrapper import check_device_connected
 from recorder.ui_dumper import capture_ui_fast
 from recorder.workflow import WorkflowRecorder, WorkflowStep, format_step
-from replayer.locator import ElementLocator, describe_location_result
 from replayer.executor import GestureExecutor
-
-from core.logging_config import setup_replayer_logging, get_logger
-from core.config_manager import init_config, get_config_value
-from core.exceptions import WorkflowLoadError, DittoMationError
+from replayer.locator import ElementLocator
 
 # Module logger
 logger = get_logger("replayer.main")
@@ -45,12 +43,7 @@ class ReplaySession:
     Coordinates workflow loading, element location, and gesture execution.
     """
 
-    def __init__(
-        self,
-        workflow_path: str,
-        delay_ms: int = 500,
-        verbose: bool = False
-    ):
+    def __init__(self, workflow_path: str, delay_ms: int = 500, verbose: bool = False):
         """
         Initialize replay session.
 
@@ -149,7 +142,7 @@ class ReplaySession:
             "success": False,
             "strategy_used": None,
             "fallback_level": 0,
-            "error": None
+            "error": None,
         }
 
         logger.info(f"Step {step.step_id}: {step.action.upper()}")
@@ -189,9 +182,9 @@ class ReplaySession:
             if self.verbose and loc_result.element:
                 elem = loc_result.element
                 logger.debug(f"Element: {elem.get('class', '').split('.')[-1]}")
-                if elem.get('resource_id'):
+                if elem.get("resource_id"):
                     logger.debug(f"ID: {elem['resource_id'].split('/')[-1]}")
-                if elem.get('text'):
+                if elem.get("text"):
                     logger.debug(f"Text: {elem['text'][:50]}")
 
         except Exception as e:
@@ -288,51 +281,35 @@ The replayer will:
 2. For each step, find the target element using smart fallbacks
 3. Execute the recorded gesture
 4. Report success/failure for each step
-        """
+        """,
     )
 
-    parser.add_argument(
-        "-w", "--workflow",
-        required=True,
-        help="Workflow JSON file to replay"
-    )
+    parser.add_argument("-w", "--workflow", required=True, help="Workflow JSON file to replay")
 
     parser.add_argument(
-        "-d", "--delay",
+        "-d",
+        "--delay",
         type=int,
         default=500,
-        help="Delay between steps in milliseconds (default: 500)"
+        help="Delay between steps in milliseconds (default: 500)",
     )
 
-    parser.add_argument(
-        "-v", "--verbose",
-        action="store_true",
-        help="Enable verbose output"
-    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
 
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show what would be done without executing"
+        "--dry-run", action="store_true", help="Show what would be done without executing"
     )
 
-    parser.add_argument(
-        "--config",
-        help="Path to configuration file (JSON or YAML)"
-    )
+    parser.add_argument("--config", help="Path to configuration file (JSON or YAML)")
 
     parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
-        help="Log level (default: INFO)"
+        help="Log level (default: INFO)",
     )
 
-    parser.add_argument(
-        "--log-file",
-        action="store_true",
-        help="Enable logging to file"
-    )
+    parser.add_argument("--log-file", action="store_true", help="Enable logging to file")
 
     args = parser.parse_args()
 
@@ -341,11 +318,7 @@ The replayer will:
         init_config(args.config)
 
     # Setup logging
-    setup_replayer_logging(
-        level=args.log_level,
-        log_to_file=args.log_file,
-        log_to_console=True
-    )
+    setup_replayer_logging(level=args.log_level, log_to_file=args.log_file, log_to_console=True)
 
     logger.info("DittoMation Replayer starting...")
 
@@ -357,11 +330,7 @@ The replayer will:
             sys.exit(1)
 
     # Create session
-    session = ReplaySession(
-        workflow_path=args.workflow,
-        delay_ms=args.delay,
-        verbose=args.verbose
-    )
+    session = ReplaySession(workflow_path=args.workflow, delay_ms=args.delay, verbose=args.verbose)
 
     # Handle signals
     def signal_handler(sig, frame):

@@ -5,8 +5,8 @@ Analyzes touch events to detect taps, long presses, swipes, scrolls, and pinches
 """
 
 import math
-from typing import Optional, Dict, Any, List, Tuple
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from recorder.event_listener import TouchEvent
@@ -16,7 +16,7 @@ except ImportError:
 
 # Gesture classification thresholds
 TAP_MAX_DURATION_MS = 500  # Max duration for tap (vs long press)
-TAP_MAX_MOVEMENT_PX = 50   # Max movement for tap/long_press (vs swipe)
+TAP_MAX_MOVEMENT_PX = 50  # Max movement for tap/long_press (vs swipe)
 SWIPE_MIN_DISTANCE_PX = 50  # Min distance for swipe
 PINCH_DISTANCE_THRESHOLD = 30  # Min change in finger distance for pinch
 
@@ -24,6 +24,7 @@ PINCH_DISTANCE_THRESHOLD = 30  # Min change in finger distance for pinch
 @dataclass
 class TouchPoint:
     """Represents a touch point in time."""
+
     x: int
     y: int
     timestamp: float
@@ -33,6 +34,7 @@ class TouchPoint:
 @dataclass
 class TouchTrack:
     """Tracks a single finger's movement."""
+
     tracking_id: int
     start: TouchPoint
     current: TouchPoint
@@ -71,14 +73,15 @@ class TouchTrack:
 
         # Determine dominant direction
         if abs(dx) > abs(dy):
-            return 'right' if dx > 0 else 'left'
+            return "right" if dx > 0 else "left"
         else:
-            return 'down' if dy > 0 else 'up'
+            return "down" if dy > 0 else "up"
 
 
 @dataclass
 class Gesture:
     """Represents a classified gesture."""
+
     type: str  # tap, long_press, swipe, scroll, pinch
     start: Tuple[int, int]
     end: Tuple[int, int]
@@ -150,34 +153,25 @@ class GestureClassifier:
         """
         tracking_id = event.tracking_id
 
-        if event.type == 'touch_down':
+        if event.type == "touch_down":
             # Start new track
-            start_point = TouchPoint(
-                event.screen_x,
-                event.screen_y,
-                event.timestamp,
-                tracking_id
-            )
+            start_point = TouchPoint(event.screen_x, event.screen_y, event.timestamp, tracking_id)
             self._tracks[tracking_id] = TouchTrack(
                 tracking_id=tracking_id,
                 start=start_point,
                 current=start_point,
-                points=[start_point]
+                points=[start_point],
             )
 
             # Track initial distance for multi-touch
             if len(self._tracks) == 2:
                 self._initial_finger_distance = self._calculate_finger_distance()
 
-        elif event.type == 'touch_move':
+        elif event.type == "touch_move":
             if tracking_id in self._tracks:
-                self._tracks[tracking_id].update(
-                    event.screen_x,
-                    event.screen_y,
-                    event.timestamp
-                )
+                self._tracks[tracking_id].update(event.screen_x, event.screen_y, event.timestamp)
 
-        elif event.type == 'touch_up':
+        elif event.type == "touch_up":
             if tracking_id in self._tracks:
                 track = self._tracks[tracking_id]
                 track.update(event.screen_x, event.screen_y, event.timestamp)
@@ -223,19 +217,9 @@ class GestureClassifier:
         # Check for tap vs long press
         if distance < TAP_MAX_MOVEMENT_PX:
             if duration_ms < TAP_MAX_DURATION_MS:
-                return Gesture(
-                    type="tap",
-                    start=start,
-                    end=start,
-                    duration_ms=duration_ms
-                )
+                return Gesture(type="tap", start=start, end=start, duration_ms=duration_ms)
             else:
-                return Gesture(
-                    type="long_press",
-                    start=start,
-                    end=start,
-                    duration_ms=duration_ms
-                )
+                return Gesture(type="long_press", start=start, end=start, duration_ms=duration_ms)
 
         # It's a swipe/scroll
         direction = track.direction
@@ -253,7 +237,7 @@ class GestureClassifier:
             end=end,
             duration_ms=duration_ms,
             direction=direction,
-            distance=distance
+            distance=distance,
         )
 
     def _classify_pinch(self) -> Gesture:
@@ -265,13 +249,7 @@ class GestureClassifier:
         """
         if not self._initial_finger_distance or len(self._tracks) < 1:
             # Fallback
-            return Gesture(
-                type="pinch",
-                start=(0, 0),
-                end=(0, 0),
-                duration_ms=0,
-                scale=1.0
-            )
+            return Gesture(type="pinch", start=(0, 0), end=(0, 0), duration_ms=0, scale=1.0)
 
         final_distance = self._calculate_finger_distance()
 
@@ -305,7 +283,7 @@ class GestureClassifier:
             end=(center_x, center_y),
             duration_ms=duration_ms,
             scale=scale,
-            distance=int(abs(final_distance - self._initial_finger_distance))
+            distance=int(abs(final_distance - self._initial_finger_distance)),
         )
 
     def get_gesture(self) -> Optional[Gesture]:
@@ -345,15 +323,21 @@ def describe_gesture(gesture: Gesture) -> str:
         return f"Long press at ({gesture.start[0]}, {gesture.start[1]}) for {gesture.duration_ms}ms"
 
     elif gesture.type == "swipe":
-        return (f"Swipe {gesture.direction} from ({gesture.start[0]}, {gesture.start[1]}) "
-                f"to ({gesture.end[0]}, {gesture.end[1]}), {gesture.distance}px")
+        return (
+            f"Swipe {gesture.direction} from ({gesture.start[0]}, {gesture.start[1]}) "
+            f"to ({gesture.end[0]}, {gesture.end[1]}), {gesture.distance}px"
+        )
 
     elif gesture.type == "scroll":
-        return (f"Scroll {gesture.direction} from ({gesture.start[0]}, {gesture.start[1]}) "
-                f"to ({gesture.end[0]}, {gesture.end[1]}), {gesture.distance}px")
+        return (
+            f"Scroll {gesture.direction} from ({gesture.start[0]}, {gesture.start[1]}) "
+            f"to ({gesture.end[0]}, {gesture.end[1]}), {gesture.distance}px"
+        )
 
     elif gesture.type == "pinch":
         action = "zoom in" if gesture.scale > 1 else "zoom out"
-        return f"Pinch {action} at ({gesture.start[0]}, {gesture.start[1]}), scale={gesture.scale:.2f}"
+        return (
+            f"Pinch {action} at ({gesture.start[0]}, {gesture.start[1]}), scale={gesture.scale:.2f}"
+        )
 
     return f"Unknown gesture: {gesture.type}"

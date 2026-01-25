@@ -1,23 +1,20 @@
 """Tests for core.ad_filter module."""
 
-import pytest
 from unittest.mock import patch
 
 from core.ad_filter import (
-    is_ad_element,
-    is_sponsored_content,
-    filter_ad_elements,
-    get_non_ad_elements_at_point,
-    find_non_ad_alternative,
-    add_custom_ad_pattern,
-    clear_custom_patterns,
     AdFilter,
-    get_ad_filter,
-    _matches_any_pattern,
     _compile_patterns,
     _describe_element,
-    AD_RESOURCE_ID_PATTERNS,
-    AD_TEXT_PATTERNS,
+    _matches_any_pattern,
+    add_custom_ad_pattern,
+    clear_custom_patterns,
+    filter_ad_elements,
+    find_non_ad_alternative,
+    get_ad_filter,
+    get_non_ad_elements_at_point,
+    is_ad_element,
+    is_sponsored_content,
 )
 
 
@@ -201,7 +198,6 @@ class TestCustomPatterns:
 
         # After clearing, custom patterns should not match
         # (but built-in patterns still work)
-        element = {"text": "custom_sponsored_content"}
         # This might still match other patterns, so just verify no error
 
 
@@ -295,6 +291,7 @@ class TestGetAdFilter:
     def test_returns_ad_filter_instance(self):
         # Reset global filter
         import core.ad_filter as af_module
+
         af_module._global_filter = None
 
         with patch("core.ad_filter.get_config_value") as mock_config:
@@ -339,11 +336,13 @@ class TestPatternMatching:
     def test_matches_any_pattern_empty_value(self):
         _compile_patterns()
         import core.ad_filter as af_module
+
         patterns = af_module._COMPILED_PATTERNS.get("resource_id", [])
         assert _matches_any_pattern("", patterns) is False
 
     def test_matches_any_pattern_match(self):
         _compile_patterns()
         import core.ad_filter as af_module
+
         patterns = af_module._COMPILED_PATTERNS.get("resource_id", [])
         assert _matches_any_pattern("google_ad_view", patterns) is True

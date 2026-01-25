@@ -18,29 +18,33 @@ import os
 import signal
 import sys
 import time
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from recorder.adb_wrapper import check_device_connected, get_screen_size, wait_for_device
-    from recorder.event_listener import TouchEventListener, TouchEvent
-    from recorder.ui_dumper import capture_ui, find_scrollable_parent, get_all_elements, pretty_print_element
-    from recorder.element_matcher import match_element_at_point, describe_match
-    from recorder.gesture_classifier import GestureClassifier, Gesture, describe_gesture
+    from recorder.element_matcher import describe_match, match_element_at_point
+    from recorder.event_listener import TouchEvent, TouchEventListener
+    from recorder.gesture_classifier import Gesture, GestureClassifier, describe_gesture
+    from recorder.ui_dumper import (
+        capture_ui,
+        find_scrollable_parent,
+        pretty_print_element,
+    )
     from recorder.workflow import WorkflowRecorder, format_step
 except ImportError:
     from adb_wrapper import check_device_connected, get_screen_size, wait_for_device
-    from event_listener import TouchEventListener, TouchEvent
-    from ui_dumper import capture_ui, find_scrollable_parent, get_all_elements, pretty_print_element
-    from element_matcher import match_element_at_point, describe_match
-    from gesture_classifier import GestureClassifier, Gesture, describe_gesture
+    from element_matcher import describe_match, match_element_at_point
+    from event_listener import TouchEvent, TouchEventListener
+    from gesture_classifier import Gesture, GestureClassifier, describe_gesture
+    from ui_dumper import capture_ui, find_scrollable_parent, pretty_print_element
     from workflow import WorkflowRecorder, format_step
 
-from core.logging_config import setup_recorder_logging, get_logger
-from core.config_manager import init_config, get_config_value
-from core.exceptions import DeviceNotFoundError, DittoMationError
+from core.config_manager import init_config
+from core.exceptions import DittoMationError
+from core.logging_config import get_logger, setup_recorder_logging
 
 # Module logger
 logger = get_logger("recorder.main")
@@ -84,7 +88,7 @@ class RecordingSession:
             event: TouchEvent from listener
         """
         # On touch down, capture UI snapshot
-        if event.type == 'touch_down':
+        if event.type == "touch_down":
             self._touch_down_time = time.time()
             try:
                 step_num = len(self.workflow) + 1
@@ -128,10 +132,7 @@ class RecordingSession:
         xml_path = self.workflow.get_ui_snapshot_path(step_num)
 
         step = self.workflow.add_step(
-            gesture=gesture,
-            element=element,
-            locator=locator,
-            ui_xml_file=xml_path
+            gesture=gesture, element=element, locator=locator, ui_xml_file=xml_path
         )
 
         logger.info(f"Step recorded: {format_step(step)}")
@@ -230,38 +231,30 @@ The recorder will:
 2. Match taps to UI elements
 3. Classify gestures (tap, long_press, swipe, scroll, pinch)
 4. Save a replayable workflow file
-        """
+        """,
     )
 
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         default="workflow.json",
-        help="Output workflow file path (default: workflow.json)"
+        help="Output workflow file path (default: workflow.json)",
     )
 
     parser.add_argument(
-        "--output-dir",
-        default="output",
-        help="Directory for UI snapshots (default: output)"
+        "--output-dir", default="output", help="Directory for UI snapshots (default: output)"
     )
 
-    parser.add_argument(
-        "--config",
-        help="Path to configuration file (JSON or YAML)"
-    )
+    parser.add_argument("--config", help="Path to configuration file (JSON or YAML)")
 
     parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
-        help="Log level (default: INFO)"
+        help="Log level (default: INFO)",
     )
 
-    parser.add_argument(
-        "--log-file",
-        action="store_true",
-        help="Enable logging to file"
-    )
+    parser.add_argument("--log-file", action="store_true", help="Enable logging to file")
 
     args = parser.parse_args()
 
@@ -270,19 +263,12 @@ The recorder will:
         init_config(args.config)
 
     # Setup logging
-    setup_recorder_logging(
-        level=args.log_level,
-        log_to_file=args.log_file,
-        log_to_console=True
-    )
+    setup_recorder_logging(level=args.log_level, log_to_file=args.log_file, log_to_console=True)
 
-    logger.info(f"DittoMation Recorder starting...")
+    logger.info("DittoMation Recorder starting...")
 
     # Create session
-    session = RecordingSession(
-        output_path=args.output,
-        output_dir=args.output_dir
-    )
+    session = RecordingSession(output_path=args.output, output_dir=args.output_dir)
 
     # Handle signals
     def signal_handler(sig, frame):

@@ -18,33 +18,35 @@ Usage:
     ])
 """
 
+import json
 import re
 import time
-import json
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Optional, List, Dict, Any, Callable, Union
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 from core.android import Android
-from core.logging_config import get_logger
+
+if TYPE_CHECKING:
+    from core.variables import VariableContext
 from core.exceptions import (
-    DittoMationError,
-    ElementNotFoundError,
-    StepExecutionError,
+    AssertionFailedError,
     BreakException,
     ContinueException,
+    DittoMationError,
+    ElementNotFoundError,
     InvalidControlFlowError,
     LoopLimitError,
-    AssertionFailedError,
-    VariableNotFoundError,
 )
+from core.logging_config import get_logger
 
 logger = get_logger("automation")
 
 
 class StepType(Enum):
     """Supported step types."""
+
     # Basic actions
     TAP = "tap"
     LONG_PRESS = "long_press"
@@ -79,6 +81,7 @@ class StepType(Enum):
 
 class StepStatus(Enum):
     """Step execution status."""
+
     PENDING = "pending"
     RUNNING = "running"
     SUCCESS = "success"
@@ -90,6 +93,7 @@ class StepStatus(Enum):
 @dataclass
 class StepResult:
     """Result of a step execution."""
+
     step_index: int
     step_type: str
     status: StepStatus
@@ -161,6 +165,7 @@ class Step:
         message: Message for log/assert actions
         level: Log level (debug, info, warning, error)
     """
+
     action: str
     text: Optional[str] = None
     id: Optional[str] = None
@@ -177,7 +182,7 @@ class Step:
     wait_before: float = 0.0
     wait_after: float = 0.3
     optional: bool = False
-    condition: Optional[Callable[['Android'], bool]] = None
+    condition: Optional[Callable[["Android"], bool]] = None
     on_failure: str = "stop"
     description: Optional[str] = None
 
@@ -213,7 +218,7 @@ class Step:
             raise ValueError(f"Invalid on_failure '{self.on_failure}'")
 
         # Validate control flow specific requirements
-        if self.action == "if" and not self.expr and not hasattr(self, '_condition_str'):
+        if self.action == "if" and not self.expr and not hasattr(self, "_condition_str"):
             # Condition can be passed via 'condition' key in JSON, stored in expr
             pass  # Will be validated during execution
 
@@ -237,13 +242,17 @@ class Step:
         if self.desc:
             parts.append(f'desc="{self.desc}"')
         if self.x is not None and self.y is not None:
-            parts.append(f'@({self.x}, {self.y})')
+            parts.append(f"@({self.x}, {self.y})")
         if self.app:
             parts.append(f'app="{self.app}"')
         if self.value:
-            parts.append(f'value="{self.value[:20]}..."' if len(self.value or "") > 20 else f'value="{self.value}"')
+            parts.append(
+                f'value="{self.value[:20]}..."'
+                if len(self.value or "") > 20
+                else f'value="{self.value}"'
+            )
         if self.direction:
-            parts.append(f'direction={self.direction}')
+            parts.append(f"direction={self.direction}")
 
         return " ".join(parts)
 
@@ -251,19 +260,19 @@ class Step:
         """Convert to dictionary (excludes callable and None values)."""
         result = {}
         # Fields to always exclude
-        exclude_fields = {'condition'}
+        exclude_fields = {"condition"}
         # Fields with default values that shouldn't be included if at default
         default_fields = {
-            'timeout': 5.0,
-            'min_confidence': 0.3,
-            'retries': 2,
-            'retry_delay': 1.0,
-            'wait_before': 0.0,
-            'wait_after': 0.3,
-            'optional': False,
-            'on_failure': 'stop',
-            'max_iterations': 100,
-            'level': 'info',
+            "timeout": 5.0,
+            "min_confidence": 0.3,
+            "retries": 2,
+            "retry_delay": 1.0,
+            "wait_before": 0.0,
+            "wait_after": 0.3,
+            "optional": False,
+            "on_failure": "stop",
+            "max_iterations": 100,
+            "level": "info",
         }
 
         for key, val in asdict(self).items():
@@ -281,6 +290,7 @@ class Step:
 @dataclass
 class AutomationResult:
     """Result of full automation run."""
+
     success: bool
     total_steps: int
     executed_steps: int
@@ -379,9 +389,9 @@ class Automation:
         self._current_step: int = 0
 
         # Variable and expression support
-        from core.variables import VariableContext, VariableResolver
-        from core.expressions import SafeExpressionEngine
         from core.control_flow import ControlFlowExecutor
+        from core.expressions import SafeExpressionEngine
+        from core.variables import VariableContext, VariableResolver
 
         self._context = VariableContext(initial_vars)
         self._resolver = VariableResolver(self._context)
@@ -392,7 +402,9 @@ class Automation:
 
         logger.info(f"Automation initialized for device: {self.android.device}")
 
-    def run(self, steps: List[Step], initial_vars: Optional[Dict[str, Any]] = None) -> AutomationResult:
+    def run(
+        self, steps: List[Step], initial_vars: Optional[Dict[str, Any]] = None
+    ) -> AutomationResult:
         """
         Execute a list of automation steps.
 
@@ -413,10 +425,9 @@ class Automation:
 
         # Initialize control flow executor
         from core.control_flow import ControlFlowExecutor
+
         self._control_flow = ControlFlowExecutor(
-            self._expr_engine,
-            self._context,
-            self._execute_steps_internal
+            self._expr_engine, self._context, self._execute_steps_internal
         )
 
         executed = 0
@@ -513,7 +524,9 @@ class Automation:
                     except Exception:
                         pass
 
-                if resolved_step.on_failure == "stop" or (self.stop_on_failure and not resolved_step.optional):
+                if resolved_step.on_failure == "stop" or (
+                    self.stop_on_failure and not resolved_step.optional
+                ):
                     error_msg = f"Step {i+1} failed: {result.error}"
                     logger.error(error_msg)
                     break
@@ -538,17 +551,30 @@ class Automation:
 
         # Fields that should have variables resolved
         resolvable_fields = {
-            'text', 'id', 'desc', 'value', 'app', 'direction', 'description',
-            'message', 'variable', 'expr', 'items', 'item_var', 'index_var',
-            'counter_var', 'extract_attr', 'regex'
+            "text",
+            "id",
+            "desc",
+            "value",
+            "app",
+            "direction",
+            "description",
+            "message",
+            "variable",
+            "expr",
+            "items",
+            "item_var",
+            "index_var",
+            "counter_var",
+            "extract_attr",
+            "regex",
         }
 
         # Don't pre-resolve expr/items for control flow actions - they need
         # dynamic evaluation (while/until conditions must be re-evaluated each iteration,
         # if/for expressions need the expression engine to handle variable resolution)
-        control_flow_actions = {'if', 'while', 'until', 'for'}
+        control_flow_actions = {"if", "while", "until", "for"}
         if step.action in control_flow_actions:
-            resolvable_fields = resolvable_fields - {'expr', 'items'}
+            resolvable_fields = resolvable_fields - {"expr", "items"}
 
         for field_name in resolvable_fields:
             if field_name in step_dict and step_dict[field_name] is not None:
@@ -557,7 +583,7 @@ class Automation:
                     step_dict[field_name] = self._resolver.resolve_string(original)
 
         # Preserve the original condition callable
-        step_dict['condition'] = step.condition
+        step_dict["condition"] = step.condition
 
         return Step(**step_dict)
 
@@ -577,7 +603,9 @@ class Automation:
             attempts += 1
 
             try:
-                logger.debug(f"Step {index+1}/{self._current_step+1}: {step.get_target_description()} (attempt {attempts})")
+                logger.debug(
+                    f"Step {index+1}/{self._current_step+1}: {step.get_target_description()} (attempt {attempts})"
+                )
 
                 success, confidence = self._do_step(step)
 
@@ -611,7 +639,9 @@ class Automation:
 
             # Retry logic
             if attempts < max_attempts:
-                logger.warning(f"Step {index+1} attempt {attempts} failed: {last_error}. Retrying...")
+                logger.warning(
+                    f"Step {index+1} attempt {attempts} failed: {last_error}. Retrying..."
+                )
                 time.sleep(step.retry_delay)
 
         # All attempts failed
@@ -627,7 +657,7 @@ class Automation:
             error=last_error,
         )
 
-    def _do_step(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_step(self, step: Step) -> Tuple[bool, Optional[float]]:
         """
         Execute the actual step action.
 
@@ -635,20 +665,21 @@ class Automation:
             Tuple of (success, confidence_score)
         """
         action = step.action
-        confidence = None
 
         if action == "tap":
             if step.x is not None and step.y is not None:
                 return self.android.tap(step.x, step.y), None
             else:
                 result = self.android.find_with_confidence(
-                    text=step.text, id=step.id, desc=step.desc,
-                    min_confidence=step.min_confidence
+                    text=step.text, id=step.id, desc=step.desc, min_confidence=step.min_confidence
                 )
                 if result and result.confidence >= step.min_confidence:
                     success = self.android.tap(
-                        step.text, id=step.id, desc=step.desc,
-                        timeout=step.timeout, min_confidence=step.min_confidence
+                        step.text,
+                        id=step.id,
+                        desc=step.desc,
+                        timeout=step.timeout,
+                        min_confidence=step.min_confidence,
                     )
                     return success, result.confidence
                 return False, result.confidence if result else 0.0
@@ -658,10 +689,16 @@ class Automation:
             if step.x is not None and step.y is not None:
                 return self.android.long_press(step.x, step.y, duration_ms=duration), None
             else:
-                return self.android.long_press(
-                    step.text, id=step.id, desc=step.desc,
-                    timeout=step.timeout, min_confidence=step.min_confidence
-                ), None
+                return (
+                    self.android.long_press(
+                        step.text,
+                        id=step.id,
+                        desc=step.desc,
+                        timeout=step.timeout,
+                        min_confidence=step.min_confidence,
+                    ),
+                    None,
+                )
 
         elif action == "swipe":
             direction = step.direction or "up"
@@ -699,8 +736,11 @@ class Automation:
 
         elif action == "wait_for":
             result = self.android.wait_for_with_confidence(
-                text=step.text, id=step.id, desc=step.desc,
-                timeout=step.timeout, min_confidence=step.min_confidence
+                text=step.text,
+                id=step.id,
+                desc=step.desc,
+                timeout=step.timeout,
+                min_confidence=step.min_confidence,
             )
             if result:
                 return True, result.confidence
@@ -708,8 +748,7 @@ class Automation:
 
         elif action == "assert_exists":
             result = self.android.find_with_confidence(
-                text=step.text, id=step.id, desc=step.desc,
-                min_confidence=step.min_confidence
+                text=step.text, id=step.id, desc=step.desc, min_confidence=step.min_confidence
             )
             if result and result.confidence >= step.min_confidence:
                 return True, result.confidence
@@ -717,8 +756,7 @@ class Automation:
 
         elif action == "assert_not_exists":
             result = self.android.find_with_confidence(
-                text=step.text, id=step.id, desc=step.desc,
-                min_confidence=step.min_confidence
+                text=step.text, id=step.id, desc=step.desc, min_confidence=step.min_confidence
             )
             if result is None or result.confidence < step.min_confidence:
                 return True, None
@@ -769,7 +807,7 @@ class Automation:
             logger.warning(f"Unknown action: {action}")
             return False, None
 
-    def _do_set_variable(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_set_variable(self, step: Step) -> Tuple[bool, Optional[float]]:
         """Execute set_variable action."""
         if not step.variable:
             logger.error("set_variable requires 'variable' field")
@@ -798,7 +836,7 @@ class Automation:
             logger.error(f"Failed to set variable: {e}")
             return False, None
 
-    def _do_extract(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_extract(self, step: Step) -> Tuple[bool, Optional[float]]:
         """Execute extract action - extract data from UI element."""
         if not step.variable:
             logger.error("extract requires 'variable' field")
@@ -807,33 +845,32 @@ class Automation:
         try:
             # Find the element
             result = self.android.find_with_confidence(
-                text=step.text, id=step.id, desc=step.desc,
-                min_confidence=step.min_confidence
+                text=step.text, id=step.id, desc=step.desc, min_confidence=step.min_confidence
             )
 
             if not result or not result.element:
-                logger.warning(f"Element not found for extract")
+                logger.warning("Element not found for extract")
                 return False, result.confidence if result else 0.0
 
             element = result.element
-            source = step.extract_source or 'text'
+            source = step.extract_source or "text"
             extracted_value = None
 
-            if source == 'text':
-                extracted_value = element.get('text', '')
-            elif source == 'attribute':
-                attr_name = step.extract_attr or 'text'
-                extracted_value = element.get(attr_name, '')
-            elif source == 'bounds':
-                extracted_value = element.get('bounds', (0, 0, 0, 0))
-            elif source == 'resource_id':
-                extracted_value = element.get('resource_id', '')
-            elif source == 'content_desc':
-                extracted_value = element.get('content_desc', '')
-            elif source == 'class':
-                extracted_value = element.get('class', '')
+            if source == "text":
+                extracted_value = element.get("text", "")
+            elif source == "attribute":
+                attr_name = step.extract_attr or "text"
+                extracted_value = element.get(attr_name, "")
+            elif source == "bounds":
+                extracted_value = element.get("bounds", (0, 0, 0, 0))
+            elif source == "resource_id":
+                extracted_value = element.get("resource_id", "")
+            elif source == "content_desc":
+                extracted_value = element.get("content_desc", "")
+            elif source == "class":
+                extracted_value = element.get("class", "")
             else:
-                extracted_value = element.get(source, '')
+                extracted_value = element.get(source, "")
 
             # Apply regex if specified
             if step.regex and isinstance(extracted_value, str):
@@ -856,12 +893,12 @@ class Automation:
             logger.error(f"Failed to extract: {e}")
             return False, None
 
-    def _do_if(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_if(self, step: Step) -> Tuple[bool, Optional[float]]:
         """Execute if action with conditional branching."""
-        from core.control_flow import IfBlock, parse_if_block
+        from core.control_flow import IfBlock
 
         # Build condition from step
-        condition = step.expr or ''
+        condition = step.expr or ""
 
         # Parse then/else/elif steps
         then_steps = []
@@ -875,8 +912,8 @@ class Automation:
         elif_blocks = []
         if step.elif_blocks:
             for elif_data in step.elif_blocks:
-                elif_cond = elif_data.get('condition', elif_data.get('expr', ''))
-                elif_step_data = elif_data.get('steps', elif_data.get('then_steps', []))
+                elif_cond = elif_data.get("condition", elif_data.get("expr", ""))
+                elif_step_data = elif_data.get("steps", elif_data.get("then_steps", []))
                 elif_step_list = [Step(**s) if isinstance(s, dict) else s for s in elif_step_data]
                 elif_blocks.append((elif_cond, elif_step_list))
 
@@ -884,7 +921,7 @@ class Automation:
             condition=condition,
             then_steps=then_steps,
             elif_blocks=elif_blocks,
-            else_steps=else_steps
+            else_steps=else_steps,
         )
 
         try:
@@ -901,7 +938,7 @@ class Automation:
             logger.error(f"If execution failed: {e}")
             return False, None
 
-    def _do_for(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_for(self, step: Step) -> Tuple[bool, Optional[float]]:
         """Execute for loop action."""
         from core.control_flow import ForBlock
 
@@ -915,11 +952,11 @@ class Automation:
                 loop_steps.append(s)
 
         for_block = ForBlock(
-            items=step.items or '[]',
-            item_var=step.item_var or 'item',
+            items=step.items or "[]",
+            item_var=step.item_var or "item",
             index_var=step.index_var,
             steps=loop_steps,
-            max_iterations=step.max_iterations
+            max_iterations=step.max_iterations,
         )
 
         self._in_loop = True
@@ -942,7 +979,7 @@ class Automation:
             if self._loop_depth == 0:
                 self._in_loop = False
 
-    def _do_while(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_while(self, step: Step) -> Tuple[bool, Optional[float]]:
         """Execute while loop action."""
         from core.control_flow import WhileBlock
 
@@ -956,10 +993,10 @@ class Automation:
                 loop_steps.append(s)
 
         while_block = WhileBlock(
-            condition=step.expr or 'False',
+            condition=step.expr or "False",
             steps=loop_steps,
             max_iterations=step.max_iterations,
-            counter_var=step.counter_var
+            counter_var=step.counter_var,
         )
 
         self._in_loop = True
@@ -982,7 +1019,7 @@ class Automation:
             if self._loop_depth == 0:
                 self._in_loop = False
 
-    def _do_until(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_until(self, step: Step) -> Tuple[bool, Optional[float]]:
         """Execute until loop action."""
         from core.control_flow import UntilBlock
 
@@ -996,10 +1033,10 @@ class Automation:
                 loop_steps.append(s)
 
         until_block = UntilBlock(
-            condition=step.expr or 'True',
+            condition=step.expr or "True",
             steps=loop_steps,
             max_iterations=step.max_iterations,
-            counter_var=step.counter_var
+            counter_var=step.counter_var,
         )
 
         self._in_loop = True
@@ -1022,19 +1059,19 @@ class Automation:
             if self._loop_depth == 0:
                 self._in_loop = False
 
-    def _do_break(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_break(self, step: Step) -> Tuple[bool, Optional[float]]:
         """Execute break action."""
         if not self._in_loop:
             raise InvalidControlFlowError("break")
         raise BreakException()
 
-    def _do_continue(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_continue(self, step: Step) -> Tuple[bool, Optional[float]]:
         """Execute continue action."""
         if not self._in_loop:
             raise InvalidControlFlowError("continue")
         raise ContinueException()
 
-    def _do_log(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_log(self, step: Step) -> Tuple[bool, Optional[float]]:
         """Execute log action."""
         message = step.message or step.value or ""
 
@@ -1054,7 +1091,7 @@ class Automation:
 
         return True, None
 
-    def _do_assert(self, step: Step) -> tuple[bool, Optional[float]]:
+    def _do_assert(self, step: Step) -> Tuple[bool, Optional[float]]:
         """Execute assert action."""
         condition = step.expr or ""
         message = step.message or f"Assertion: {condition}"
@@ -1069,7 +1106,7 @@ class Automation:
             raise AssertionFailedError(condition, message)
 
     @property
-    def context(self) -> 'VariableContext':
+    def context(self) -> "VariableContext":
         """Get the variable context."""
         return self._context
 
@@ -1081,7 +1118,9 @@ class Automation:
         """Get a variable from the context."""
         return self._context.get(name, default)
 
-    def run_from_file(self, filepath: Union[str, Path], extra_vars: Optional[Dict[str, Any]] = None) -> AutomationResult:
+    def run_from_file(
+        self, filepath: Union[str, Path], extra_vars: Optional[Dict[str, Any]] = None
+    ) -> AutomationResult:
         """
         Load and run automation from JSON file.
 
@@ -1094,7 +1133,7 @@ class Automation:
         """
         filepath = Path(filepath)
 
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
 
         # Load variables from file if present
@@ -1117,7 +1156,7 @@ class Automation:
         """Save automation result to JSON file."""
         filepath = Path(filepath)
 
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(result.to_dict(), f, indent=2)
 
         logger.info(f"Result saved to {filepath}")

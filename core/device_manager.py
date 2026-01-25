@@ -22,6 +22,7 @@ from .exceptions import (
 
 class DeviceType(Enum):
     """Type of device."""
+
     PHYSICAL = "physical"
     EMULATOR = "emulator"
     CLOUD = "cloud"
@@ -29,6 +30,7 @@ class DeviceType(Enum):
 
 class DeviceStatus(Enum):
     """Device connection status."""
+
     CONNECTED = "connected"
     OFFLINE = "offline"
     UNAUTHORIZED = "unauthorized"
@@ -39,6 +41,7 @@ class DeviceStatus(Enum):
 @dataclass
 class UnifiedDevice:
     """Represents a device from any source (physical, emulator, or cloud)."""
+
     device_id: str
     device_type: DeviceType
     status: DeviceStatus
@@ -102,6 +105,7 @@ class DeviceManager:
 
         # Try to auto-detect
         import shutil
+
         path = shutil.which("adb")
         if path:
             self._adb_path = path
@@ -177,10 +181,7 @@ class DeviceManager:
 
         try:
             result = subprocess.run(
-                [self.adb_path, "devices", "-l"],
-                capture_output=True,
-                text=True,
-                timeout=10
+                [self.adb_path, "devices", "-l"], capture_output=True, text=True, timeout=10
             )
 
             for line in result.stdout.strip().split("\n")[1:]:  # Skip header
@@ -263,7 +264,7 @@ class DeviceManager:
                             "target": avd.target,
                             "abi": avd.abi,
                             "skin": avd.skin,
-                        }
+                        },
                     )
                     devices.append(device)
 
@@ -307,7 +308,7 @@ class DeviceManager:
                 [self.adb_path, "-s", serial, "emu", "avd", "name"],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
             if result.returncode == 0:
                 lines = result.stdout.strip().split("\n")
@@ -337,7 +338,7 @@ class DeviceManager:
                     [self.adb_path, "-s", device.serial, "shell", "getprop", prop],
                     capture_output=True,
                     text=True,
-                    timeout=5
+                    timeout=5,
                 )
                 if result.returncode == 0:
                     value = result.stdout.strip()
@@ -469,8 +470,7 @@ class DeviceManager:
 
         if device.status == DeviceStatus.OFFLINE:
             raise DeviceConnectionError(
-                f"Device '{device.device_id}' is offline. "
-                "Check the connection and try again."
+                f"Device '{device.device_id}' is offline. " "Check the connection and try again."
             )
 
         if device.status == DeviceStatus.UNAUTHORIZED:
@@ -528,9 +528,12 @@ class DeviceManager:
         if start_avd:
             device = self.select_device(avd_name=start_avd)
             if device:
-                return self.connect(device, start_if_avd=True,
-                                   emulator_config=emulator_config,
-                                   boot_timeout=boot_timeout)
+                return self.connect(
+                    device,
+                    start_if_avd=True,
+                    emulator_config=emulator_config,
+                    boot_timeout=boot_timeout,
+                )
             raise DeviceNotFoundError(f"AVD not found: {start_avd}")
 
         # Try to find an already connected device
@@ -546,14 +549,19 @@ class DeviceManager:
             return connected[0].serial
 
         # Try to start an available AVD
-        available_avds = [d for d in devices
-                        if d.device_type == DeviceType.EMULATOR
-                        and d.status == DeviceStatus.AVAILABLE]
+        available_avds = [
+            d
+            for d in devices
+            if d.device_type == DeviceType.EMULATOR and d.status == DeviceStatus.AVAILABLE
+        ]
 
         if available_avds:
-            return self.connect(available_avds[0], start_if_avd=True,
-                              emulator_config=emulator_config,
-                              boot_timeout=boot_timeout)
+            return self.connect(
+                available_avds[0],
+                start_if_avd=True,
+                emulator_config=emulator_config,
+                boot_timeout=boot_timeout,
+            )
 
         raise DeviceNotFoundError(
             "No device available. Connect a physical device or create an AVD."

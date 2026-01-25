@@ -9,10 +9,11 @@ Tests VariableContext and VariableResolver classes for:
 - Variable resolution in templates
 """
 
-import pytest
 import json
-import tempfile
 import os
+import tempfile
+
+import pytest
 
 from core.variables import VariableContext, VariableResolver
 
@@ -64,10 +65,7 @@ class TestVariableContext:
 
     def test_nested_get_dot_notation(self):
         """Test nested access with dot notation."""
-        ctx = VariableContext({
-            "user": {"name": "Alice", "age": 30},
-            "settings": {"theme": "dark"}
-        })
+        ctx = VariableContext({"user": {"name": "Alice", "age": 30}, "settings": {"theme": "dark"}})
         assert ctx.get("user.name") == "Alice"
         assert ctx.get("user.age") == 30
         assert ctx.get("settings.theme") == "dark"
@@ -87,11 +85,7 @@ class TestVariableContext:
 
     def test_nested_array_access(self):
         """Test nested array access."""
-        ctx = VariableContext({
-            "data": {
-                "items": [{"name": "first"}, {"name": "second"}]
-            }
-        })
+        ctx = VariableContext({"data": {"items": [{"name": "first"}, {"name": "second"}]}})
         assert ctx.get("data.items[0].name") == "first"
         assert ctx.get("data.items[1].name") == "second"
 
@@ -148,7 +142,7 @@ class TestVariableContext:
 
     def test_from_file_json(self):
         """Test loading from JSON file."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"var1": "value1", "var2": 123}, f)
             temp_path = f.name
 

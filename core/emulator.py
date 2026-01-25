@@ -10,14 +10,12 @@ This module provides functionality to manage Android emulators:
 """
 
 import os
-import re
 import shutil
 import subprocess
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from .exceptions import (
     AVDNotFoundError,
@@ -30,6 +28,7 @@ from .exceptions import (
 
 class EmulatorState(Enum):
     """Emulator state enum."""
+
     STARTING = "starting"
     BOOTING = "booting"
     RUNNING = "running"
@@ -40,6 +39,7 @@ class EmulatorState(Enum):
 @dataclass
 class AVDInfo:
     """Information about an Android Virtual Device."""
+
     name: str
     device: Optional[str] = None
     path: Optional[str] = None
@@ -62,6 +62,7 @@ class AVDInfo:
 @dataclass
 class EmulatorConfig:
     """Configuration for starting an emulator."""
+
     headless: bool = True
     gpu: str = "swiftshader_indirect"
     memory_mb: int = 2048
@@ -95,6 +96,7 @@ class EmulatorConfig:
 @dataclass
 class EmulatorInstance:
     """Represents a running emulator instance."""
+
     serial: str
     avd_name: Optional[str] = None
     pid: Optional[int] = None
@@ -141,7 +143,9 @@ class EmulatorManager:
             emulator_path: Path to emulator executable (auto-detected if not provided)
             adb_path: Path to adb executable (auto-detected if not provided)
         """
-        self.android_home = android_home or os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
+        self.android_home = (
+            android_home or os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
+        )
         self._emulator_path = emulator_path
         self._adb_path = adb_path
         self._running_instances: Dict[str, EmulatorInstance] = {}
@@ -156,10 +160,12 @@ class EmulatorManager:
         search_paths = []
 
         if self.android_home:
-            search_paths.extend([
-                os.path.join(self.android_home, "emulator"),
-                os.path.join(self.android_home, "tools"),
-            ])
+            search_paths.extend(
+                [
+                    os.path.join(self.android_home, "emulator"),
+                    os.path.join(self.android_home, "tools"),
+                ]
+            )
 
         # Also search PATH
         for name in self.DEFAULT_EMULATOR_NAMES:
@@ -177,7 +183,7 @@ class EmulatorManager:
 
         raise EmulatorError(
             "Emulator not found",
-            hint="Set ANDROID_HOME environment variable or specify emulator_path."
+            hint="Set ANDROID_HOME environment variable or specify emulator_path.",
         )
 
     @property
@@ -206,8 +212,7 @@ class EmulatorManager:
                     return full_path
 
         raise EmulatorError(
-            "ADB not found",
-            hint="Set ANDROID_HOME environment variable or specify adb_path."
+            "ADB not found", hint="Set ANDROID_HOME environment variable or specify adb_path."
         )
 
     def list_avds(self) -> List[AVDInfo]:
@@ -222,10 +227,7 @@ class EmulatorManager:
         """
         try:
             result = subprocess.run(
-                [self.emulator_path, "-list-avds"],
-                capture_output=True,
-                text=True,
-                timeout=30
+                [self.emulator_path, "-list-avds"], capture_output=True, text=True, timeout=30
             )
 
             avds = []
@@ -284,7 +286,7 @@ class EmulatorManager:
         """Parse AVD config.ini file."""
         config = {}
         try:
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 for line in f:
                     line = line.strip()
                     if "=" in line and not line.startswith("#"):
@@ -299,7 +301,7 @@ class EmulatorManager:
         avd_name: str,
         config: Optional[EmulatorConfig] = None,
         wait_boot: bool = True,
-        timeout: int = 300
+        timeout: int = 300,
     ) -> EmulatorInstance:
         """
         Start an emulator.
@@ -381,7 +383,7 @@ class EmulatorManager:
                     _, stderr = process.communicate()
                     raise EmulatorStartError(
                         avd_name,
-                        f"Process exited: {stderr.decode()[:200] if stderr else 'unknown error'}"
+                        f"Process exited: {stderr.decode()[:200] if stderr else 'unknown error'}",
                     )
 
                 running = self.get_running_emulators()
@@ -460,16 +462,14 @@ class EmulatorManager:
             if force:
                 # Force kill using adb
                 subprocess.run(
-                    [self.adb_path, "-s", serial, "emu", "kill"],
-                    capture_output=True,
-                    timeout=10
+                    [self.adb_path, "-s", serial, "emu", "kill"], capture_output=True, timeout=10
                 )
             else:
                 # Graceful shutdown
                 subprocess.run(
                     [self.adb_path, "-s", serial, "shell", "reboot", "-p"],
                     capture_output=True,
-                    timeout=30
+                    timeout=30,
                 )
 
             # Wait for emulator to disappear
@@ -530,7 +530,7 @@ class EmulatorManager:
                     [self.adb_path, "-s", serial, "shell", "getprop", "sys.boot_completed"],
                     capture_output=True,
                     text=True,
-                    timeout=10
+                    timeout=10,
                 )
 
                 if result.stdout.strip() == "1":
@@ -539,7 +539,7 @@ class EmulatorManager:
                         [self.adb_path, "-s", serial, "shell", "pm", "path", "android"],
                         capture_output=True,
                         text=True,
-                        timeout=10
+                        timeout=10,
                     )
                     if pm_result.returncode == 0:
                         return True
@@ -562,10 +562,7 @@ class EmulatorManager:
 
         try:
             result = subprocess.run(
-                [self.adb_path, "devices"],
-                capture_output=True,
-                text=True,
-                timeout=10
+                [self.adb_path, "devices"], capture_output=True, text=True, timeout=10
             )
 
             for line in result.stdout.strip().split("\n")[1:]:  # Skip header
@@ -610,7 +607,7 @@ class EmulatorManager:
                 [self.adb_path, "-s", serial, "emu", "avd", "name"],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
             if result.returncode == 0:
                 # Output is like "AVD_NAME\r\nOK"
@@ -665,7 +662,7 @@ class EmulatorManager:
                             [self.adb_path, "-s", serial, "shell", "getprop", prop],
                             capture_output=True,
                             text=True,
-                            timeout=5
+                            timeout=5,
                         )
                         if result.returncode == 0:
                             status[prop.split(".")[-1]] = result.stdout.strip()

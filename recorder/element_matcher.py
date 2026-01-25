@@ -12,17 +12,14 @@ Features:
 """
 
 import os
-import re
 import sys
 from dataclasses import dataclass
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.ad_filter import is_ad_element, get_ad_filter
 from core.logging_config import get_logger
-from core.config_manager import get_config_value
 
 # Module logger
 logger = get_logger("element_matcher")
@@ -32,15 +29,17 @@ logger = get_logger("element_matcher")
 # Confidence Scoring System
 # =============================================================================
 
+
 @dataclass
 class MatchResult:
     """Result of element matching with confidence score."""
+
     element: Dict[str, Any]
     confidence: float  # 0.0 to 1.0
     match_details: Dict[str, float]  # Individual score components
 
     def __repr__(self) -> str:
-        text = self.element.get('text', '')[:20] or self.element.get('resource_id', '')
+        text = self.element.get("text", "")[:20] or self.element.get("resource_id", "")
         return f"MatchResult({text!r}, confidence={self.confidence:.2f})"
 
 
@@ -98,7 +97,7 @@ def calculate_string_similarity(s1: str, s2: str) -> float:
 
     # Character-level similarity (Jaccard on character bigrams)
     def get_bigrams(s):
-        return set(s[i:i+2] for i in range(len(s) - 1)) if len(s) > 1 else {s}
+        return set(s[i : i + 2] for i in range(len(s) - 1)) if len(s) > 1 else {s}
 
     bigrams1 = get_bigrams(s1_lower)
     bigrams2 = get_bigrams(s2_lower)
@@ -136,7 +135,7 @@ def score_element_match(
     # Text matching
     if text:
         max_possible += SCORE_WEIGHTS["text_exact"]
-        elem_text = element.get('text', '')
+        elem_text = element.get("text", "")
 
         if elem_text:
             if text.lower() == elem_text.lower():
@@ -151,12 +150,12 @@ def score_element_match(
     # Resource ID matching
     if resource_id:
         max_possible += SCORE_WEIGHTS["id_exact"]
-        elem_id = element.get('resource_id', '')
+        elem_id = element.get("resource_id", "")
 
         if elem_id:
             # Extract just the ID part if full resource ID provided
-            search_id = resource_id.split('/')[-1].lower()
-            elem_id_part = elem_id.split('/')[-1].lower()
+            search_id = resource_id.split("/")[-1].lower()
+            elem_id_part = elem_id.split("/")[-1].lower()
 
             if search_id == elem_id_part:
                 scores["id_exact"] = SCORE_WEIGHTS["id_exact"]
@@ -168,12 +167,15 @@ def score_element_match(
     # Content description matching
     if content_desc:
         max_possible += SCORE_WEIGHTS["desc_exact"]
-        elem_desc = element.get('content_desc', '')
+        elem_desc = element.get("content_desc", "")
 
         if elem_desc:
             if content_desc.lower() == elem_desc.lower():
                 scores["desc_exact"] = SCORE_WEIGHTS["desc_exact"]
-            elif content_desc.lower() in elem_desc.lower() or elem_desc.lower() in content_desc.lower():
+            elif (
+                content_desc.lower() in elem_desc.lower()
+                or elem_desc.lower() in content_desc.lower()
+            ):
                 scores["desc_contains"] = SCORE_WEIGHTS["desc_contains"]
             else:
                 similarity = calculate_string_similarity(content_desc, elem_desc)
@@ -183,20 +185,20 @@ def score_element_match(
     # Class name matching
     if class_name:
         max_possible += SCORE_WEIGHTS["class_match"]
-        elem_class = element.get('class', '')
+        elem_class = element.get("class", "")
 
         if elem_class:
-            class_simple = class_name.split('.')[-1].lower()
-            elem_class_simple = elem_class.split('.')[-1].lower()
+            class_simple = class_name.split(".")[-1].lower()
+            elem_class_simple = elem_class.split(".")[-1].lower()
 
             if class_simple == elem_class_simple or class_simple in elem_class_simple:
                 scores["class_match"] = SCORE_WEIGHTS["class_match"]
 
     # Bonus points for interactive elements
-    if element.get('clickable') or element.get('long_clickable'):
+    if element.get("clickable") or element.get("long_clickable"):
         scores["clickable_bonus"] = SCORE_WEIGHTS["clickable_bonus"]
 
-    if element.get('enabled', True):
+    if element.get("enabled", True):
         scores["enabled_bonus"] = SCORE_WEIGHTS["enabled_bonus"]
 
     # Calculate final confidence
@@ -208,11 +210,7 @@ def score_element_match(
     else:
         confidence = 0.0
 
-    return MatchResult(
-        element=element,
-        confidence=confidence,
-        match_details=scores
-    )
+    return MatchResult(element=element, confidence=confidence, match_details=scores)
 
 
 def find_elements_with_confidence(
@@ -242,7 +240,11 @@ def find_elements_with_confidence(
     if not any([text, resource_id, content_desc, class_name]):
         return []
 
-    ad_filter = get_ad_filter() if filter_ads else None
+    ad_filter = None
+    if filter_ads:
+        from core.ad_filter import get_ad_filter
+
+        ad_filter = get_ad_filter()
     results = []
 
     for elem in elements:
@@ -313,10 +315,7 @@ def find_best_match(
 
 
 def find_elements_at_point(
-    elements: List[Dict[str, Any]],
-    x: int,
-    y: int,
-    filter_ads: bool = True
+    elements: List[Dict[str, Any]], x: int, y: int, filter_ads: bool = True
 ) -> List[Dict[str, Any]]:
     """
     Find all elements containing the given point.
@@ -331,10 +330,14 @@ def find_elements_at_point(
         List of elements whose bounds contain the point
     """
     matching = []
-    ad_filter = get_ad_filter() if filter_ads else None
+    ad_filter = None
+    if filter_ads:
+        from core.ad_filter import get_ad_filter
+
+        ad_filter = get_ad_filter()
 
     for elem in elements:
-        x1, y1, x2, y2 = elem['bounds']
+        x1, y1, x2, y2 = elem["bounds"]
 
         # Check if point is within bounds
         if x1 <= x <= x2 and y1 <= y <= y2:
@@ -357,13 +360,12 @@ def calculate_element_area(element: Dict[str, Any]) -> int:
     Returns:
         Area in pixels squared
     """
-    x1, y1, x2, y2 = element['bounds']
+    x1, y1, x2, y2 = element["bounds"]
     return (x2 - x1) * (y2 - y1)
 
 
 def select_best_match(
-    candidates: List[Dict[str, Any]],
-    filter_ads: bool = True
+    candidates: List[Dict[str, Any]], filter_ads: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Pick the best element from candidates.
@@ -386,6 +388,8 @@ def select_best_match(
 
     # Filter out ad elements first
     if filter_ads:
+        from core.ad_filter import get_ad_filter
+
         ad_filter = get_ad_filter()
         filtered_candidates = [e for e in candidates if not ad_filter.is_ad(e)]
 
@@ -399,7 +403,7 @@ def select_best_match(
         return None
 
     # Separate clickable and non-clickable
-    clickable = [e for e in candidates if e.get('clickable') or e.get('long_clickable')]
+    clickable = [e for e in candidates if e.get("clickable") or e.get("long_clickable")]
     non_clickable = [e for e in candidates if e not in clickable]
 
     # Sort by area (ascending - smaller first)
@@ -429,27 +433,27 @@ def build_xpath(element: Dict[str, Any]) -> str:
     Returns:
         XPath expression string
     """
-    class_name = element.get('class', 'node')
+    class_name = element.get("class", "node")
     parts = [f"//{class_name}"]
 
     conditions = []
 
     # Add resource-id condition
-    if element.get('resource_id'):
+    if element.get("resource_id"):
         # Escape single quotes for XPath
-        rid = element['resource_id'].replace("'", "&apos;")
+        rid = element["resource_id"].replace("'", "&apos;")
         conditions.append(f"@resource-id='{rid}'")
 
     # Add text condition
-    if element.get('text'):
+    if element.get("text"):
         # Escape quotes in text for XPath
-        text = element['text'].replace("'", "&apos;").replace('"', "&quot;")
+        text = element["text"].replace("'", "&apos;").replace('"', "&quot;")
         conditions.append(f"@text='{text}'")
 
     # Add content-desc condition
-    if element.get('content_desc'):
+    if element.get("content_desc"):
         # Escape quotes for XPath
-        desc = element['content_desc'].replace("'", "&apos;").replace('"', "&quot;")
+        desc = element["content_desc"].replace("'", "&apos;").replace('"', "&quot;")
         conditions.append(f"@content-desc='{desc}'")
 
     if conditions:
@@ -480,70 +484,42 @@ def build_locator(element: Dict[str, Any]) -> Dict[str, Any]:
     """
     if not element:
         return {
-            "primary": {
-                "strategy": "bounds",
-                "value": (0, 0, 0, 0)
-            },
+            "primary": {"strategy": "bounds", "value": (0, 0, 0, 0)},
             "fallbacks": [],
-            "bounds": (0, 0, 0, 0)
+            "bounds": (0, 0, 0, 0),
         }
-    
+
     locators = []
 
     # Strategy 1: Resource ID
-    if element.get('resource_id'):
-        locators.append({
-            "strategy": "id",
-            "value": element['resource_id']
-        })
+    if element.get("resource_id"):
+        locators.append({"strategy": "id", "value": element["resource_id"]})
 
     # Strategy 2: Content Description
-    if element.get('content_desc'):
-        locators.append({
-            "strategy": "content_desc",
-            "value": element['content_desc']
-        })
+    if element.get("content_desc"):
+        locators.append({"strategy": "content_desc", "value": element["content_desc"]})
 
     # Strategy 3: Text
-    if element.get('text'):
-        locators.append({
-            "strategy": "text",
-            "value": element['text']
-        })
+    if element.get("text"):
+        locators.append({"strategy": "text", "value": element["text"]})
 
     # Strategy 4: XPath
     xpath = build_xpath(element)
-    locators.append({
-        "strategy": "xpath",
-        "value": xpath
-    })
+    locators.append({"strategy": "xpath", "value": xpath})
 
     # Strategy 5: Bounds (always included as final fallback)
-    bounds = element.get('bounds', (0, 0, 0, 0))
-    locators.append({
-        "strategy": "bounds",
-        "value": bounds
-    })
+    bounds = element.get("bounds", (0, 0, 0, 0))
+    locators.append({"strategy": "bounds", "value": bounds})
 
     # First locator is primary, rest are fallbacks
     if len(locators) > 1:
-        return {
-            "primary": locators[0],
-            "fallbacks": locators[1:],
-            "bounds": bounds
-        }
+        return {"primary": locators[0], "fallbacks": locators[1:], "bounds": bounds}
     else:
-        return {
-            "primary": locators[0],
-            "fallbacks": [],
-            "bounds": bounds
-        }
+        return {"primary": locators[0], "fallbacks": [], "bounds": bounds}
 
 
 def match_element_at_point(
-    elements: List[Dict[str, Any]],
-    x: int,
-    y: int
+    elements: List[Dict[str, Any]], x: int, y: int
 ) -> Tuple[Optional[Dict[str, Any]], Dict[str, Any]]:
     """
     Find and match element at given coordinates.
@@ -568,19 +544,13 @@ def match_element_at_point(
     else:
         # No element found - use coordinates as locator
         return None, {
-            "primary": {
-                "strategy": "bounds",
-                "value": (x, y, x, y)
-            },
+            "primary": {"strategy": "bounds", "value": (x, y, x, y)},
             "fallbacks": [],
-            "bounds": (x, y, x, y)
+            "bounds": (x, y, x, y),
         }
 
 
-def describe_match(
-    element: Optional[Dict[str, Any]],
-    locator: Dict[str, Any]
-) -> str:
+def describe_match(element: Optional[Dict[str, Any]], locator: Dict[str, Any]) -> str:
     """
     Generate human-readable description of match.
 
@@ -592,32 +562,32 @@ def describe_match(
         Description string
     """
     if not element:
-        coords = locator['bounds']
+        coords = locator["bounds"]
         return f"No element found at ({coords[0]}, {coords[1]})"
 
     parts = []
 
     # Element class (simplified)
-    class_name = element['class'].split('.')[-1]
+    class_name = element["class"].split(".")[-1]
     parts.append(class_name)
 
     # Primary identifier
-    primary = locator['primary']
-    if primary['strategy'] == 'id':
-        rid = primary['value'].split('/')[-1]
-        parts.append(f'#{rid}')
-    elif primary['strategy'] == 'text':
+    primary = locator["primary"]
+    if primary["strategy"] == "id":
+        rid = primary["value"].split("/")[-1]
+        parts.append(f"#{rid}")
+    elif primary["strategy"] == "text":
         parts.append(f'"{primary["value"]}"')
-    elif primary['strategy'] == 'content_desc':
+    elif primary["strategy"] == "content_desc":
         parts.append(f'[{primary["value"]}]')
 
     # Bounds
-    x1, y1, x2, y2 = element['bounds']
+    x1, y1, x2, y2 = element["bounds"]
     center_x = (x1 + x2) // 2
     center_y = (y1 + y2) // 2
-    parts.append(f'@({center_x}, {center_y})')
+    parts.append(f"@({center_x}, {center_y})")
 
-    return ' '.join(parts)
+    return " ".join(parts)
 
 
 def find_similar_elements(
@@ -641,10 +611,10 @@ def find_similar_elements(
     """
     results = find_elements_with_confidence(
         elements,
-        text=target.get('text'),
-        resource_id=target.get('resource_id'),
-        content_desc=target.get('content_desc'),
-        class_name=target.get('class'),
+        text=target.get("text"),
+        resource_id=target.get("resource_id"),
+        content_desc=target.get("content_desc"),
+        class_name=target.get("class"),
         min_confidence=min_confidence,
         filter_ads=True,
     )
@@ -667,8 +637,7 @@ def find_similar_elements(
 
 
 def find_similar_elements_legacy(
-    elements: List[Dict[str, Any]],
-    target: Dict[str, Any]
+    elements: List[Dict[str, Any]], target: Dict[str, Any]
 ) -> List[Dict[str, Any]]:
     """
     Legacy function: Find elements similar to target.

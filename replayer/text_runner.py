@@ -29,15 +29,14 @@ import os
 import re
 import sys
 import time
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from recorder.adb_wrapper import check_device_connected, get_screen_size, wait_for_device
 from recorder.ui_dumper import capture_ui_fast, get_center
-from recorder.element_matcher import find_elements_at_point, select_best_match
-from replayer.executor import tap, long_press, swipe, press_back, press_home, input_text
+from replayer.executor import input_text, long_press, press_back, press_home, swipe, tap
 
 
 class TextRunner:
@@ -55,30 +54,30 @@ class TextRunner:
 
         # Try exact matches first
         for elem in elements:
-            if elem.get('text', '').lower() == target_lower:
-                return get_center(elem['bounds'])
-            if elem.get('content_desc', '').lower() == target_lower:
-                return get_center(elem['bounds'])
-            rid = elem.get('resource_id', '').split('/')[-1].lower()
+            if elem.get("text", "").lower() == target_lower:
+                return get_center(elem["bounds"])
+            if elem.get("content_desc", "").lower() == target_lower:
+                return get_center(elem["bounds"])
+            rid = elem.get("resource_id", "").split("/")[-1].lower()
             if rid == target_lower:
-                return get_center(elem['bounds'])
+                return get_center(elem["bounds"])
 
         # Try partial matches
         for elem in elements:
-            if target_lower in elem.get('text', '').lower():
-                return get_center(elem['bounds'])
-            if target_lower in elem.get('content_desc', '').lower():
-                return get_center(elem['bounds'])
-            rid = elem.get('resource_id', '').split('/')[-1].lower()
+            if target_lower in elem.get("text", "").lower():
+                return get_center(elem["bounds"])
+            if target_lower in elem.get("content_desc", "").lower():
+                return get_center(elem["bounds"])
+            rid = elem.get("resource_id", "").split("/")[-1].lower()
             if target_lower in rid:
-                return get_center(elem['bounds'])
+                return get_center(elem["bounds"])
 
         return None
 
     def _parse_target(self, target: str, elements: List[Dict]) -> Optional[Tuple[int, int]]:
         """Parse target string to coordinates."""
         # Check for coordinates: "540,1200" or "540, 1200"
-        coord_match = re.match(r'(\d+)\s*,\s*(\d+)', target)
+        coord_match = re.match(r"(\d+)\s*,\s*(\d+)", target)
         if coord_match:
             return int(coord_match.group(1)), int(coord_match.group(2))
 
@@ -94,13 +93,13 @@ class TextRunner:
         cx, cy = self.screen_width // 2, self.screen_height // 2
         distance = 500
 
-        if direction == 'up':
+        if direction == "up":
             return cx, cy + distance // 2, cx, cy - distance // 2
-        elif direction == 'down':
+        elif direction == "down":
             return cx, cy - distance // 2, cx, cy + distance // 2
-        elif direction == 'left':
+        elif direction == "left":
             return cx + distance // 2, cy, cx - distance // 2, cy
-        elif direction == 'right':
+        elif direction == "right":
             return cx - distance // 2, cy, cx + distance // 2, cy
         else:
             return cx, cy, cx, cy
@@ -113,7 +112,7 @@ class TextRunner:
             True if successful
         """
         command = command.strip()
-        if not command or command.startswith('#'):
+        if not command or command.startswith("#"):
             return True  # Skip empty lines and comments
 
         # Parse command
@@ -122,7 +121,7 @@ class TextRunner:
         arg = parts[1] if len(parts) > 1 else ""
 
         # Remove quotes from argument
-        arg = arg.strip().strip('"\'')
+        arg = arg.strip().strip("\"'")
 
         if self.verbose:
             print(f"  Command: {action} {arg}")
@@ -131,7 +130,7 @@ class TextRunner:
         _, elements = capture_ui_fast()
 
         # Execute based on action
-        if action == 'tap':
+        if action == "tap":
             coords = self._parse_target(arg, elements)
             if coords:
                 print(f"  Tap at ({coords[0]}, {coords[1]})")
@@ -140,7 +139,7 @@ class TextRunner:
                 print(f"  Error: Element '{arg}' not found")
                 return False
 
-        elif action == 'long_press' or action == 'longpress' or action == 'hold':
+        elif action == "long_press" or action == "longpress" or action == "hold":
             coords = self._parse_target(arg, elements)
             if coords:
                 print(f"  Long press at ({coords[0]}, {coords[1]})")
@@ -149,29 +148,29 @@ class TextRunner:
                 print(f"  Error: Element '{arg}' not found")
                 return False
 
-        elif action == 'swipe':
+        elif action == "swipe":
             x1, y1, x2, y2 = self._get_swipe_coords(arg.lower())
             print(f"  Swipe {arg}")
             return swipe(x1, y1, x2, y2, 300)
 
-        elif action == 'scroll':
+        elif action == "scroll":
             x1, y1, x2, y2 = self._get_swipe_coords(arg.lower())
             print(f"  Scroll {arg}")
             return swipe(x1, y1, x2, y2, 500)
 
-        elif action == 'type' or action == 'text' or action == 'input':
+        elif action == "type" or action == "text" or action == "input":
             print(f"  Type: {arg}")
             return input_text(arg)
 
-        elif action == 'back':
+        elif action == "back":
             print("  Press back")
             return press_back()
 
-        elif action == 'home':
+        elif action == "home":
             print("  Press home")
             return press_home()
 
-        elif action == 'wait' or action == 'sleep':
+        elif action == "wait" or action == "sleep":
             try:
                 seconds = float(arg) if arg else 1
                 print(f"  Wait {seconds}s")
@@ -197,7 +196,7 @@ class TextRunner:
 
         for i, cmd in enumerate(commands, 1):
             cmd = cmd.strip()
-            if not cmd or cmd.startswith('#'):
+            if not cmd or cmd.startswith("#"):
                 continue
 
             print(f"\nStep {i}: {cmd}")
@@ -214,13 +213,13 @@ class TextRunner:
 
     def run_file(self, filepath: str) -> Tuple[int, int]:
         """Run commands from a file."""
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             commands = f.readlines()
         return self.run_commands(commands)
 
     def run_inline(self, text: str) -> Tuple[int, int]:
         """Run commands from inline text (semicolon separated)."""
-        commands = [c.strip() for c in text.split(';')]
+        commands = [c.strip() for c in text.split(";")]
         return self.run_commands(commands)
 
 
@@ -243,13 +242,13 @@ Commands:
 Examples:
   python text_runner.py workflow.txt
   python text_runner.py -c "tap Phone; wait 1; tap Contacts"
-        """
+        """,
     )
 
-    parser.add_argument('file', nargs='?', help='Workflow text file')
-    parser.add_argument('-c', '--command', help='Inline commands (semicolon separated)')
-    parser.add_argument('-d', '--delay', type=int, default=500, help='Delay between commands (ms)')
-    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
+    parser.add_argument("file", nargs="?", help="Workflow text file")
+    parser.add_argument("-c", "--command", help="Inline commands (semicolon separated)")
+    parser.add_argument("-d", "--delay", type=int, default=500, help="Delay between commands (ms)")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 
     args = parser.parse_args()
 
@@ -268,7 +267,7 @@ Examples:
     runner = TextRunner(delay_ms=args.delay, verbose=args.verbose)
     try:
         runner.screen_width, runner.screen_height = get_screen_size()
-    except:
+    except Exception:
         pass
 
     print("=" * 50)

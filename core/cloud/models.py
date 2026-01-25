@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 class TestRunStatus(Enum):
     """Status of a cloud test run."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -23,6 +24,7 @@ class TestRunStatus(Enum):
 
 class DeviceFormFactor(Enum):
     """Device form factor."""
+
     PHONE = "phone"
     TABLET = "tablet"
     WEARABLE = "wearable"
@@ -52,6 +54,7 @@ class CloudDevice:
         available: Whether the device is currently available.
         properties: Additional provider-specific properties.
     """
+
     device_id: str
     model: str
     manufacturer: Optional[str] = None
@@ -134,6 +137,7 @@ class TestRun:
         error_message: Error message if the run failed.
         properties: Additional provider-specific properties.
     """
+
     run_id: str
     provider: str
     status: TestRunStatus = TestRunStatus.PENDING
@@ -185,6 +189,7 @@ class TestRun:
 
 class ArtifactType(Enum):
     """Type of test artifact."""
+
     SCREENSHOT = "screenshot"
     VIDEO = "video"
     LOG = "log"
@@ -209,6 +214,7 @@ class TestArtifact:
         timestamp: When the artifact was created.
         properties: Additional properties.
     """
+
     artifact_id: str
     name: str
     artifact_type: ArtifactType = ArtifactType.OTHER
@@ -248,6 +254,7 @@ class DeviceFilter:
         form_factors: List of form factors to include.
         abis: List of CPU architectures to include.
     """
+
     models: Optional[List[str]] = None
     manufacturers: Optional[List[str]] = None
     os_versions: Optional[List[str]] = None

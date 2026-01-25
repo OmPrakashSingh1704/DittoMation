@@ -7,22 +7,26 @@ and converts them to screen coordinates.
 
 import os
 import re
-import sys
-import time
-import threading
 import subprocess
-from typing import Callable, Optional, List, Dict, Any
+import sys
+import threading
+import time
+from typing import Any, Callable, Dict, List, Optional
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
-    from recorder.adb_wrapper import _get_adb, get_input_device, get_input_max_values, get_screen_size
+    from recorder.adb_wrapper import (
+        _get_adb,
+        get_input_device,
+        get_input_max_values,
+        get_screen_size,
+    )
 except ImportError:
     from adb_wrapper import _get_adb, get_input_device, get_input_max_values, get_screen_size
 
 from core.logging_config import get_logger
-from core.exceptions import InvalidInputDeviceError, EventParseError
 
 # Module logger
 logger = get_logger("event_listener")
@@ -57,7 +61,7 @@ class TouchEvent:
         screen_x: int,
         screen_y: int,
         timestamp: float,
-        tracking_id: int
+        tracking_id: int,
     ):
         self.type = event_type
         self.raw_x = raw_x
@@ -76,7 +80,7 @@ class TouchEvent:
             "screen_x": self.screen_x,
             "screen_y": self.screen_y,
             "timestamp": self.timestamp,
-            "tracking_id": self.tracking_id
+            "tracking_id": self.tracking_id,
         }
 
 
@@ -181,8 +185,7 @@ class TouchEventListener:
         """
         # Match getevent output format
         match = re.match(
-            r'(/dev/input/event\d+):\s+([0-9a-fA-F]+)\s+([0-9a-fA-F]+)\s+([0-9a-fA-F]+)',
-            line
+            r"(/dev/input/event\d+):\s+([0-9a-fA-F]+)\s+([0-9a-fA-F]+)\s+([0-9a-fA-F]+)", line
         )
         if not match:
             return
@@ -206,19 +209,15 @@ class TouchEventListener:
             elif ev_code == ABS_MT_TRACKING_ID:
                 if ev_value == TRACKING_ID_LIFT or ev_value == 0xFFFFFFFF:
                     # Touch up
-                    self._pending_events.append({
-                        'type': 'touch_up',
-                        'tracking_id': self._current_tracking_id
-                    })
+                    self._pending_events.append(
+                        {"type": "touch_up", "tracking_id": self._current_tracking_id}
+                    )
                     self._touch_active = False
                     self._current_tracking_id = -1
                 else:
                     # Touch down - new tracking ID
                     if not self._touch_active:
-                        self._pending_events.append({
-                            'type': 'touch_down',
-                            'tracking_id': ev_value
-                        })
+                        self._pending_events.append({"type": "touch_down", "tracking_id": ev_value})
                         self._touch_active = True
                     self._current_tracking_id = ev_value
 
@@ -230,26 +229,26 @@ class TouchEventListener:
             # Process pending events
             for pending in self._pending_events:
                 event = TouchEvent(
-                    event_type=pending['type'],
+                    event_type=pending["type"],
                     raw_x=self._current_x,
                     raw_y=self._current_y,
                     screen_x=screen_x,
                     screen_y=screen_y,
                     timestamp=timestamp,
-                    tracking_id=pending.get('tracking_id', self._current_tracking_id)
+                    tracking_id=pending.get("tracking_id", self._current_tracking_id),
                 )
                 self._emit_event(event)
 
             # If touch is active and no pending events, it's a move
             if self._touch_active and not self._pending_events:
                 event = TouchEvent(
-                    event_type='touch_move',
+                    event_type="touch_move",
                     raw_x=self._current_x,
                     raw_y=self._current_y,
                     screen_x=screen_x,
                     screen_y=screen_y,
                     timestamp=timestamp,
-                    tracking_id=self._current_tracking_id
+                    tracking_id=self._current_tracking_id,
                 )
                 self._emit_event(event)
 
@@ -261,29 +260,26 @@ class TouchEventListener:
 
         # Use specific device path if set, otherwise listen to all
         if self.device_path:
-            getevent_cmd = f'getevent {self.device_path}'
+            getevent_cmd = f"getevent {self.device_path}"
         else:
-            getevent_cmd = 'getevent'
+            getevent_cmd = "getevent"
 
-        cmd = [adb, 'shell', getevent_cmd]
+        cmd = [adb, "shell", getevent_cmd]
 
         self._process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            bufsize=0  # Unbuffered
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0  # Unbuffered
         )
 
         try:
             # Read byte by byte to avoid buffering issues
-            line_buffer = b''
+            line_buffer = b""
             while self._running:
                 byte = self._process.stdout.read(1)
                 if not byte:
                     break
-                if byte == b'\n':
-                    line = line_buffer.decode('utf-8', errors='ignore').strip()
-                    line_buffer = b''
+                if byte == b"\n":
+                    line = line_buffer.decode("utf-8", errors="ignore").strip()
+                    line_buffer = b""
                     if line:
                         self._parse_line(line)
                 else:
@@ -344,19 +340,19 @@ class MultiTouchState:
 
     def update(self, event: TouchEvent) -> None:
         """Update touch state with new event."""
-        if event.type == 'touch_down':
+        if event.type == "touch_down":
             self.touches[event.tracking_id] = {
-                'x': event.screen_x,
-                'y': event.screen_y,
-                'start_x': event.screen_x,
-                'start_y': event.screen_y,
-                'timestamp': event.timestamp
+                "x": event.screen_x,
+                "y": event.screen_y,
+                "start_x": event.screen_x,
+                "start_y": event.screen_y,
+                "timestamp": event.timestamp,
             }
-        elif event.type == 'touch_move':
+        elif event.type == "touch_move":
             if event.tracking_id in self.touches:
-                self.touches[event.tracking_id]['x'] = event.screen_x
-                self.touches[event.tracking_id]['y'] = event.screen_y
-        elif event.type == 'touch_up':
+                self.touches[event.tracking_id]["x"] = event.screen_x
+                self.touches[event.tracking_id]["y"] = event.screen_y
+        elif event.type == "touch_up":
             self.touches.pop(event.tracking_id, None)
 
     def get_finger_count(self) -> int:
@@ -365,10 +361,7 @@ class MultiTouchState:
 
     def get_positions(self) -> List[Dict[str, int]]:
         """Get current positions of all fingers."""
-        return [
-            {'x': t['x'], 'y': t['y'], 'id': tid}
-            for tid, t in self.touches.items()
-        ]
+        return [{"x": t["x"], "y": t["y"], "id": tid} for tid, t in self.touches.items()]
 
     def clear(self) -> None:
         """Clear all touch state."""

@@ -1,19 +1,18 @@
 """Tests for recorder.workflow module."""
 
-import json
 import os
 import tempfile
-from unittest.mock import patch, MagicMock
 from dataclasses import dataclass
+from unittest.mock import patch
 
 import pytest
 
+from core.exceptions import WorkflowLoadError
 from recorder.workflow import (
-    WorkflowStep,
     WorkflowRecorder,
+    WorkflowStep,
     format_step,
 )
-from core.exceptions import WorkflowLoadError, WorkflowSaveError
 
 
 # Mock Gesture for testing
@@ -189,7 +188,7 @@ class TestWorkflowRecorder:
         assert "not found" in str(exc_info.value).lower()
 
     def test_load_invalid_json(self):
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("{ invalid json }")
             filepath = f.name
 

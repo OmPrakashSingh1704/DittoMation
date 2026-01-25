@@ -49,10 +49,7 @@ class CloudProvider(ABC):
         pass
 
     @abstractmethod
-    def list_devices(
-        self,
-        filters: Optional[DeviceFilter] = None
-    ) -> List[CloudDevice]:
+    def list_devices(self, filters: Optional[DeviceFilter] = None) -> List[CloudDevice]:
         """
         List available devices in the cloud platform.
 
@@ -69,10 +66,7 @@ class CloudProvider(ABC):
 
     @abstractmethod
     def acquire_device(
-        self,
-        model: str,
-        os_version: Optional[str] = None,
-        timeout: int = 300
+        self, model: str, os_version: Optional[str] = None, timeout: int = 300
     ) -> CloudDevice:
         """
         Acquire a specific device for testing.
@@ -110,7 +104,7 @@ class CloudProvider(ABC):
         devices: List[CloudDevice],
         workflow_path: Union[str, Path],
         timeout: int = 3600,
-        **options
+        **options,
     ) -> TestRun:
         """
         Run a test on the specified devices.
@@ -147,10 +141,7 @@ class CloudProvider(ABC):
 
     @abstractmethod
     def wait_for_completion(
-        self,
-        run: TestRun,
-        timeout: Optional[int] = None,
-        poll_interval: int = 30
+        self, run: TestRun, timeout: Optional[int] = None, poll_interval: int = 30
     ) -> TestRun:
         """
         Wait for a test run to complete.
@@ -195,11 +186,7 @@ class CloudProvider(ABC):
         pass
 
     @abstractmethod
-    def download_artifact(
-        self,
-        artifact: TestArtifact,
-        output_path: Union[str, Path]
-    ) -> Path:
+    def download_artifact(self, artifact: TestArtifact, output_path: Union[str, Path]) -> Path:
         """
         Download an artifact to local storage.
 
@@ -216,10 +203,7 @@ class CloudProvider(ABC):
         pass
 
     def collect_artifacts(
-        self,
-        run: TestRun,
-        output_dir: Union[str, Path],
-        artifact_types: Optional[List[str]] = None
+        self, run: TestRun, output_dir: Union[str, Path], artifact_types: Optional[List[str]] = None
     ) -> List[TestArtifact]:
         """
         Download all artifacts from a test run.

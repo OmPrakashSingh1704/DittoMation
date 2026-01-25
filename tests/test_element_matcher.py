@@ -1,16 +1,15 @@
 """Tests for recorder.element_matcher module."""
 
-import pytest
 from unittest.mock import patch
 
 from recorder.element_matcher import (
+    DEFAULT_MIN_CONFIDENCE,
+    SCORE_WEIGHTS,
     MatchResult,
     calculate_string_similarity,
-    score_element_match,
-    find_elements_with_confidence,
     find_best_match,
-    SCORE_WEIGHTS,
-    DEFAULT_MIN_CONFIDENCE,
+    find_elements_with_confidence,
+    score_element_match,
 )
 
 
@@ -47,11 +46,7 @@ class TestMatchResult:
 
     def test_create_match_result(self):
         element = {"text": "Login", "resource_id": "btn_login"}
-        result = MatchResult(
-            element=element,
-            confidence=0.85,
-            match_details={"text_exact": 1.0}
-        )
+        result = MatchResult(element=element, confidence=0.85, match_details={"text_exact": 1.0})
         assert result.element == element
         assert result.confidence == 0.85
 
@@ -120,10 +115,7 @@ class TestScoreElementMatch:
             "enabled": True,
         }
         result = score_element_match(
-            element,
-            text="Login",
-            resource_id="btn_login",
-            content_desc="Login button"
+            element, text="Login", resource_id="btn_login", content_desc="Login button"
         )
         # Should have high confidence with multiple matches
         assert result.confidence > 0.9
@@ -161,11 +153,7 @@ class TestFindElementsWithConfidence:
             {"text": "Logout", "bounds": (0, 60, 100, 110)},
         ]
 
-        results = find_elements_with_confidence(
-            elements,
-            text="Login",
-            min_confidence=0.9
-        )
+        results = find_elements_with_confidence(elements, text="Login", min_confidence=0.9)
 
         # Only exact match should pass high threshold
         assert len(results) >= 1
@@ -188,17 +176,21 @@ class TestFindElementsWithConfidence:
     def test_filters_ads(self):
         elements = [
             {"text": "Login", "bounds": (0, 0, 100, 50)},
-            {"text": "Sponsored", "resource_id": "com.app:id/ad_banner", "bounds": (0, 60, 100, 110)},
+            {
+                "text": "Sponsored",
+                "resource_id": "com.app:id/ad_banner",
+                "bounds": (0, 60, 100, 110),
+            },
         ]
 
-        with patch("recorder.element_matcher.is_ad_element") as mock_is_ad:
-            mock_is_ad.side_effect = lambda e: "ad_banner" in e.get("resource_id", "")
+        # Mock get_ad_filter to return a filter that detects ad_banner as an ad
+        from unittest.mock import MagicMock
 
-            results = find_elements_with_confidence(
-                elements,
-                text="Login",
-                filter_ads=True
-            )
+        mock_ad_filter = MagicMock()
+        mock_ad_filter.is_ad.side_effect = lambda e: "ad_banner" in e.get("resource_id", "")
+
+        with patch("core.ad_filter.get_ad_filter", return_value=mock_ad_filter):
+            results = find_elements_with_confidence(elements, text="Login", filter_ads=True)
 
             # Ad should be filtered out
             for r in results:
@@ -237,7 +229,7 @@ class TestFindBestMatch:
             {"text": "Login", "bounds": (0, 0, 100, 50)},
         ]
 
-        result = find_best_match(elements)
+        find_best_match(elements)
         # No search criteria, should return None or first element depending on impl
         # At minimum, should not crash
 

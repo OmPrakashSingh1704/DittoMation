@@ -45,11 +45,11 @@ def _get_boto3():
     if _boto3 is None:
         try:
             import boto3
+
             _boto3 = boto3
         except ImportError:
             raise CloudProviderError(
-                "aws",
-                "boto3 library not installed. Install with: pip install boto3"
+                "aws", "boto3 library not installed. Install with: pip install boto3"
             )
     return _boto3
 
@@ -123,10 +123,7 @@ class AWSDeviceFarmProvider(CloudProvider):
         except Exception as e:
             error_msg = str(e)
             if "credentials" in error_msg.lower():
-                raise CloudAuthenticationError(
-                    "aws",
-                    "Invalid or missing AWS credentials"
-                )
+                raise CloudAuthenticationError("aws", "Invalid or missing AWS credentials")
             raise CloudAuthenticationError("aws", error_msg)
 
     def is_authenticated(self) -> bool:
@@ -141,10 +138,7 @@ class AWSDeviceFarmProvider(CloudProvider):
         except Exception:
             return False
 
-    def list_devices(
-        self,
-        filters: Optional[DeviceFilter] = None
-    ) -> List[CloudDevice]:
+    def list_devices(self, filters: Optional[DeviceFilter] = None) -> List[CloudDevice]:
         """List available devices in AWS Device Farm."""
         # Check cache
         if self._devices_cache and self._cache_time:
@@ -191,7 +185,7 @@ class AWSDeviceFarmProvider(CloudProvider):
                             "memory": device.get("memory"),
                             "cpu": device.get("cpu"),
                             "heap_size": device.get("heapSize"),
-                        }
+                        },
                     )
                     devices.append(cloud_device)
 
@@ -207,10 +201,7 @@ class AWSDeviceFarmProvider(CloudProvider):
             raise CloudProviderError("aws", f"Failed to list devices: {e}")
 
     def acquire_device(
-        self,
-        model: str,
-        os_version: Optional[str] = None,
-        timeout: int = 300
+        self, model: str, os_version: Optional[str] = None, timeout: int = 300
     ) -> CloudDevice:
         """Acquire a device for testing."""
         devices = self.list_devices()
@@ -227,18 +218,14 @@ class AWSDeviceFarmProvider(CloudProvider):
         """Release a device (handled automatically by Device Farm)."""
         return True
 
-    def _get_or_create_device_pool(
-        self,
-        devices: List[CloudDevice]
-    ) -> str:
+    def _get_or_create_device_pool(self, devices: List[CloudDevice]) -> str:
         """Get or create a device pool for the specified devices."""
         if self._device_pool_arn:
             return self._device_pool_arn
 
         if not self._project_arn:
             raise CloudProviderError(
-                "aws",
-                "Project ARN not configured. Set project_arn or AWS_DEVICE_FARM_PROJECT_ARN."
+                "aws", "Project ARN not configured. Set project_arn or AWS_DEVICE_FARM_PROJECT_ARN."
             )
 
         # Create a temporary device pool
@@ -246,18 +233,14 @@ class AWSDeviceFarmProvider(CloudProvider):
 
         rules = []
         for arn in device_arns:
-            rules.append({
-                "attribute": "ARN",
-                "operator": "EQUALS",
-                "value": arn
-            })
+            rules.append({"attribute": "ARN", "operator": "EQUALS", "value": arn})
 
         try:
             response = self.client.create_device_pool(
                 projectArn=self._project_arn,
                 name=f"dittomation-pool-{int(time.time())}",
                 rules=rules,
-                maxDevices=len(devices)
+                maxDevices=len(devices),
             )
             return response["devicePool"]["arn"]
 
@@ -272,9 +255,7 @@ class AWSDeviceFarmProvider(CloudProvider):
         try:
             # Create upload
             response = self.client.create_upload(
-                projectArn=self._project_arn,
-                name=app_path.name,
-                type="ANDROID_APP"
+                projectArn=self._project_arn, name=app_path.name, type="ANDROID_APP"
             )
 
             upload = response["upload"]
@@ -284,7 +265,8 @@ class AWSDeviceFarmProvider(CloudProvider):
             # Upload the file
             with open(app_path, "rb") as f:
                 import requests
-                requests.put(upload_url, data=f)
+
+                requests.put(upload_url, data=f, timeout=300)
 
             # Wait for upload to complete
             for _ in range(60):
@@ -296,7 +278,7 @@ class AWSDeviceFarmProvider(CloudProvider):
                 elif status == "FAILED":
                     raise CloudProviderError(
                         "aws",
-                        f"Upload failed: {response['upload'].get('message', 'Unknown error')}"
+                        f"Upload failed: {response['upload'].get('message', 'Unknown error')}",
                     )
 
                 time.sleep(2)
@@ -313,16 +295,12 @@ class AWSDeviceFarmProvider(CloudProvider):
         devices: List[CloudDevice],
         workflow_path: Union[str, Path],
         timeout: int = 3600,
-        **options
+        **options,
     ) -> TestRun:
         """Run a test on AWS Device Farm."""
         workflow_path = Path(workflow_path)
         if not workflow_path.exists():
-            raise CloudTestRunError(
-                "aws",
-                "N/A",
-                f"Workflow file not found: {workflow_path}"
-            )
+            raise CloudTestRunError("aws", "N/A", f"Workflow file not found: {workflow_path}")
 
         if not self._project_arn:
             raise CloudProviderError("aws", "Project ARN not configured.")
@@ -351,7 +329,7 @@ class AWSDeviceFarmProvider(CloudProvider):
                 "devicePoolArn": device_pool_arn,
                 "test": {
                     "type": test_type,
-                }
+                },
             }
 
             if app_arn:
@@ -381,7 +359,7 @@ class AWSDeviceFarmProvider(CloudProvider):
                     "arn": run["arn"],
                     "device_pool_arn": device_pool_arn,
                     "app_arn": app_arn,
-                }
+                },
             )
 
             return test_run
@@ -400,7 +378,7 @@ class AWSDeviceFarmProvider(CloudProvider):
             response = self.client.create_upload(
                 projectArn=self._project_arn,
                 name=package_path.name,
-                type="INSTRUMENTATION_TEST_PACKAGE"
+                type="INSTRUMENTATION_TEST_PACKAGE",
             )
 
             upload = response["upload"]
@@ -409,7 +387,8 @@ class AWSDeviceFarmProvider(CloudProvider):
 
             with open(package_path, "rb") as f:
                 import requests
-                requests.put(upload_url, data=f)
+
+                requests.put(upload_url, data=f, timeout=300)
 
             for _ in range(60):
                 response = self.client.get_upload(arn=upload_arn)
@@ -474,7 +453,7 @@ class AWSDeviceFarmProvider(CloudProvider):
                     "result": run.get("result"),
                     "counters": run.get("counters", {}),
                 },
-                properties=run
+                properties=run,
             )
 
             if started and stopped:
@@ -486,10 +465,7 @@ class AWSDeviceFarmProvider(CloudProvider):
             raise CloudTestRunError("aws", run_id, str(e))
 
     def wait_for_completion(
-        self,
-        run: TestRun,
-        timeout: Optional[int] = None,
-        poll_interval: int = 30
+        self, run: TestRun, timeout: Optional[int] = None, poll_interval: int = 30
     ) -> TestRun:
         """Wait for a test run to complete."""
         start_time = time.time()
@@ -533,8 +509,7 @@ class AWSDeviceFarmProvider(CloudProvider):
                         # List artifacts for each test
                         for artifact_type in ["FILE", "LOG", "SCREENSHOT"]:
                             art_response = self.client.list_artifacts(
-                                arn=test["arn"],
-                                type=artifact_type
+                                arn=test["arn"], type=artifact_type
                             )
 
                             for art in art_response.get("artifacts", []):
@@ -548,7 +523,7 @@ class AWSDeviceFarmProvider(CloudProvider):
                                         "job_arn": job["arn"],
                                         "suite_arn": suite["arn"],
                                         "test_arn": test["arn"],
-                                    }
+                                    },
                                 )
                                 artifacts.append(artifact)
 
@@ -570,11 +545,7 @@ class AWSDeviceFarmProvider(CloudProvider):
         }
         return type_map.get(aws_type.upper(), ArtifactType.OTHER)
 
-    def download_artifact(
-        self,
-        artifact: TestArtifact,
-        output_path: Union[str, Path]
-    ) -> Path:
+    def download_artifact(self, artifact: TestArtifact, output_path: Union[str, Path]) -> Path:
         """Download an artifact."""
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -584,7 +555,8 @@ class AWSDeviceFarmProvider(CloudProvider):
 
         try:
             import requests
-            response = requests.get(artifact.url, stream=True)
+
+            response = requests.get(artifact.url, stream=True, timeout=300)
             response.raise_for_status()
 
             with open(output_path, "wb") as f:

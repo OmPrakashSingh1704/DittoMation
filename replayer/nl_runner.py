@@ -31,16 +31,27 @@ import os
 import re
 import sys
 import time
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from recorder.adb_wrapper import check_device_connected, get_screen_size, wait_for_device
-from recorder.ui_dumper import capture_ui_fast, get_center, pretty_print_element
-from replayer.executor import tap, long_press, swipe, press_back, press_home, input_text, make_call, end_call, dial_number, press_key
-from core.ad_filter import get_ad_filter, is_ad_element, is_sponsored_content
+from core.ad_filter import get_ad_filter
 from core.logging_config import get_logger
+from recorder.adb_wrapper import check_device_connected, get_screen_size, wait_for_device
+from recorder.ui_dumper import capture_ui_fast, get_center
+from replayer.executor import (
+    dial_number,
+    end_call,
+    input_text,
+    long_press,
+    make_call,
+    press_back,
+    press_home,
+    press_key,
+    swipe,
+    tap,
+)
 
 # Module logger
 logger = get_logger("nl_runner")
@@ -95,112 +106,149 @@ class NaturalLanguageRunner:
 
         # Common app name to package/intent mapping for direct launch
         self.app_intents = {
-            'clock': 'android.intent.action.SHOW_ALARMS',
-            'alarm': 'android.intent.action.SHOW_ALARMS',
-            'timer': 'android.intent.action.SHOW_TIMERS',
-            'calendar': 'android.intent.action.MAIN -c android.intent.category.APP_CALENDAR',
-            'camera': 'android.media.action.IMAGE_CAPTURE',
-            'browser': 'android.intent.action.VIEW -d https://google.com',
-            'chrome': 'android.intent.action.VIEW -d https://google.com -p com.android.chrome',
-            'settings': 'android.settings.SETTINGS',
-            'wifi': 'android.settings.WIFI_SETTINGS',
-            'bluetooth': 'android.settings.BLUETOOTH_SETTINGS',
-            'contacts': 'android.intent.action.MAIN -c android.intent.category.APP_CONTACTS',
-            'messages': 'android.intent.action.MAIN -c android.intent.category.APP_MESSAGING',
-            'sms': 'android.intent.action.MAIN -c android.intent.category.APP_MESSAGING',
-            'email': 'android.intent.action.MAIN -c android.intent.category.APP_EMAIL',
-            'maps': 'android.intent.action.VIEW -d geo:0,0',
-            'music': 'android.intent.action.MAIN -c android.intent.category.APP_MUSIC',
-            'gallery': 'android.intent.action.MAIN -c android.intent.category.APP_GALLERY',
-            'photos': 'android.intent.action.MAIN -c android.intent.category.APP_GALLERY',
-            'calculator': 'android.intent.action.MAIN -c android.intent.category.APP_CALCULATOR',
-            'files': 'android.intent.action.MAIN -c android.intent.category.APP_FILES',
-            'phone': 'android.intent.action.DIAL',
-            'dialer': 'android.intent.action.DIAL',
-            'youtube': 'android.intent.action.VIEW -d https://youtube.com -p com.google.android.youtube',
+            "clock": "android.intent.action.SHOW_ALARMS",
+            "alarm": "android.intent.action.SHOW_ALARMS",
+            "timer": "android.intent.action.SHOW_TIMERS",
+            "calendar": "android.intent.action.MAIN -c android.intent.category.APP_CALENDAR",
+            "camera": "android.media.action.IMAGE_CAPTURE",
+            "browser": "android.intent.action.VIEW -d https://google.com",
+            "chrome": "android.intent.action.VIEW -d https://google.com -p com.android.chrome",
+            "settings": "android.settings.SETTINGS",
+            "wifi": "android.settings.WIFI_SETTINGS",
+            "bluetooth": "android.settings.BLUETOOTH_SETTINGS",
+            "contacts": "android.intent.action.MAIN -c android.intent.category.APP_CONTACTS",
+            "messages": "android.intent.action.MAIN -c android.intent.category.APP_MESSAGING",
+            "sms": "android.intent.action.MAIN -c android.intent.category.APP_MESSAGING",
+            "email": "android.intent.action.MAIN -c android.intent.category.APP_EMAIL",
+            "maps": "android.intent.action.VIEW -d geo:0,0",
+            "music": "android.intent.action.MAIN -c android.intent.category.APP_MUSIC",
+            "gallery": "android.intent.action.MAIN -c android.intent.category.APP_GALLERY",
+            "photos": "android.intent.action.MAIN -c android.intent.category.APP_GALLERY",
+            "calculator": "android.intent.action.MAIN -c android.intent.category.APP_CALCULATOR",
+            "files": "android.intent.action.MAIN -c android.intent.category.APP_FILES",
+            "phone": "android.intent.action.DIAL",
+            "dialer": "android.intent.action.DIAL",
+            "youtube": "android.intent.action.VIEW -d https://youtube.com -p com.google.android.youtube",
         }
 
         # Action patterns (order matters - more specific first)
         self.patterns = [
             # Call actions
-            (r'\b(?:make\s+a\s+)?call\s+(?:to\s+)?(?:number\s+)?["\']?(\+?[\d\s\-]+)["\']?', self._action_call),
+            (
+                r'\b(?:make\s+a\s+)?call\s+(?:to\s+)?(?:number\s+)?["\']?(\+?[\d\s\-]+)["\']?',
+                self._action_call,
+            ),
             (r'\bcall\s+["\']?(\+?[\d\s\-]+)["\']?', self._action_call),
             (r'\bdial\s+["\']?(\+?[\d\s\-]+)["\']?', self._action_dial),
-            (r'\b(?:end|hang\s*up|disconnect|cut)(?:\s+the)?\s*(?:call)?\b', self._action_end_call),
-
+            (r"\b(?:end|hang\s*up|disconnect|cut)(?:\s+the)?\s*(?:call)?\b", self._action_end_call),
             # Alarm actions
-            (r'\bset\s+(?:an?\s+)?alarm\s+(?:for\s+)?(\d{1,2})[:\s]?(\d{2})?\s*(am|pm)?', self._action_set_alarm),
-            (r'\bcreate\s+(?:an?\s+)?alarm\s+(?:for\s+)?(\d{1,2})[:\s]?(\d{2})?\s*(am|pm)?', self._action_set_alarm),
-            (r'\balarm\s+(?:at\s+)?(\d{1,2})[:\s]?(\d{2})?\s*(am|pm)?', self._action_set_alarm),
-
+            (
+                r"\bset\s+(?:an?\s+)?alarm\s+(?:for\s+)?(\d{1,2})[:\s]?(\d{2})?\s*(am|pm)?",
+                self._action_set_alarm,
+            ),
+            (
+                r"\bcreate\s+(?:an?\s+)?alarm\s+(?:for\s+)?(\d{1,2})[:\s]?(\d{2})?\s*(am|pm)?",
+                self._action_set_alarm,
+            ),
+            (r"\balarm\s+(?:at\s+)?(\d{1,2})[:\s]?(\d{2})?\s*(am|pm)?", self._action_set_alarm),
             # Copy actions - copy text/number from screen
-            (r'\bcopy\s+(?:the\s+)?last\s+(?:number\s+)?(?:i\s+)?called', self._action_copy_last_called),
-            (r'\bcopy\s+(?:the\s+)?(?:last\s+)?(?:dialed|called)\s+number', self._action_copy_last_called),
-            (r'\bcopy\s+(?:the\s+)?(?:phone\s+)?number', self._action_copy_number),
+            (
+                r"\bcopy\s+(?:the\s+)?last\s+(?:number\s+)?(?:i\s+)?called",
+                self._action_copy_last_called,
+            ),
+            (
+                r"\bcopy\s+(?:the\s+)?(?:last\s+)?(?:dialed|called)\s+number",
+                self._action_copy_last_called,
+            ),
+            (r"\bcopy\s+(?:the\s+)?(?:phone\s+)?number", self._action_copy_number),
             (r'\bcopy\s+(?:the\s+)?text\s+(?:from\s+)?["\']?(.+?)["\']?', self._action_copy_text),
             (r'\bcopy\s+["\']?(.+?)["\']?', self._action_copy_element),
-
             # Navigate to URL
-            (r'\b(?:go\s+to|open|navigate\s+to|visit)\s+(?:url\s+)?["\']?(https?://\S+)["\']?', self._action_goto_url),
-            (r'\b(?:go\s+to|open|navigate\s+to|visit)\s+(?:url\s+)?["\']?(www\.\S+)["\']?', self._action_goto_url),
-            (r'\b(?:go\s+to|open|navigate\s+to|visit)\s+(?:url\s+)?["\']?(\S+\.(com|org|net|io|dev|app)\S*)["\']?', self._action_goto_url),
-
+            (
+                r'\b(?:go\s+to|open|navigate\s+to|visit)\s+(?:url\s+)?["\']?(https?://\S+)["\']?',
+                self._action_goto_url,
+            ),
+            (
+                r'\b(?:go\s+to|open|navigate\s+to|visit)\s+(?:url\s+)?["\']?(www\.\S+)["\']?',
+                self._action_goto_url,
+            ),
+            (
+                r'\b(?:go\s+to|open|navigate\s+to|visit)\s+(?:url\s+)?["\']?(\S+\.(com|org|net|io|dev|app)\S*)["\']?',
+                self._action_goto_url,
+            ),
             # Back/Home
-            (r'\b(go\s+)?back\b', self._action_back),
-            (r'\b(go\s+)?(to\s+)?home(\s+screen)?\b', self._action_home),
-            (r'\bpress\s+(the\s+)?back(\s+button)?\b', self._action_back),
-            (r'\bpress\s+(the\s+)?home(\s+button)?\b', self._action_home),
-
+            (r"\b(go\s+)?back\b", self._action_back),
+            (r"\b(go\s+)?(to\s+)?home(\s+screen)?\b", self._action_home),
+            (r"\bpress\s+(the\s+)?back(\s+button)?\b", self._action_back),
+            (r"\bpress\s+(the\s+)?home(\s+button)?\b", self._action_home),
             # Scroll/Swipe
-            (r'\bscroll\s+(up|down|left|right)\b', self._action_scroll),
-            (r'\bswipe\s+(up|down|left|right)\b', self._action_swipe),
-            (r'\bscroll\s+to\s+(top|bottom)\b', self._action_scroll_to),
-
+            (r"\bscroll\s+(up|down|left|right)\b", self._action_scroll),
+            (r"\bswipe\s+(up|down|left|right)\b", self._action_swipe),
+            (r"\bscroll\s+to\s+(top|bottom)\b", self._action_scroll_to),
             # Wait
-            (r'\bwait\s+(\d+)\s*(s|sec|seconds?)?\b', self._action_wait),
-            (r'\bpause\s+(\d+)\s*(s|sec|seconds?)?\b', self._action_wait),
-
+            (r"\bwait\s+(\d+)\s*(s|sec|seconds?)?\b", self._action_wait),
+            (r"\bpause\s+(\d+)\s*(s|sec|seconds?)?\b", self._action_wait),
             # App search (open app drawer and search)
-            (r'\bsearch\s+(?:for\s+)?(?:the\s+)?["\']?(.+?)["\']?\s*(?:app)\b', self._action_search_app),
+            (
+                r'\bsearch\s+(?:for\s+)?(?:the\s+)?["\']?(.+?)["\']?\s*(?:app)\b',
+                self._action_search_app,
+            ),
             (r'\bfind\s+(?:the\s+)?["\']?(.+?)["\']?\s*(?:app)\b', self._action_search_app),
-            (r'\bopen\s+app\s+drawer\s+(?:and\s+)?search\s+(?:for\s+)?["\']?(.+?)["\']?', self._action_search_app),
-
+            (
+                r'\bopen\s+app\s+drawer\s+(?:and\s+)?search\s+(?:for\s+)?["\']?(.+?)["\']?',
+                self._action_search_app,
+            ),
             # Search (tap search, type, submit)
             (r'\bsearch\s+(?:for\s+)?["\']?(.+?)["\']?\s*$', self._action_search),
-
             # Filter/Sort
-            (r'\bfilter\s+(?:by|for)\s+(.+)', self._action_filter),
-            (r'\bsort\s+(?:by\s+)?(.+)', self._action_filter),
-
+            (r"\bfilter\s+(?:by|for)\s+(.+)", self._action_filter),
+            (r"\bsort\s+(?:by\s+)?(.+)", self._action_filter),
             # Play/Click first/top/latest result
-            (r'\bplay\s+(?:the\s+)?(?:first|top|latest|newest|most\s+recent|most\s+watched|most\s+viewed)(?:\s+video)?', self._action_play_first),
-            (r'\b(?:click|tap|select|open)\s+(?:the\s+)?(?:first|top|latest|newest)(?:\s+result|\s+video|\s+item|\s+link|\s+url)?', self._action_click_first_result),
-            (r'\bopen\s+(?:the\s+)?(?:first|latest)(?:\s+result|\s+link|\s+url)?', self._action_click_first_result),
-
+            (
+                r"\bplay\s+(?:the\s+)?(?:first|top|latest|newest|most\s+recent|most\s+watched|most\s+viewed)(?:\s+video)?",
+                self._action_play_first,
+            ),
+            (
+                r"\b(?:click|tap|select|open)\s+(?:the\s+)?(?:first|top|latest|newest)(?:\s+result|\s+video|\s+item|\s+link|\s+url)?",
+                self._action_click_first_result,
+            ),
+            (
+                r"\bopen\s+(?:the\s+)?(?:first|latest)(?:\s+result|\s+link|\s+url)?",
+                self._action_click_first_result,
+            ),
             # Type/Input text
             (r'\btype\s+["\'](.+?)["\']', self._action_type),
-            (r'\btype\s+(.+?)(?:\s+in|\s+into|$)', self._action_type),
+            (r"\btype\s+(.+?)(?:\s+in|\s+into|$)", self._action_type),
             (r'\benter\s+["\'](.+?)["\']', self._action_type),
             (r'\binput\s+["\'](.+?)["\']', self._action_type),
-
             # Long press
-            (r'\blong\s*press\s+(?:on\s+)?(?:the\s+)?["\']?(.+?)["\']?(?:\s+icon|\s+button|\s+app)?(?:\s|$)', self._action_long_press),
-            (r'\bpress\s+and\s+hold\s+(?:on\s+)?(?:the\s+)?["\']?(.+?)["\']?(?:\s|$)', self._action_long_press),
+            (
+                r'\blong\s*press\s+(?:on\s+)?(?:the\s+)?["\']?(.+?)["\']?(?:\s+icon|\s+button|\s+app)?(?:\s|$)',
+                self._action_long_press,
+            ),
+            (
+                r'\bpress\s+and\s+hold\s+(?:on\s+)?(?:the\s+)?["\']?(.+?)["\']?(?:\s|$)',
+                self._action_long_press,
+            ),
             (r'\bhold\s+(?:on\s+)?(?:the\s+)?["\']?(.+?)["\']?(?:\s|$)', self._action_long_press),
-
             # Tap/Click/Open (most general - last)
-            (r'\b(?:tap|click|press|select)\s+(?:on\s+)?(?:the\s+)?["\']?(.+?)["\']?(?:\s+icon|\s+button|\s+app)?(?:\s|$)', self._action_tap),
+            (
+                r'\b(?:tap|click|press|select)\s+(?:on\s+)?(?:the\s+)?["\']?(.+?)["\']?(?:\s+icon|\s+button|\s+app)?(?:\s|$)',
+                self._action_tap,
+            ),
             (r'\bopen\s+(?:the\s+)?["\']?(.+?)["\']?(?:\s+app)?(?:\s|$)', self._action_tap),
             (r'\blaunch\s+(?:the\s+)?["\']?(.+?)["\']?(?:\s+app)?(?:\s|$)', self._action_tap),
             (r'\bgo\s+to\s+["\']?(.+?)["\']?(?:\s|$)', self._action_tap),
         ]
 
-    def _find_element(self, target: str, elements: List[Dict], filter_ads: bool = True) -> Optional[Dict]:
+    def _find_element(
+        self, target: str, elements: List[Dict], filter_ads: bool = True
+    ) -> Optional[Dict]:
         """Find element by text, content-desc, or resource-id, optionally filtering ads."""
         target_lower = target.lower().strip()
 
         # Remove common suffixes
-        target_clean = re.sub(r'\s*(app|icon|button|option|menu|item)$', '', target_lower).strip()
+        target_clean = re.sub(r"\s*(app|icon|button|option|menu|item)$", "", target_lower).strip()
 
         # Get ad filter if enabled
         ad_filter = get_ad_filter() if filter_ads else None
@@ -209,22 +257,27 @@ class NaturalLanguageRunner:
 
         # First pass: look for exact matches (can return immediately)
         for elem in elements:
-            if not (elem.get('clickable') or elem.get('long_clickable') or elem.get('focusable')):
+            if not (elem.get("clickable") or elem.get("long_clickable") or elem.get("focusable")):
                 continue
 
             # Skip ad elements
             if ad_filter and ad_filter.is_ad(elem):
                 continue
 
-            text = elem.get('text', '').lower()
-            desc = elem.get('content_desc', '').lower()
-            rid = elem.get('resource_id', '').split('/')[-1].lower()
+            text = elem.get("text", "").lower()
+            desc = elem.get("content_desc", "").lower()
+            rid = elem.get("resource_id", "").split("/")[-1].lower()
 
             # Skip URL bars and address fields - they contain URLs that shouldn't match
-            if any(skip in rid for skip in ['url', 'address', 'omnibox', 'location_bar']):
+            if any(skip in rid for skip in ["url", "address", "omnibox", "location_bar"]):
                 continue
             # Skip if text looks like a URL
-            if text.startswith('http') or text.startswith('www.') or '.com/' in text or '.org/' in text:
+            if (
+                text.startswith("http")
+                or text.startswith("www.")
+                or ".com/" in text
+                or ".org/" in text
+            ):
                 continue
 
             # Exact matches (highest priority) - return immediately
@@ -237,21 +290,26 @@ class NaturalLanguageRunner:
 
         # Second pass: look for partial matches
         for elem in elements:
-            if not (elem.get('clickable') or elem.get('long_clickable') or elem.get('focusable')):
+            if not (elem.get("clickable") or elem.get("long_clickable") or elem.get("focusable")):
                 continue
 
             # Skip ad elements
             if ad_filter and ad_filter.is_ad(elem):
                 continue
 
-            text = elem.get('text', '').lower()
-            desc = elem.get('content_desc', '').lower()
-            rid = elem.get('resource_id', '').split('/')[-1].lower()
+            text = elem.get("text", "").lower()
+            desc = elem.get("content_desc", "").lower()
+            rid = elem.get("resource_id", "").split("/")[-1].lower()
 
             # Skip URL-related elements
-            if any(skip in rid for skip in ['url', 'address', 'omnibox', 'location_bar']):
+            if any(skip in rid for skip in ["url", "address", "omnibox", "location_bar"]):
                 continue
-            if text.startswith('http') or text.startswith('www.') or '.com/' in text or '.org/' in text:
+            if (
+                text.startswith("http")
+                or text.startswith("www.")
+                or ".com/" in text
+                or ".org/" in text
+            ):
                 continue
 
             # Partial matches
@@ -273,17 +331,19 @@ class NaturalLanguageRunner:
 
         return None
 
-    def _get_swipe_coords(self, direction: str, distance: int = DEFAULT_SWIPE_DISTANCE_PX) -> Tuple[int, int, int, int]:
+    def _get_swipe_coords(
+        self, direction: str, distance: int = DEFAULT_SWIPE_DISTANCE_PX
+    ) -> Tuple[int, int, int, int]:
         """Get swipe coordinates for direction."""
         cx, cy = self.screen_width // 2, self.screen_height // 2
 
-        if direction == 'up':
+        if direction == "up":
             return cx, cy + distance, cx, cy - distance
-        elif direction == 'down':
+        elif direction == "down":
             return cx, cy - distance, cx, cy + distance
-        elif direction == 'left':
+        elif direction == "left":
             return cx + distance, cy, cx - distance, cy
-        elif direction == 'right':
+        elif direction == "right":
             return cx - distance, cy, cx + distance, cy
         return cx, cy, cx, cy
 
@@ -295,8 +355,9 @@ class NaturalLanguageRunner:
         if app_lower in self.app_intents:
             intent = self.app_intents[app_lower]
             from recorder.adb_wrapper import run_adb
+
             try:
-                cmd = ['shell', 'am', 'start', '-a'] + intent.split()
+                cmd = ["shell", "am", "start", "-a"] + intent.split()
                 run_adb(cmd)
                 time.sleep(1.5)
                 return True, f"Opened {app_name} app"
@@ -310,8 +371,12 @@ class NaturalLanguageRunner:
         target = match.group(1).strip()
         elem = self._find_element(target, elements)
         if elem:
-            x, y = get_center(elem['bounds'])
-            name = elem.get('text') or elem.get('content_desc') or elem.get('resource_id', '').split('/')[-1]
+            x, y = get_center(elem["bounds"])
+            name = (
+                elem.get("text")
+                or elem.get("content_desc")
+                or elem.get("resource_id", "").split("/")[-1]
+            )
             tap(x, y)
             return True, f"Tapped '{name}' at ({x}, {y})"
 
@@ -326,8 +391,8 @@ class NaturalLanguageRunner:
         target = match.group(1).strip()
         elem = self._find_element(target, elements)
         if elem:
-            x, y = get_center(elem['bounds'])
-            name = elem.get('text') or elem.get('content_desc') or 'element'
+            x, y = get_center(elem["bounds"])
+            name = elem.get("text") or elem.get("content_desc") or "element"
             long_press(x, y, 1000)
             return True, f"Long pressed '{name}' at ({x}, {y})"
         return False, f"Could not find element '{target}'"
@@ -346,7 +411,7 @@ class NaturalLanguageRunner:
 
     def _action_scroll_to(self, match, elements) -> Tuple[bool, str]:
         target = match.group(1).lower()
-        direction = 'up' if target == 'top' else 'down'
+        direction = "up" if target == "top" else "down"
         for _ in range(5):  # Scroll multiple times
             x1, y1, x2, y2 = self._get_swipe_coords(direction, SCROLL_TO_DISTANCE_PX)
             swipe(x1, y1, x2, y2, SCROLL_TO_DURATION_MS)
@@ -371,10 +436,10 @@ class NaturalLanguageRunner:
 
         # Check for clipboard references
         clipboard_patterns = [
-            r'\b(?:that|the)\s+(?:number|text)\s+(?:you|i)\s+copied\b',
-            r'\b(?:the\s+)?copied\s+(?:number|text)\b',
-            r'\bwhat\s+(?:you|i)\s+copied\b',
-            r'\bthe\s+clipboard\b',
+            r"\b(?:that|the)\s+(?:number|text)\s+(?:you|i)\s+copied\b",
+            r"\b(?:the\s+)?copied\s+(?:number|text)\b",
+            r"\bwhat\s+(?:you|i)\s+copied\b",
+            r"\bthe\s+clipboard\b",
         ]
 
         for pattern in clipboard_patterns:
@@ -392,36 +457,38 @@ class NaturalLanguageRunner:
         """Copy the last called/dialed number from call history."""
         # Look for phone numbers on screen (in call log entries)
         # Phone numbers typically contain digits, possibly with +, -, spaces
-        phone_pattern = re.compile(r'[\+]?[\d\s\-\(\)]{7,}')
+        phone_pattern = re.compile(r"[\+]?[\d\s\-\(\)]{7,}")
 
         for elem in elements:
-            text = elem.get('text', '')
-            desc = elem.get('content_desc', '')
+            text = elem.get("text", "")
+            desc = elem.get("content_desc", "")
 
             # Check text field
             if text:
                 match_num = phone_pattern.search(text)
                 if match_num:
-                    number = ''.join(c for c in match_num.group() if c.isdigit() or c == '+')
+                    number = "".join(c for c in match_num.group() if c.isdigit() or c == "+")
                     if len(number) >= 7:  # Minimum phone number length
                         self.clipboard = number
-                        self.last_copied_type = 'number'
+                        self.last_copied_type = "number"
                         return True, f"Copied number: {number}"
 
             # Check content_desc
             if desc:
                 match_num = phone_pattern.search(desc)
                 if match_num:
-                    number = ''.join(c for c in match_num.group() if c.isdigit() or c == '+')
+                    number = "".join(c for c in match_num.group() if c.isdigit() or c == "+")
                     if len(number) >= 7:
                         self.clipboard = number
-                        self.last_copied_type = 'number'
+                        self.last_copied_type = "number"
                         return True, f"Copied number: {number}"
 
         # If no number found directly, try to tap on "Recents" tab first
-        recents_elem = self._find_element("recents", elements) or self._find_element("recent", elements)
+        recents_elem = self._find_element("recents", elements) or self._find_element(
+            "recent", elements
+        )
         if recents_elem:
-            x, y = get_center(recents_elem['bounds'])
+            x, y = get_center(recents_elem["bounds"])
             tap(x, y)
             time.sleep(1)
 
@@ -430,34 +497,34 @@ class NaturalLanguageRunner:
 
             # Try again to find a phone number
             for elem in elements:
-                text = elem.get('text', '')
+                text = elem.get("text", "")
                 if text:
                     match_num = phone_pattern.search(text)
                     if match_num:
-                        number = ''.join(c for c in match_num.group() if c.isdigit() or c == '+')
+                        number = "".join(c for c in match_num.group() if c.isdigit() or c == "+")
                         if len(number) >= 7:
                             self.clipboard = number
-                            self.last_copied_type = 'number'
+                            self.last_copied_type = "number"
                             return True, f"Copied number: {number}"
 
         return False, "Could not find a phone number to copy"
 
     def _action_copy_number(self, match, elements) -> Tuple[bool, str]:
         """Copy a phone number visible on screen."""
-        phone_pattern = re.compile(r'[\+]?[\d\s\-\(\)]{7,}')
+        phone_pattern = re.compile(r"[\+]?[\d\s\-\(\)]{7,}")
 
         for elem in elements:
-            text = elem.get('text', '')
-            desc = elem.get('content_desc', '')
+            text = elem.get("text", "")
+            desc = elem.get("content_desc", "")
 
             for content in [text, desc]:
                 if content:
                     match_num = phone_pattern.search(content)
                     if match_num:
-                        number = ''.join(c for c in match_num.group() if c.isdigit() or c == '+')
+                        number = "".join(c for c in match_num.group() if c.isdigit() or c == "+")
                         if len(number) >= 7:
                             self.clipboard = number
-                            self.last_copied_type = 'number'
+                            self.last_copied_type = "number"
                             return True, f"Copied number: {number}"
 
         return False, "Could not find a phone number to copy"
@@ -469,10 +536,10 @@ class NaturalLanguageRunner:
         if target:
             elem = self._find_element(target, elements)
             if elem:
-                text = elem.get('text', '') or elem.get('content_desc', '')
+                text = elem.get("text", "") or elem.get("content_desc", "")
                 if text:
                     self.clipboard = text
-                    self.last_copied_type = 'text'
+                    self.last_copied_type = "text"
                     return True, f"Copied text: '{text}'"
 
         return False, f"Could not find text to copy from '{target}'"
@@ -483,10 +550,10 @@ class NaturalLanguageRunner:
 
         elem = self._find_element(target, elements)
         if elem:
-            text = elem.get('text', '') or elem.get('content_desc', '')
+            text = elem.get("text", "") or elem.get("content_desc", "")
             if text:
                 self.clipboard = text
-                self.last_copied_type = 'text'
+                self.last_copied_type = "text"
                 return True, f"Copied: '{text}'"
             else:
                 return False, f"Element '{target}' has no text to copy"
@@ -495,14 +562,14 @@ class NaturalLanguageRunner:
 
     def _action_call(self, match, elements) -> Tuple[bool, str]:
         number = match.group(1).strip()
-        number = ''.join(c for c in number if c.isdigit() or c == '+')
+        number = "".join(c for c in number if c.isdigit() or c == "+")
         make_call(number)
         time.sleep(2)  # Wait for call UI to load
         return True, f"Calling {number}"
 
     def _action_dial(self, match, elements) -> Tuple[bool, str]:
         number = match.group(1).strip()
-        number = ''.join(c for c in number if c.isdigit() or c == '+')
+        number = "".join(c for c in number if c.isdigit() or c == "+")
         dial_number(number)
         return True, f"Opened dialer with {number}"
 
@@ -517,21 +584,19 @@ class NaturalLanguageRunner:
         # Basic URL validation
         if not url:
             return False, "Empty URL provided"
-        
+
         # Add https:// if no protocol
-        if not url.startswith('http'):
-            url = 'https://' + url
-        
+        if not url.startswith("http"):
+            url = "https://" + url
+
         # Basic URL sanity check - must have a domain
-        if not re.match(r'https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', url):
+        if not re.match(r"https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", url):
             return False, f"Invalid URL format: {url}"
 
         from recorder.adb_wrapper import run_adb
+
         try:
-            run_adb([
-                'shell', 'am', 'start', '-a', 'android.intent.action.VIEW',
-                '-d', url
-            ])
+            run_adb(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", url])
             time.sleep(2)
             return True, f"Opened URL: {url}"
         except Exception as e:
@@ -544,31 +609,47 @@ class NaturalLanguageRunner:
         ampm = match.group(3).lower() if match.group(3) else None
 
         # Convert to 24-hour format if AM/PM specified
-        if ampm == 'pm' and hour < 12:
+        if ampm == "pm" and hour < 12:
             hour += 12
-        elif ampm == 'am' and hour == 12:
+        elif ampm == "am" and hour == 12:
             hour = 0
 
         # Use Android SET_ALARM intent
         from recorder.adb_wrapper import run_adb
+
         try:
-            run_adb([
-                'shell', 'am', 'start', '-a', 'android.intent.action.SET_ALARM',
-                '--ei', 'android.intent.extra.alarm.HOUR', str(hour),
-                '--ei', 'android.intent.extra.alarm.MINUTES', str(minutes),
-                '--ez', 'android.intent.extra.alarm.SKIP_UI', 'false'
-            ])
+            run_adb(
+                [
+                    "shell",
+                    "am",
+                    "start",
+                    "-a",
+                    "android.intent.action.SET_ALARM",
+                    "--ei",
+                    "android.intent.extra.alarm.HOUR",
+                    str(hour),
+                    "--ei",
+                    "android.intent.extra.alarm.MINUTES",
+                    str(minutes),
+                    "--ez",
+                    "android.intent.extra.alarm.SKIP_UI",
+                    "false",
+                ]
+            )
             time.sleep(2)
 
             # Try to save/confirm the alarm by looking for save/done button
             _, elements = capture_ui_fast()
             for elem in elements:
-                if not elem.get('clickable'):
+                if not elem.get("clickable"):
                     continue
-                text = elem.get('text', '').lower()
-                desc = elem.get('content_desc', '').lower()
-                if any(word in text or word in desc for word in ['save', 'done', 'ok', 'confirm', 'set']):
-                    x, y = get_center(elem['bounds'])
+                text = elem.get("text", "").lower()
+                desc = elem.get("content_desc", "").lower()
+                if any(
+                    word in text or word in desc
+                    for word in ["save", "done", "ok", "confirm", "set"]
+                ):
+                    x, y = get_center(elem["bounds"])
                     tap(x, y)
                     break
 
@@ -590,7 +671,13 @@ class NaturalLanguageRunner:
 
         # Swipe up to open app drawer
         cx, cy = self.screen_width // 2, self.screen_height // 2
-        swipe(cx, self.screen_height - BOTTOM_SWIPE_MARGIN_PX, cx, cy - SWIPE_DISTANCE_PX, APP_DRAWER_SWIPE_DURATION_MS)
+        swipe(
+            cx,
+            self.screen_height - BOTTOM_SWIPE_MARGIN_PX,
+            cx,
+            cy - SWIPE_DISTANCE_PX,
+            APP_DRAWER_SWIPE_DURATION_MS,
+        )
         time.sleep(1)
 
         # Capture UI to find search box in app drawer
@@ -598,15 +685,15 @@ class NaturalLanguageRunner:
 
         # Look for search box in app drawer
         search_elem = None
-        search_keywords = ['search', 'find', 'apps', 'search apps', 'search_box', 'search_edit']
+        search_keywords = ["search", "find", "apps", "search apps", "search_box", "search_edit"]
 
         for elem in elements:
-            if not (elem.get('clickable') or elem.get('focusable')):
+            if not (elem.get("clickable") or elem.get("focusable")):
                 continue
 
-            text = elem.get('text', '').lower()
-            desc = elem.get('content_desc', '').lower()
-            rid = elem.get('resource_id', '').lower()
+            text = elem.get("text", "").lower()
+            desc = elem.get("content_desc", "").lower()
+            rid = elem.get("resource_id", "").lower()
 
             for kw in search_keywords:
                 if kw in text or kw in desc or kw in rid:
@@ -616,7 +703,7 @@ class NaturalLanguageRunner:
                 break
 
         if search_elem:
-            x, y = get_center(search_elem['bounds'])
+            x, y = get_center(search_elem["bounds"])
             tap(x, y)
             time.sleep(0.5)
 
@@ -630,17 +717,17 @@ class NaturalLanguageRunner:
         # Look for app icons - prioritize larger clickable elements with matching text/desc
         candidates = []
         for elem in elements:
-            if not elem.get('clickable'):
+            if not elem.get("clickable"):
                 continue
 
-            text = elem.get('text', '').lower()
-            desc = elem.get('content_desc', '').lower()
+            text = elem.get("text", "").lower()
+            desc = elem.get("content_desc", "").lower()
 
             # Check if element matches app name
             if app_name_lower not in text and app_name_lower not in desc:
                 continue
 
-            bounds = elem.get('bounds', (0, 0, 0, 0))
+            bounds = elem.get("bounds", (0, 0, 0, 0))
             width = bounds[2] - bounds[0]
             height = bounds[3] - bounds[1]
             area = width * height
@@ -663,7 +750,7 @@ class NaturalLanguageRunner:
             # Sort by priority desc, then by area desc (prefer larger icons)
             candidates.sort(key=lambda x: (-x[0], -x[1]))
             app_elem = candidates[0][2]
-            x, y = get_center(app_elem['bounds'])
+            x, y = get_center(app_elem["bounds"])
             tap(x, y)
             time.sleep(1)
             return True, f"Opened '{app_name}' app"
@@ -671,7 +758,7 @@ class NaturalLanguageRunner:
         # Fallback: just tap anywhere the app name appears
         app_elem = self._find_element(app_name, elements)
         if app_elem:
-            x, y = get_center(app_elem['bounds'])
+            x, y = get_center(app_elem["bounds"])
             tap(x, y)
             time.sleep(1)
             return True, f"Tapped '{app_name}'"
@@ -689,11 +776,11 @@ class NaturalLanguageRunner:
 
         # Check for clipboard references like "that number you copied", "the copied number", etc.
         clipboard_patterns = [
-            r'\b(?:that|the)\s+(?:number|text)\s+(?:you|i)\s+copied\b',
-            r'\b(?:the\s+)?copied\s+(?:number|text)\b',
-            r'\bwhat\s+(?:you|i)\s+copied\b',
-            r'\bthe\s+clipboard\b',
-            r'\bit\b',  # "search for it" when clipboard has value
+            r"\b(?:that|the)\s+(?:number|text)\s+(?:you|i)\s+copied\b",
+            r"\b(?:the\s+)?copied\s+(?:number|text)\b",
+            r"\bwhat\s+(?:you|i)\s+copied\b",
+            r"\bthe\s+clipboard\b",
+            r"\bit\b",  # "search for it" when clipboard has value
         ]
 
         for pattern in clipboard_patterns:
@@ -705,16 +792,16 @@ class NaturalLanguageRunner:
                     return False, "Nothing in clipboard to search for"
 
         # Find search box/icon
-        search_keywords = ['search', 'find', 'query', 'search_box', 'search_edit_text']
+        search_keywords = ["search", "find", "query", "search_box", "search_edit_text"]
         search_elem = None
 
         for elem in elements:
-            if not (elem.get('clickable') or elem.get('focusable')):
+            if not (elem.get("clickable") or elem.get("focusable")):
                 continue
 
-            text = elem.get('text', '').lower()
-            desc = elem.get('content_desc', '').lower()
-            rid = elem.get('resource_id', '').lower()
+            text = elem.get("text", "").lower()
+            desc = elem.get("content_desc", "").lower()
+            rid = elem.get("resource_id", "").lower()
 
             for kw in search_keywords:
                 if kw in text or kw in desc or kw in rid:
@@ -724,18 +811,19 @@ class NaturalLanguageRunner:
                 break
 
         if search_elem:
-            x, y = get_center(search_elem['bounds'])
+            x, y = get_center(search_elem["bounds"])
             tap(x, y)
             time.sleep(1)
 
             # Clear any existing text in search field
-            press_key('KEYCODE_MOVE_END')
+            press_key("KEYCODE_MOVE_END")
             time.sleep(0.1)
             # Select all and delete
             from recorder.adb_wrapper import run_adb
-            run_adb(['shell', 'input', 'keyevent', 'KEYCODE_CTRL_A'])
+
+            run_adb(["shell", "input", "keyevent", "KEYCODE_CTRL_A"])
             time.sleep(0.1)
-            press_key('KEYCODE_DEL')
+            press_key("KEYCODE_DEL")
             time.sleep(0.2)
 
         # Type the search query
@@ -743,7 +831,7 @@ class NaturalLanguageRunner:
         time.sleep(0.8)
 
         # Press enter to submit
-        press_key('KEYCODE_ENTER')
+        press_key("KEYCODE_ENTER")
         time.sleep(2)  # Wait for results
 
         return True, f"Searched for '{query}'"
@@ -758,18 +846,18 @@ class NaturalLanguageRunner:
         # Look for filter/sort button
         filter_elem = None
         for elem in elements:
-            if not elem.get('clickable'):
+            if not elem.get("clickable"):
                 continue
 
-            text = elem.get('text', '').lower()
-            desc = elem.get('content_desc', '').lower()
+            text = elem.get("text", "").lower()
+            desc = elem.get("content_desc", "").lower()
 
-            if 'filter' in text or 'filter' in desc or 'sort' in text or 'sort' in desc:
+            if "filter" in text or "filter" in desc or "sort" in text or "sort" in desc:
                 filter_elem = elem
                 break
 
         if filter_elem:
-            x, y = get_center(filter_elem['bounds'])
+            x, y = get_center(filter_elem["bounds"])
             tap(x, y)
             time.sleep(1)
 
@@ -778,25 +866,25 @@ class NaturalLanguageRunner:
 
         # Try to find the specific filter option
         target_keywords = []
-        if 'view' in filter_type or 'watch' in filter_type or 'popular' in filter_type:
-            target_keywords = ['view count', 'most viewed', 'most watched', 'popular', 'view']
-        elif 'date' in filter_type or 'recent' in filter_type or 'new' in filter_type:
-            target_keywords = ['upload date', 'date', 'recent', 'newest', 'new']
-        elif 'rating' in filter_type:
-            target_keywords = ['rating', 'top rated']
+        if "view" in filter_type or "watch" in filter_type or "popular" in filter_type:
+            target_keywords = ["view count", "most viewed", "most watched", "popular", "view"]
+        elif "date" in filter_type or "recent" in filter_type or "new" in filter_type:
+            target_keywords = ["upload date", "date", "recent", "newest", "new"]
+        elif "rating" in filter_type:
+            target_keywords = ["rating", "top rated"]
         else:
             target_keywords = [filter_type]
 
         for elem in elements:
-            if not elem.get('clickable'):
+            if not elem.get("clickable"):
                 continue
 
-            text = elem.get('text', '').lower()
-            desc = elem.get('content_desc', '').lower()
+            text = elem.get("text", "").lower()
+            desc = elem.get("content_desc", "").lower()
 
             for kw in target_keywords:
                 if kw in text or kw in desc:
-                    x, y = get_center(elem['bounds'])
+                    x, y = get_center(elem["bounds"])
                     tap(x, y)
                     time.sleep(1)
                     return True, f"Applied filter: {filter_type}"
@@ -816,7 +904,7 @@ class NaturalLanguageRunner:
         candidates = []
 
         for elem in elements:
-            if not elem.get('clickable'):
+            if not elem.get("clickable"):
                 continue
 
             # Skip ad/sponsored elements
@@ -825,18 +913,17 @@ class NaturalLanguageRunner:
                 continue
 
             # Additional ad detection
-            text = elem.get('text', '').lower()
-            desc = elem.get('content_desc', '').lower()
-            rid = elem.get('resource_id', '').lower()
+            text = elem.get("text", "").lower()
+            rid = elem.get("resource_id", "").lower()
 
             # Skip sponsored/ad results
-            if any(ad_word in text for ad_word in ['sponsored', 'ad', 'promoted', 'advertisement']):
+            if any(ad_word in text for ad_word in ["sponsored", "ad", "promoted", "advertisement"]):
                 logger.debug(f"Skipping sponsored result: {text[:30]}")
                 continue
-            if any(ad_word in rid for ad_word in ['ad_', '_ad', 'sponsor', 'promo']):
+            if any(ad_word in rid for ad_word in ["ad_", "_ad", "sponsor", "promo"]):
                 continue
 
-            bounds = elem.get('bounds', (0, 0, 0, 0))
+            bounds = elem.get("bounds", (0, 0, 0, 0))
             y_pos = bounds[1]
             width = bounds[2] - bounds[0]
             height = bounds[3] - bounds[1]
@@ -853,7 +940,7 @@ class NaturalLanguageRunner:
             if width > self.screen_width * 0.98:
                 continue
 
-            text_orig = elem.get('text', '')
+            text_orig = elem.get("text", "")
 
             # Prioritize elements that look like search results
             priority = 0
@@ -863,7 +950,7 @@ class NaturalLanguageRunner:
                 priority += 2
 
             # Google search result indicators
-            if 'url' in rid or 'title' in rid or 'link' in rid or 'result' in rid:
+            if "url" in rid or "title" in rid or "link" in rid or "result" in rid:
                 priority += 3
 
             if priority > 0 or (text_orig and width > MIN_VIDEO_WIDTH_PX):
@@ -873,8 +960,8 @@ class NaturalLanguageRunner:
             # Sort by priority desc, then by Y position (topmost first)
             candidates.sort(key=lambda x: (-x[0], x[1]))
             elem = candidates[0][2]
-            x, y = get_center(elem['bounds'])
-            text_preview = elem.get('text', '')[:30] or 'result'
+            x, y = get_center(elem["bounds"])
+            text_preview = elem.get("text", "")[:30] or "result"
             tap(x, y)
             time.sleep(2)
             return True, f"Opened first result: '{text_preview}...'"
@@ -893,21 +980,25 @@ class NaturalLanguageRunner:
         # YouTube shows "Sponsored" as a separate label below ad videos
         sponsored_regions = []
         for elem in elements:
-            text = elem.get('text', '').lower().strip()
-            desc = elem.get('content_desc', '').lower().strip()
+            text = elem.get("text", "").lower().strip()
+            desc = elem.get("content_desc", "").lower().strip()
 
             # Check for sponsored labels
-            if text in ['sponsored', 'ad', 'promoted', 'advertisement'] or \
-               desc in ['sponsored', 'ad', 'promoted', 'advertisement']:
-                bounds = elem.get('bounds', (0, 0, 0, 0))
+            if text in ["sponsored", "ad", "promoted", "advertisement"] or desc in [
+                "sponsored",
+                "ad",
+                "promoted",
+                "advertisement",
+            ]:
+                bounds = elem.get("bounds", (0, 0, 0, 0))
                 # Mark a region above the sponsored label as "ad zone"
                 # Typically the video thumbnail is directly above the label
                 # Expand the region to cover typical video thumbnail area
                 ad_zone = (
-                    bounds[0] - 50,   # x1 with padding
+                    bounds[0] - 50,  # x1 with padding
                     bounds[1] - 400,  # y1: go up 400px to cover thumbnail
-                    bounds[2] + 50,   # x2 with padding
-                    bounds[3] + 50    # y2 with padding
+                    bounds[2] + 50,  # x2 with padding
+                    bounds[3] + 50,  # y2 with padding
                 )
                 sponsored_regions.append(ad_zone)
                 logger.debug(f"Found sponsored label at {bounds}, marking ad zone: {ad_zone}")
@@ -928,31 +1019,36 @@ class NaturalLanguageRunner:
         candidates = []
 
         for elem in elements:
-            if not elem.get('clickable'):
+            if not elem.get("clickable"):
                 continue
 
             # Skip ad/sponsored elements
             if ad_filter.is_ad(elem):
-                logger.debug(f"Skipping ad element: {elem.get('content_desc', '')[:30] or elem.get('text', '')[:30]}")
+                logger.debug(
+                    f"Skipping ad element: {elem.get('content_desc', '')[:30] or elem.get('text', '')[:30]}"
+                )
                 continue
 
             # Additional ad detection for YouTube-specific patterns
-            rid = elem.get('resource_id', '').lower()
-            desc = elem.get('content_desc', '').lower()
-            text = elem.get('text', '').lower()
+            rid = elem.get("resource_id", "").lower()
+            desc = elem.get("content_desc", "").lower()
+            text = elem.get("text", "").lower()
 
             # Skip sponsored/promoted content
-            if any(ad_word in text for ad_word in ['sponsored', 'ad', 'promoted', 'advertisement']):
+            if any(ad_word in text for ad_word in ["sponsored", "ad", "promoted", "advertisement"]):
                 logger.debug(f"Skipping sponsored text: {text[:30]}")
                 continue
-            if any(ad_word in desc for ad_word in ['sponsored', 'ad ', ' ad', 'promoted', 'advertisement']):
+            if any(
+                ad_word in desc
+                for ad_word in ["sponsored", "ad ", " ad", "promoted", "advertisement"]
+            ):
                 logger.debug(f"Skipping sponsored desc: {desc[:30]}")
                 continue
-            if any(ad_word in rid for ad_word in ['ad_', '_ad', 'sponsor', 'promo']):
+            if any(ad_word in rid for ad_word in ["ad_", "_ad", "sponsor", "promo"]):
                 logger.debug(f"Skipping ad resource ID: {rid}")
                 continue
 
-            bounds = elem.get('bounds', (0, 0, 0, 0))
+            bounds = elem.get("bounds", (0, 0, 0, 0))
             width = bounds[2] - bounds[0]
             height = bounds[3] - bounds[1]
             area = width * height
@@ -966,31 +1062,34 @@ class NaturalLanguageRunner:
                 continue
 
             # Skip channel-related elements
-            if any(skip in rid for skip in ['channel', 'avatar', 'subscribe', 'profile']):
+            if any(skip in rid for skip in ["channel", "avatar", "subscribe", "profile"]):
                 continue
-            if any(skip in desc for skip in ['channel', 'subscribe', 'profile picture']):
+            if any(skip in desc for skip in ["channel", "subscribe", "profile picture"]):
                 continue
-            if 'subscribe' in text:
+            if "subscribe" in text:
                 continue
 
             # Skip elements that are too square (likely channel avatars/icons)
             # Video thumbnails have aspect ratio around 16:9 (1.77) or wider
             aspect_ratio = width / height if height > 0 else 0
-            if SQUARE_ASPECT_RATIO_MIN < aspect_ratio < SQUARE_ASPECT_RATIO_MAX and area < MAX_AVATAR_AREA_PX:  # Square-ish and small = likely avatar
+            if (
+                SQUARE_ASPECT_RATIO_MIN < aspect_ratio < SQUARE_ASPECT_RATIO_MAX
+                and area < MAX_AVATAR_AREA_PX
+            ):  # Square-ish and small = likely avatar
                 continue
 
             priority = 0
 
             # High priority: looks like a video thumbnail
-            if 'thumbnail' in rid or 'video' in rid:
+            if "thumbnail" in rid or "video" in rid:
                 priority = 5
-            elif 'thumbnail' in desc or 'video' in desc:
+            elif "thumbnail" in desc or "video" in desc:
                 priority = 4
             # Medium priority: has video-like aspect ratio (wider than tall)
             elif aspect_ratio > VIDEO_ASPECT_RATIO_MIN and width > MIN_VIDEO_WIDTH_PX:
                 priority = 3
             # Check for duration pattern in description (e.g., "10:30", "1:23:45")
-            elif re.search(r'\d{1,2}:\d{2}', desc):
+            elif re.search(r"\d{1,2}:\d{2}", desc):
                 priority = 4
             # Lower priority: generic clickable with text
             elif text and len(text) > 10:
@@ -1003,8 +1102,8 @@ class NaturalLanguageRunner:
             # Sort by priority (desc) then by Y position (asc) to get topmost high-priority item
             candidates.sort(key=lambda x: (-x[0], x[1]))
             elem = candidates[0][2]
-            x, y = get_center(elem['bounds'])
-            desc_preview = elem.get('content_desc', '')[:40] or elem.get('text', '')[:40] or 'video'
+            x, y = get_center(elem["bounds"])
+            desc_preview = elem.get("content_desc", "")[:40] or elem.get("text", "")[:40] or "video"
             tap(x, y)
             time.sleep(2)
             return True, f"Playing: '{desc_preview}...'"
@@ -1018,17 +1117,18 @@ class NaturalLanguageRunner:
         Returns list of (success, message) tuples.
         """
         results = []
-        
+
         # Validate input
         if not instruction or not instruction.strip():
             return [(False, "Empty instruction provided")]
-        
+
         # Check for excessively long instructions
         if len(instruction) > 10000:
             return [(False, "Instruction too long (max 10000 characters)")]
 
         # Preserve quoted strings by replacing them with placeholders
         quoted_strings = []
+
         def save_quoted(match):
             quoted_strings.append(match.group(0))
             return f"__QUOTED_{len(quoted_strings) - 1}__"
@@ -1041,13 +1141,16 @@ class NaturalLanguageRunner:
 
         # Split on common conjunctions, but not on periods that look like abbreviations
         # Split on: comma, "and", "then", or period followed by space and lowercase letter
-        parts = re.split(r'\s*(?:,\s*(?:and\s+)?|(?:\s+and\s+)|\s+then\s+|(?<=[a-z])\.\s+(?=[a-z]))\s*', preserved)
+        parts = re.split(
+            r"\s*(?:,\s*(?:and\s+)?|(?:\s+and\s+)|\s+then\s+|(?<=[a-z])\.\s+(?=[a-z]))\s*",
+            preserved,
+        )
         parts = [p.strip() for p in parts if p.strip()]
 
         # Restore quoted strings
         def restore_quoted(text):
             for i, qs in enumerate(quoted_strings):
-                text = text.replace(f"__quoted_{i}__", qs.strip('"\''))
+                text = text.replace(f"__quoted_{i}__", qs.strip("\"'"))
             return text
 
         parts = [restore_quoted(p) for p in parts]
@@ -1106,7 +1209,7 @@ class NaturalLanguageRunner:
         while True:
             try:
                 instruction = input(">>> ").strip()
-                if instruction.lower() in ('quit', 'exit', 'q'):
+                if instruction.lower() in ("quit", "exit", "q"):
                     break
                 if not instruction:
                     continue
@@ -1143,14 +1246,20 @@ Natural language examples:
   "Type hello world"
   "Go back and then go home"
   "Swipe left, wait 2 seconds, swipe right"
-        """
+        """,
     )
 
-    parser.add_argument('instruction', nargs='?', help='Natural language instruction')
-    parser.add_argument('-f', '--file', help='File with instructions (one per line)')
-    parser.add_argument('-i', '--interactive', action='store_true', help='Interactive mode')
-    parser.add_argument('-d', '--delay', type=int, default=DEFAULT_ACTION_DELAY_MS, help='Delay between actions (ms)')
-    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
+    parser.add_argument("instruction", nargs="?", help="Natural language instruction")
+    parser.add_argument("-f", "--file", help="File with instructions (one per line)")
+    parser.add_argument("-i", "--interactive", action="store_true", help="Interactive mode")
+    parser.add_argument(
+        "-d",
+        "--delay",
+        type=int,
+        default=DEFAULT_ACTION_DELAY_MS,
+        help="Delay between actions (ms)",
+    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 
     args = parser.parse_args()
 
@@ -1169,7 +1278,7 @@ Natural language examples:
 
     try:
         runner.screen_width, runner.screen_height = get_screen_size()
-    except:
+    except Exception:
         pass
 
     print("=" * 50)
@@ -1180,10 +1289,10 @@ Natural language examples:
     if args.interactive:
         runner.run_interactive()
     elif args.file:
-        with open(args.file, 'r', encoding='utf-8') as f:
+        with open(args.file, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
-                if line and not line.startswith('#'):
+                if line and not line.startswith("#"):
                     print(f"\n> {line}")
                     runner.parse_and_execute(line)
     else:

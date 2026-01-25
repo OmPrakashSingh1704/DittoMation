@@ -1,17 +1,13 @@
 """Tests for recorder.gesture_classifier module."""
 
-import pytest
 from dataclasses import dataclass
 
 from recorder.gesture_classifier import (
-    TouchPoint,
-    TouchTrack,
     Gesture,
     GestureClassifier,
+    TouchPoint,
+    TouchTrack,
     describe_gesture,
-    TAP_MAX_DURATION_MS,
-    TAP_MAX_MOVEMENT_PX,
-    SWIPE_MIN_DISTANCE_PX,
 )
 
 
@@ -100,23 +96,13 @@ class TestGesture:
     """Tests for Gesture dataclass."""
 
     def test_create_tap_gesture(self):
-        gesture = Gesture(
-            type="tap",
-            start=(100, 200),
-            end=(100, 200),
-            duration_ms=100
-        )
+        gesture = Gesture(type="tap", start=(100, 200), end=(100, 200), duration_ms=100)
         assert gesture.type == "tap"
         assert gesture.start == (100, 200)
         assert gesture.duration_ms == 100
 
     def test_to_dict_tap(self):
-        gesture = Gesture(
-            type="tap",
-            start=(100, 200),
-            end=(100, 200),
-            duration_ms=100
-        )
+        gesture = Gesture(type="tap", start=(100, 200), end=(100, 200), duration_ms=100)
         d = gesture.to_dict()
         assert d["type"] == "tap"
         assert d["start"] == [100, 200]
@@ -129,7 +115,7 @@ class TestGesture:
             end=(100, 400),
             duration_ms=300,
             direction="down",
-            distance=200
+            distance=200,
         )
         d = gesture.to_dict()
         assert d["type"] == "swipe"
@@ -138,11 +124,7 @@ class TestGesture:
 
     def test_to_dict_pinch(self):
         gesture = Gesture(
-            type="pinch",
-            start=(100, 200),
-            end=(100, 200),
-            duration_ms=500,
-            scale=1.5
+            type="pinch", start=(100, 200), end=(100, 200), duration_ms=500, scale=1.5
         )
         d = gesture.to_dict()
         assert d["type"] == "pinch"

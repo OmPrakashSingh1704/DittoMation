@@ -28,13 +28,17 @@ __all__ = [
     "TestArtifact",
 ]
 
+
 # Lazy imports for providers (to avoid requiring boto3/gcloud at import time)
 def get_firebase_provider():
     """Get Firebase Test Lab provider (requires gcloud CLI)."""
     from .firebase import FirebaseTestLabProvider
+
     return FirebaseTestLabProvider
+
 
 def get_aws_provider():
     """Get AWS Device Farm provider (requires boto3)."""
     from .aws import AWSDeviceFarmProvider
+
     return AWSDeviceFarmProvider

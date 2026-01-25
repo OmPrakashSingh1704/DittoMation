@@ -10,30 +10,30 @@ Tests ControlFlowExecutor for:
 - Loop limit enforcement
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock
 from typing import List
 
-from core.variables import VariableContext
-from core.expressions import SafeExpressionEngine
+import pytest
+
+from core.automation import Step, StepResult, StepStatus
 from core.control_flow import (
     ControlFlowExecutor,
-    IfBlock,
     ForBlock,
-    WhileBlock,
+    IfBlock,
     UntilBlock,
-    parse_if_block,
+    WhileBlock,
     parse_for_block,
-    parse_while_block,
+    parse_if_block,
     parse_until_block,
+    parse_while_block,
 )
-from core.automation import Step, StepResult, StepStatus
 from core.exceptions import (
-    LoopLimitError,
     BreakException,
     ContinueException,
     InvalidControlFlowError,
+    LoopLimitError,
 )
+from core.expressions import SafeExpressionEngine
+from core.variables import VariableContext
 
 
 class MockStepResult:
@@ -42,10 +42,7 @@ class MockStepResult:
     @staticmethod
     def success(index: int = 0, step_type: str = "test") -> StepResult:
         return StepResult(
-            step_index=index,
-            step_type=step_type,
-            status=StepStatus.SUCCESS,
-            message="Test step"
+            step_index=index, step_type=step_type, status=StepStatus.SUCCESS, message="Test step"
         )
 
     @staticmethod
@@ -55,7 +52,7 @@ class MockStepResult:
             step_type=step_type,
             status=StepStatus.FAILED,
             message="Test step",
-            error="Step failed"
+            error="Step failed",
         )
 
 
@@ -79,13 +76,9 @@ class TestIfBlock:
         then_step = Step(action="log", message="then branch")
         else_step = Step(action="log", message="else branch")
 
-        if_block = IfBlock(
-            condition="x > 5",
-            then_steps=[then_step],
-            else_steps=[else_step]
-        )
+        if_block = IfBlock(condition="x > 5", then_steps=[then_step], else_steps=[else_step])
 
-        results = self.executor.execute_if(if_block)
+        self.executor.execute_if(if_block)
 
         assert len(self.executed_steps) == 1
         assert self.executed_steps[0].message == "then branch"
@@ -95,13 +88,9 @@ class TestIfBlock:
         then_step = Step(action="log", message="then branch")
         else_step = Step(action="log", message="else branch")
 
-        if_block = IfBlock(
-            condition="x < 5",
-            then_steps=[then_step],
-            else_steps=[else_step]
-        )
+        if_block = IfBlock(condition="x < 5", then_steps=[then_step], else_steps=[else_step])
 
-        results = self.executor.execute_if(if_block)
+        self.executor.execute_if(if_block)
 
         assert len(self.executed_steps) == 1
         assert self.executed_steps[0].message == "else branch"
@@ -110,10 +99,7 @@ class TestIfBlock:
         """Test if block without else."""
         then_step = Step(action="log", message="then branch")
 
-        if_block = IfBlock(
-            condition="x < 5",
-            then_steps=[then_step]
-        )
+        if_block = IfBlock(condition="x < 5", then_steps=[then_step])
 
         results = self.executor.execute_if(if_block)
 
@@ -132,10 +118,10 @@ class TestIfBlock:
             elif_blocks=[
                 ("x > 5", [elif_step]),  # True
             ],
-            else_steps=[else_step]
+            else_steps=[else_step],
         )
 
-        results = self.executor.execute_if(if_block)
+        self.executor.execute_if(if_block)
 
         assert len(self.executed_steps) == 1
         assert self.executed_steps[0].message == "elif"
@@ -151,10 +137,10 @@ class TestIfBlock:
                 ("value > 75", [Step(action="log", message="over 75")]),
                 ("value > 25", [Step(action="log", message="over 25")]),
             ],
-            else_steps=[Step(action="log", message="25 or under")]
+            else_steps=[Step(action="log", message="25 or under")],
         )
 
-        results = self.executor.execute_if(if_block)
+        self.executor.execute_if(if_block)
 
         assert len(self.executed_steps) == 1
         assert self.executed_steps[0].message == "over 25"
@@ -185,10 +171,10 @@ class TestForBlock:
             items="items",
             item_var="item",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=100
+            max_iterations=100,
         )
 
-        results = self.executor.execute_for(for_block)
+        self.executor.execute_for(for_block)
 
         assert len(self.executed_steps) == 3
         assert self.iteration_values == ["a", "b", "c"]
@@ -209,7 +195,7 @@ class TestForBlock:
             item_var="item",
             index_var="i",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=100
+            max_iterations=100,
         )
 
         executor.execute_for(for_block)
@@ -222,10 +208,10 @@ class TestForBlock:
             items="[1, 2, 3]",
             item_var="num",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=100
+            max_iterations=100,
         )
 
-        results = self.executor.execute_for(for_block)
+        self.executor.execute_for(for_block)
 
         assert len(self.executed_steps) == 3
 
@@ -235,7 +221,7 @@ class TestForBlock:
             items="range(1000)",
             item_var="i",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=10
+            max_iterations=10,
         )
 
         with pytest.raises(LoopLimitError):
@@ -247,7 +233,7 @@ class TestForBlock:
             items="[1]",
             item_var="temp_item",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=100
+            max_iterations=100,
         )
 
         self.executor.execute_for(for_block)
@@ -277,10 +263,10 @@ class TestWhileBlock:
         while_block = WhileBlock(
             condition="counter < 3",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=100
+            max_iterations=100,
         )
 
-        results = self.executor.execute_while(while_block)
+        self.executor.execute_while(while_block)
 
         assert len(self.executed_steps) == 3
         assert self.ctx.get("counter") == 3
@@ -292,10 +278,10 @@ class TestWhileBlock:
         while_block = WhileBlock(
             condition="counter < 3",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=100
+            max_iterations=100,
         )
 
-        results = self.executor.execute_while(while_block)
+        self.executor.execute_while(while_block)
 
         assert len(self.executed_steps) == 0
 
@@ -307,7 +293,7 @@ class TestWhileBlock:
         while_block = WhileBlock(
             condition="always_true",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=5
+            max_iterations=5,
         )
 
         with pytest.raises(LoopLimitError):
@@ -329,7 +315,7 @@ class TestWhileBlock:
             condition="counter < 3",
             steps=[Step(action="log", message="iteration")],
             max_iterations=100,
-            counter_var="iter_count"
+            counter_var="iter_count",
         )
 
         executor.execute_while(while_block)
@@ -358,10 +344,10 @@ class TestUntilBlock:
         until_block = UntilBlock(
             condition="counter >= 3",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=100
+            max_iterations=100,
         )
 
-        results = self.executor.execute_until(until_block)
+        self.executor.execute_until(until_block)
 
         assert len(self.executed_steps) == 3
         assert self.ctx.get("counter") == 3
@@ -371,12 +357,10 @@ class TestUntilBlock:
         self.ctx.set("done", True)
 
         until_block = UntilBlock(
-            condition="done",
-            steps=[Step(action="log", message="iteration")],
-            max_iterations=100
+            condition="done", steps=[Step(action="log", message="iteration")], max_iterations=100
         )
 
-        results = self.executor.execute_until(until_block)
+        self.executor.execute_until(until_block)
 
         # Should run once then stop
         assert len(self.executed_steps) == 1
@@ -387,7 +371,7 @@ class TestUntilBlock:
         until_block = UntilBlock(
             condition="counter > 1000",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=5
+            max_iterations=5,
         )
 
         with pytest.raises(LoopLimitError):
@@ -404,6 +388,7 @@ class TestBreakContinue:
 
     def test_break_outside_loop(self):
         """Test break outside of loop raises error."""
+
         def mock_executor(steps):
             return []
 
@@ -416,6 +401,7 @@ class TestBreakContinue:
 
     def test_continue_outside_loop(self):
         """Test continue outside of loop raises error."""
+
         def mock_executor(steps):
             return []
 
@@ -442,10 +428,10 @@ class TestBreakContinue:
             items="[1, 2, 3, 4, 5]",
             item_var="i",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=100
+            max_iterations=100,
         )
 
-        results = executor.execute_for(for_block)
+        executor.execute_for(for_block)
 
         assert iteration_count[0] == 2
 
@@ -469,16 +455,17 @@ class TestBreakContinue:
             items="items",
             item_var="i",
             steps=[Step(action="log", message="iteration")],
-            max_iterations=100
+            max_iterations=100,
         )
 
-        results = executor.execute_for(for_block)
+        executor.execute_for(for_block)
 
         assert iteration_count[0] == 3
         assert processed == [1, 3]  # 2 was skipped
 
     def test_loop_depth(self):
         """Test loop depth tracking."""
+
         def mock_executor(steps):
             return []
 
@@ -497,7 +484,7 @@ class TestParseBlocks:
             "action": "if",
             "condition": "x > 5",
             "then": [{"action": "log", "message": "then"}],
-            "else": [{"action": "log", "message": "else"}]
+            "else": [{"action": "log", "message": "else"}],
         }
 
         # Note: parse_if_block expects 'condition' in step data for expr
@@ -515,7 +502,7 @@ class TestParseBlocks:
             "items": "[1, 2, 3]",
             "item_var": "num",
             "steps": [{"action": "log", "message": "iteration"}],
-            "max_iterations": 50
+            "max_iterations": 50,
         }
 
         for_block = parse_for_block(data)
@@ -531,7 +518,7 @@ class TestParseBlocks:
             "action": "while",
             "condition": "counter < 10",
             "steps": [{"action": "log", "message": "loop"}],
-            "counter_var": "i"
+            "counter_var": "i",
         }
 
         while_block = parse_while_block(data)
@@ -546,7 +533,7 @@ class TestParseBlocks:
             "action": "until",
             "condition": "done == True",
             "steps": [{"action": "log", "message": "waiting"}],
-            "max_iterations": 20
+            "max_iterations": 20,
         }
 
         until_block = parse_until_block(data)

@@ -19,12 +19,15 @@ Usage:
     result = resolver.resolve_string("Hello {{username}}!")
 """
 
-import re
-import os
 import json
+import os
+import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Union
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+
+if TYPE_CHECKING:
+    from core.automation import Step
 
 
 @dataclass
@@ -44,6 +47,7 @@ class VariableContext:
         ctx.get("user.name")  # "John"
         ctx.get("items[0]")   # "a"
     """
+
     _variables: Dict[str, Any] = field(default_factory=dict)
 
     def __init__(self, initial: Optional[Dict[str, Any]] = None):
@@ -99,19 +103,20 @@ class VariableContext:
         """
         parts = []
         # Match either .identifier, [number], or [string]
-        pattern = r'([a-zA-Z_][a-zA-Z0-9_]*|\[\d+\]|\[\'[^\']*\'\]|\[\"[^\"]*\"\])'
+        pattern = r"([a-zA-Z_][a-zA-Z0-9_]*|\[\d+\]|\[\'[^\']*\'\]|\[\"[^\"]*\"\])"
         tokens = re.findall(pattern, key)
 
         for token in tokens:
-            if token.startswith('[') and token.endswith(']'):
+            if token.startswith("[") and token.endswith("]"):
                 inner = token[1:-1]
                 # Check if it's a number
-                if inner.isdigit() or (inner.startswith('-') and inner[1:].isdigit()):
+                if inner.isdigit() or (inner.startswith("-") and inner[1:].isdigit()):
                     parts.append(int(inner))
                 else:
                     # Remove quotes if present
-                    if (inner.startswith("'") and inner.endswith("'")) or \
-                       (inner.startswith('"') and inner.endswith('"')):
+                    if (inner.startswith("'") and inner.endswith("'")) or (
+                        inner.startswith('"') and inner.endswith('"')
+                    ):
                         inner = inner[1:-1]
                     parts.append(inner)
             else:
@@ -129,7 +134,7 @@ class VariableContext:
             key: Variable key (e.g., "username", "user.name")
             value: Value to set
         """
-        if '.' not in key and '[' not in key:
+        if "." not in key and "[" not in key:
             # Simple key
             self._variables[key] = value
         else:
@@ -171,7 +176,7 @@ class VariableContext:
 
     def delete(self, key: str) -> None:
         """Delete a variable."""
-        if '.' not in key and '[' not in key:
+        if "." not in key and "[" not in key:
             if key in self._variables:
                 del self._variables[key]
         else:
@@ -215,7 +220,7 @@ class VariableContext:
         """
         for key, value in os.environ.items():
             if key.startswith(prefix):
-                var_name = key[len(prefix):].lower()
+                var_name = key[len(prefix) :].lower()
                 # Try to parse as JSON for complex values
                 try:
                     self._variables[var_name] = json.loads(value)
@@ -234,18 +239,21 @@ class VariableContext:
 
         if format is None:
             ext = path.suffix.lower()
-            if ext in ('.yaml', '.yml'):
-                format = 'yaml'
+            if ext in (".yaml", ".yml"):
+                format = "yaml"
             else:
-                format = 'json'
+                format = "json"
 
-        with open(path, 'r', encoding='utf-8') as f:
-            if format == 'yaml':
+        with open(path, encoding="utf-8") as f:
+            if format == "yaml":
                 try:
                     import yaml
+
                     data = yaml.safe_load(f)
                 except ImportError:
-                    raise ImportError("PyYAML is required for YAML file support. Install with: pip install pyyaml")
+                    raise ImportError(
+                        "PyYAML is required for YAML file support. Install with: pip install pyyaml"
+                    )
             else:
                 data = json.load(f)
 
@@ -287,7 +295,7 @@ class VariableResolver:
     """
 
     # Pattern to match {{variable}} or {{variable|default}}
-    PATTERN = re.compile(r'\{\{(.+?)\}\}')
+    PATTERN = re.compile(r"\{\{(.+?)\}\}")
 
     def __init__(self, context: VariableContext):
         """
@@ -313,12 +321,13 @@ class VariableResolver:
         Raises:
             VariableNotFoundError: If raise_on_missing=True and a variable is not found
         """
+
         def replace_match(match):
             expr = match.group(1).strip()
 
             # Check for default value syntax: {{var|default}}
-            if '|' in expr:
-                var_name, default = expr.split('|', 1)
+            if "|" in expr:
+                var_name, default = expr.split("|", 1)
                 var_name = var_name.strip()
                 default = default.strip()
             else:
@@ -328,11 +337,12 @@ class VariableResolver:
             # Try to get the value
             if self.context.has(var_name):
                 value = self.context.get(var_name)
-                return str(value) if value is not None else ''
+                return str(value) if value is not None else ""
             elif default is not None:
                 return default
             elif raise_on_missing:
                 from core.exceptions import VariableNotFoundError
+
                 raise VariableNotFoundError(var_name)
             else:
                 # Leave placeholder unchanged
@@ -360,7 +370,7 @@ class VariableResolver:
         else:
             return value
 
-    def resolve_step(self, step: 'Step') -> 'Step':
+    def resolve_step(self, step: "Step") -> "Step":
         """
         Resolve all variables in a Step object.
 
@@ -372,25 +382,25 @@ class VariableResolver:
         Returns:
             New Step with resolved variables
         """
-        from dataclasses import fields, asdict
-        from copy import deepcopy
+        from dataclasses import asdict
 
         # Get step as dict
         step_dict = asdict(step)
 
         # Fields that should have variables resolved
-        resolvable_fields = {'text', 'id', 'desc', 'value', 'app', 'direction', 'description'}
+        resolvable_fields = {"text", "id", "desc", "value", "app", "direction", "description"}
 
         for field_name in resolvable_fields:
             if field_name in step_dict and step_dict[field_name] is not None:
                 step_dict[field_name] = self.resolve_string(str(step_dict[field_name]))
 
         # Handle condition field specially - skip callable
-        if 'condition' in step_dict:
-            step_dict['condition'] = None
+        if "condition" in step_dict:
+            step_dict["condition"] = None
 
         # Create new Step with resolved values
         from core.automation import Step
+
         return Step(**step_dict)
 
     def has_variables(self, template: str) -> bool:
@@ -411,6 +421,6 @@ class VariableResolver:
         variables = []
         for match in matches:
             # Strip default value if present
-            var_name = match.split('|')[0].strip()
+            var_name = match.split("|")[0].strip()
             variables.append(var_name)
         return variables

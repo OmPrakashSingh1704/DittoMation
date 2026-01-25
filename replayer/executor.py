@@ -8,14 +8,13 @@ input events on the Android device.
 import os
 import sys
 import time
-from typing import Optional, Tuple, Dict, Any
+from typing import Any, Dict, Optional, Tuple
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from recorder.adb_wrapper import run_adb
 from core.logging_config import get_logger
-from core.exceptions import GestureExecutionError, InvalidGestureError
+from recorder.adb_wrapper import run_adb
 
 # Module logger
 logger = get_logger("executor")
@@ -38,8 +37,8 @@ def tap(x: int, y: int) -> bool:
             logger.warning(f"Invalid negative coordinates ({x}, {y}), clamping to 0")
             x = max(0, x)
             y = max(0, y)
-        
-        run_adb(['shell', 'input', 'tap', str(x), str(y)])
+
+        run_adb(["shell", "input", "tap", str(x), str(y)])
         return True
     except Exception as e:
         logger.error(f"Tap failed: {e}")
@@ -66,23 +65,16 @@ def long_press(x: int, y: int, duration_ms: int = 1000) -> bool:
             logger.warning(f"Invalid negative coordinates ({x}, {y}), clamping to 0")
             x = max(0, x)
             y = max(0, y)
-        
+
         # Long press is simulated as a swipe with same start/end point
-        run_adb(['shell', 'input', 'swipe',
-                str(x), str(y), str(x), str(y), str(duration_ms)])
+        run_adb(["shell", "input", "swipe", str(x), str(y), str(x), str(y), str(duration_ms)])
         return True
     except Exception as e:
         logger.error(f"Long press failed: {e}")
         return False
 
 
-def swipe(
-    x1: int,
-    y1: int,
-    x2: int,
-    y2: int,
-    duration_ms: int = 300
-) -> bool:
+def swipe(x1: int, y1: int, x2: int, y2: int, duration_ms: int = 300) -> bool:
     """
     Execute swipe gesture.
 
@@ -104,22 +96,15 @@ def swipe(
             y1 = max(0, y1)
             x2 = max(0, x2)
             y2 = max(0, y2)
-        
-        run_adb(['shell', 'input', 'swipe',
-                str(x1), str(y1), str(x2), str(y2), str(duration_ms)])
+
+        run_adb(["shell", "input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duration_ms)])
         return True
     except Exception as e:
         logger.error(f"Swipe failed: {e}")
         return False
 
 
-def scroll(
-    x1: int,
-    y1: int,
-    x2: int,
-    y2: int,
-    duration_ms: int = 500
-) -> bool:
+def scroll(x1: int, y1: int, x2: int, y2: int, duration_ms: int = 500) -> bool:
     """
     Execute scroll gesture.
 
@@ -138,12 +123,7 @@ def scroll(
     return swipe(x1, y1, x2, y2, duration_ms)
 
 
-def pinch(
-    center_x: int,
-    center_y: int,
-    scale: float,
-    duration_ms: int = 500
-) -> bool:
+def pinch(center_x: int, center_y: int, scale: float, duration_ms: int = 500) -> bool:
     """
     Execute pinch gesture (zoom in/out).
 
@@ -175,19 +155,35 @@ def pinch(
         # This is a simplified version - real pinch needs sendevent
 
         # First finger: left to right of center
-        run_adb(['shell', 'input', 'swipe',
-                str(center_x - start_dist // 2), str(center_y),
-                str(center_x - end_dist // 2), str(center_y),
-                str(duration_ms)])
+        run_adb(
+            [
+                "shell",
+                "input",
+                "swipe",
+                str(center_x - start_dist // 2),
+                str(center_y),
+                str(center_x - end_dist // 2),
+                str(center_y),
+                str(duration_ms),
+            ]
+        )
 
         # Brief delay
         time.sleep(0.05)
 
         # Second finger: right to left of center (opposite direction)
-        run_adb(['shell', 'input', 'swipe',
-                str(center_x + start_dist // 2), str(center_y),
-                str(center_x + end_dist // 2), str(center_y),
-                str(duration_ms)])
+        run_adb(
+            [
+                "shell",
+                "input",
+                "swipe",
+                str(center_x + start_dist // 2),
+                str(center_y),
+                str(center_x + end_dist // 2),
+                str(center_y),
+                str(duration_ms),
+            ]
+        )
 
         return True
     except Exception as e:
@@ -211,34 +207,34 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
         # Validate input
         if not text:
             return True  # Empty string is valid, just return success
-        
+
         if len(text) > 5000:
             logger.warning("Text too long, truncating to 5000 characters")
             text = text[:5000]
-        
+
         # Ensure chunk_size is reasonable
         chunk_size = max(1, min(chunk_size, 50))
-        
+
         # Optionally clear existing text first
         if clear_first:
             # Select all and delete
-            run_adb(['shell', 'input', 'keyevent', 'KEYCODE_MOVE_END'])
-            run_adb(['shell', 'input', 'keyevent', '--longpress', 'KEYCODE_DEL'])
+            run_adb(["shell", "input", "keyevent", "KEYCODE_MOVE_END"])
+            run_adb(["shell", "input", "keyevent", "--longpress", "KEYCODE_DEL"])
             time.sleep(0.2)
 
         # Type in chunks to avoid dropped characters
         for i in range(0, len(text), chunk_size):
-            chunk = text[i:i + chunk_size]
+            chunk = text[i : i + chunk_size]
 
             # Escape special characters for shell
             # Using shlex-like approach for better security
-            escaped = ''
+            escaped = ""
             for char in chunk:
-                if char == ' ':
-                    escaped += '%s'
-                elif char in '\'"&<>()|;\\`$!#*?[]{}.\n\r\t':
+                if char == " ":
+                    escaped += "%s"
+                elif char in "'\"&<>()|;\\`$!#*?[]{}.\n\r\t":
                     # Add backslash escaping for shell-sensitive chars
-                    escaped += '\\' + char
+                    escaped += "\\" + char
                 else:
                     # Only allow printable ASCII characters
                     if ord(char) >= 32 and ord(char) < 127:
@@ -247,7 +243,7 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
                         # Skip non-printable characters for security
                         continue
 
-            run_adb(['shell', 'input', 'text', escaped])
+            run_adb(["shell", "input", "text", escaped])
 
             # Small delay between chunks
             if i + chunk_size < len(text):
@@ -277,7 +273,7 @@ def press_key(keycode: str) -> bool:
         True if successful
     """
     try:
-        run_adb(['shell', 'input', 'keyevent', str(keycode)])
+        run_adb(["shell", "input", "keyevent", str(keycode)])
         return True
     except Exception as e:
         logger.error(f"Key press failed: {e}")
@@ -286,17 +282,17 @@ def press_key(keycode: str) -> bool:
 
 def press_back() -> bool:
     """Press back button."""
-    return press_key('KEYCODE_BACK')
+    return press_key("KEYCODE_BACK")
 
 
 def press_home() -> bool:
     """Press home button."""
-    return press_key('KEYCODE_HOME')
+    return press_key("KEYCODE_HOME")
 
 
 def press_enter() -> bool:
     """Press enter key."""
-    return press_key('KEYCODE_ENTER')
+    return press_key("KEYCODE_ENTER")
 
 
 def make_call(phone_number: str) -> bool:
@@ -311,19 +307,19 @@ def make_call(phone_number: str) -> bool:
     """
     try:
         # Clean and validate the number
-        number = ''.join(c for c in phone_number if c.isdigit() or c == '+')
-        
+        number = "".join(c for c in phone_number if c.isdigit() or c == "+")
+
         # Basic validation: must have at least 3 digits
-        if len(number.replace('+', '')) < 3:
+        if len(number.replace("+", "")) < 3:
             logger.error(f"Invalid phone number: {phone_number}")
             return False
-        
+
         # Limit length to prevent abuse
         if len(number) > 20:
             logger.error(f"Phone number too long: {phone_number}")
             return False
-        
-        run_adb(['shell', 'am', 'start', '-a', 'android.intent.action.CALL', '-d', f'tel:{number}'])
+
+        run_adb(["shell", "am", "start", "-a", "android.intent.action.CALL", "-d", f"tel:{number}"])
         return True
     except Exception as e:
         logger.error(f"Call failed: {e}")
@@ -332,7 +328,7 @@ def make_call(phone_number: str) -> bool:
 
 def end_call() -> bool:
     """End the current phone call."""
-    return press_key('KEYCODE_ENDCALL')
+    return press_key("KEYCODE_ENDCALL")
 
 
 def dial_number(phone_number: str) -> bool:
@@ -347,29 +343,26 @@ def dial_number(phone_number: str) -> bool:
     """
     try:
         # Clean and validate the number
-        number = ''.join(c for c in phone_number if c.isdigit() or c == '+')
-        
+        number = "".join(c for c in phone_number if c.isdigit() or c == "+")
+
         # Basic validation: must have at least 3 digits
-        if len(number.replace('+', '')) < 3:
+        if len(number.replace("+", "")) < 3:
             logger.error(f"Invalid phone number: {phone_number}")
             return False
-        
+
         # Limit length to prevent abuse
         if len(number) > 20:
             logger.error(f"Phone number too long: {phone_number}")
             return False
-        
-        run_adb(['shell', 'am', 'start', '-a', 'android.intent.action.DIAL', '-d', f'tel:{number}'])
+
+        run_adb(["shell", "am", "start", "-a", "android.intent.action.DIAL", "-d", f"tel:{number}"])
         return True
     except Exception as e:
         logger.error(f"Dial failed: {e}")
         return False
 
 
-def execute_gesture(
-    gesture: Dict[str, Any],
-    coordinates: Optional[Tuple[int, int]] = None
-) -> bool:
+def execute_gesture(gesture: Dict[str, Any], coordinates: Optional[Tuple[int, int]] = None) -> bool:
     """
     Execute a gesture from workflow step.
 
@@ -420,8 +413,12 @@ def execute_gesture(
         if coordinates:
             orig_start = gesture.get("start", [0, 0])
             # Ensure both orig_start and end are valid before calculating delta
-            if (isinstance(orig_start, (list, tuple)) and len(orig_start) >= 2 and
-                isinstance(end, (list, tuple)) and len(end) >= 2):
+            if (
+                isinstance(orig_start, (list, tuple))
+                and len(orig_start) >= 2
+                and isinstance(end, (list, tuple))
+                and len(end) >= 2
+            ):
                 dx = end[0] - orig_start[0]
                 dy = end[1] - orig_start[1]
                 end_x = x + dx
@@ -435,8 +432,12 @@ def execute_gesture(
         if coordinates:
             orig_start = gesture.get("start", [0, 0])
             # Ensure both orig_start and end are valid before calculating delta
-            if (isinstance(orig_start, (list, tuple)) and len(orig_start) >= 2 and
-                isinstance(end, (list, tuple)) and len(end) >= 2):
+            if (
+                isinstance(orig_start, (list, tuple))
+                and len(orig_start) >= 2
+                and isinstance(end, (list, tuple))
+                and len(end) >= 2
+            ):
                 dx = end[0] - orig_start[0]
                 dy = end[1] - orig_start[1]
                 end_x = x + dx
@@ -473,9 +474,7 @@ class GestureExecutor:
         self.failed_count = 0
 
     def execute(
-        self,
-        gesture: Dict[str, Any],
-        coordinates: Optional[Tuple[int, int]] = None
+        self, gesture: Dict[str, Any], coordinates: Optional[Tuple[int, int]] = None
     ) -> bool:
         """
         Execute gesture with delay handling.
@@ -510,5 +509,5 @@ class GestureExecutor:
         return {
             "executed": self.executed_count,
             "failed": self.failed_count,
-            "total": self.executed_count + self.failed_count
+            "total": self.executed_count + self.failed_count,
         }

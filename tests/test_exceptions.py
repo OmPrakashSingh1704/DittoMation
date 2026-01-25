@@ -1,60 +1,52 @@
 """Tests for core.exceptions module."""
 
-import pytest
 from core.exceptions import (
-    DittoMationError,
-    DeviceError,
-    DeviceNotFoundError,
-    DeviceConnectionError,
-    DeviceOfflineError,
-    DeviceUnauthorizedError,
+    ADBCommandError,
     ADBError,
     ADBNotFoundError,
-    ADBCommandError,
     ADBTimeoutError,
+    AssertionFailedError,
+    AVDNotFoundError,
+    BreakException,
+    CloudAuthenticationError,
+    CloudDeviceNotAvailableError,
+    CloudProviderError,
+    CloudQuotaExceededError,
+    CloudTestRunError,
+    CloudTimeoutError,
+    CommandParseError,
+    ConfigLoadError,
+    ConfigValidationError,
+    ContinueException,
+    DeviceConnectionError,
+    DeviceError,
+    DeviceNotFoundError,
+    DeviceOfflineError,
+    DeviceUnauthorizedError,
+    DittoMationError,
+    ElementNotFoundError,
+    EmulatorBootTimeoutError,
+    EmulatorNotRunningError,
+    EmulatorStartError,
+    EventParseError,
+    ExpressionError,
+    GestureExecutionError,
+    InvalidBoundsError,
+    InvalidConfigValueError,
+    InvalidControlFlowError,
+    InvalidGestureError,
+    InvalidInputDeviceError,
+    LoopLimitError,
+    MultipleElementsFoundError,
+    StepExecutionError,
     UIError,
     UIHierarchyError,
-    ElementNotFoundError,
-    MultipleElementsFoundError,
-    InvalidBoundsError,
-    WorkflowError,
+    UnknownActionError,
+    UnsafeExpressionError,
+    VariableNotFoundError,
     WorkflowLoadError,
     WorkflowSaveError,
     WorkflowValidationError,
-    StepExecutionError,
-    GestureError,
-    InvalidGestureError,
-    GestureExecutionError,
-    InputError,
-    InvalidInputDeviceError,
-    EventParseError,
-    ConfigurationError,
-    ConfigLoadError,
-    ConfigValidationError,
-    InvalidConfigValueError,
-    NaturalLanguageError,
-    CommandParseError,
-    UnknownActionError,
-    ExpressionError,
-    UnsafeExpressionError,
-    VariableNotFoundError,
-    ControlFlowError,
-    LoopLimitError,
-    BreakException,
-    ContinueException,
-    InvalidControlFlowError,
-    AssertionFailedError,
-    EmulatorError,
-    AVDNotFoundError,
-    EmulatorStartError,
-    EmulatorBootTimeoutError,
-    EmulatorNotRunningError,
-    CloudProviderError,
-    CloudAuthenticationError,
-    CloudDeviceNotAvailableError,
-    CloudTestRunError,
-    CloudQuotaExceededError,
-    CloudTimeoutError,
 )
 
 
@@ -139,21 +131,14 @@ class TestADBErrors:
 
     def test_adb_command_error(self):
         err = ADBCommandError(
-            command="adb shell ls",
-            returncode=1,
-            stdout="output",
-            stderr="device not found"
+            command="adb shell ls", returncode=1, stdout="output", stderr="device not found"
         )
         assert "exit code 1" in err.message
         assert err.details["command"] == "adb shell ls"
         assert "device" in err.hint.lower()
 
     def test_adb_command_error_permission_denied(self):
-        err = ADBCommandError(
-            command="adb root",
-            returncode=1,
-            stderr="permission denied"
-        )
+        err = ADBCommandError(command="adb root", returncode=1, stderr="permission denied")
         assert "permission" in err.hint.lower()
 
     def test_adb_timeout_error(self):

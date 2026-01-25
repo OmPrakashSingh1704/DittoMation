@@ -89,14 +89,11 @@ class FirebaseTestLabProvider(CloudProvider):
         raise CloudProviderError(
             "firebase",
             "gcloud CLI not found. Install Google Cloud SDK.",
-            hint="Download from https://cloud.google.com/sdk/install"
+            hint="Download from https://cloud.google.com/sdk/install",
         )
 
     def _run_gcloud(
-        self,
-        args: List[str],
-        timeout: int = 60,
-        check: bool = True
+        self, args: List[str], timeout: int = 60, check: bool = True
     ) -> subprocess.CompletedProcess:
         """Run a gcloud command."""
         cmd = [self.gcloud_path] + args
@@ -107,12 +104,7 @@ class FirebaseTestLabProvider(CloudProvider):
         cmd.append("--format=json")
 
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=timeout
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
 
             if check and result.returncode != 0:
                 error_msg = result.stderr or result.stdout or "Unknown error"
@@ -128,15 +120,14 @@ class FirebaseTestLabProvider(CloudProvider):
         try:
             if self._credentials_file:
                 # Activate service account
-                result = self._run_gcloud([
-                    "auth", "activate-service-account",
-                    f"--key-file={self._credentials_file}"
-                ], check=False)
+                result = self._run_gcloud(
+                    ["auth", "activate-service-account", f"--key-file={self._credentials_file}"],
+                    check=False,
+                )
 
                 if result.returncode != 0:
                     raise CloudAuthenticationError(
-                        "firebase",
-                        f"Failed to activate service account: {result.stderr}"
+                        "firebase", f"Failed to activate service account: {result.stderr}"
                     )
 
             # Verify authentication
@@ -148,10 +139,7 @@ class FirebaseTestLabProvider(CloudProvider):
                     self._authenticated = True
                     return True
 
-            raise CloudAuthenticationError(
-                "firebase",
-                "No active account found"
-            )
+            raise CloudAuthenticationError("firebase", "No active account found")
 
         except CloudAuthenticationError:
             raise
@@ -174,10 +162,7 @@ class FirebaseTestLabProvider(CloudProvider):
 
         return False
 
-    def list_devices(
-        self,
-        filters: Optional[DeviceFilter] = None
-    ) -> List[CloudDevice]:
+    def list_devices(self, filters: Optional[DeviceFilter] = None) -> List[CloudDevice]:
         """List available devices in Firebase Test Lab."""
         # Check cache
         if self._devices_cache and self._cache_time:
@@ -188,9 +173,7 @@ class FirebaseTestLabProvider(CloudProvider):
                 return devices
 
         try:
-            result = self._run_gcloud([
-                "firebase", "test", "android", "models", "list"
-            ], timeout=30)
+            result = self._run_gcloud(["firebase", "test", "android", "models", "list"], timeout=30)
 
             devices = []
             models = json.loads(result.stdout) if result.stdout else []
@@ -231,7 +214,7 @@ class FirebaseTestLabProvider(CloudProvider):
                             "model_id": model["id"],
                             "brand": model.get("brand"),
                             "tags": model.get("tags", []),
-                        }
+                        },
                     )
                     devices.append(device)
 
@@ -251,17 +234,22 @@ class FirebaseTestLabProvider(CloudProvider):
     def _version_to_sdk(self, version: str) -> Optional[str]:
         """Convert Android version to SDK level."""
         version_map = {
-            "14": "34", "13": "33", "12": "32", "12L": "32",
-            "11": "30", "10": "29", "9": "28", "8.1": "27",
-            "8.0": "26", "7.1": "25", "7.0": "24",
+            "14": "34",
+            "13": "33",
+            "12": "32",
+            "12L": "32",
+            "11": "30",
+            "10": "29",
+            "9": "28",
+            "8.1": "27",
+            "8.0": "26",
+            "7.1": "25",
+            "7.0": "24",
         }
         return version_map.get(version)
 
     def acquire_device(
-        self,
-        model: str,
-        os_version: Optional[str] = None,
-        timeout: int = 300
+        self, model: str, os_version: Optional[str] = None, timeout: int = 300
     ) -> CloudDevice:
         """
         Acquire a device for testing.
@@ -287,16 +275,12 @@ class FirebaseTestLabProvider(CloudProvider):
         devices: List[CloudDevice],
         workflow_path: Union[str, Path],
         timeout: int = 3600,
-        **options
+        **options,
     ) -> TestRun:
         """Run a test on Firebase Test Lab."""
         workflow_path = Path(workflow_path)
         if not workflow_path.exists():
-            raise CloudTestRunError(
-                "firebase",
-                "N/A",
-                f"Workflow file not found: {workflow_path}"
-            )
+            raise CloudTestRunError("firebase", "N/A", f"Workflow file not found: {workflow_path}")
 
         # For Firebase Test Lab, we need to package the workflow with DittoMation
         # This would typically involve creating an APK or using Robo test
@@ -315,9 +299,14 @@ class FirebaseTestLabProvider(CloudProvider):
 
         # Build gcloud command
         cmd = [
-            "firebase", "test", "android", "run",
-            "--type", options.get("test_type", "robo"),
-            "--timeout", f"{timeout}s",
+            "firebase",
+            "test",
+            "android",
+            "run",
+            "--type",
+            options.get("test_type", "robo"),
+            "--timeout",
+            f"{timeout}s",
         ]
 
         for spec in device_specs:
@@ -343,11 +332,7 @@ class FirebaseTestLabProvider(CloudProvider):
 
             # Check if test started successfully
             if result.returncode != 0 and "error" in result.stderr.lower():
-                raise CloudTestRunError(
-                    "firebase",
-                    run_id,
-                    result.stderr or "Failed to start test"
-                )
+                raise CloudTestRunError("firebase", run_id, result.stderr or "Failed to start test")
 
             test_run = TestRun(
                 run_id=run_id,
@@ -359,7 +344,7 @@ class FirebaseTestLabProvider(CloudProvider):
                 properties={
                     "results_bucket": self._results_bucket,
                     "results_dir": results_dir,
-                }
+                },
             )
 
             return test_run
@@ -373,9 +358,7 @@ class FirebaseTestLabProvider(CloudProvider):
         """Get the status of a test run."""
         try:
             # Query test matrices
-            result = self._run_gcloud([
-                "firebase", "test", "android", "list"
-            ], timeout=30)
+            result = self._run_gcloud(["firebase", "test", "android", "list"], timeout=30)
 
             matrices = json.loads(result.stdout) if result.stdout else []
 
@@ -383,10 +366,7 @@ class FirebaseTestLabProvider(CloudProvider):
                 if run_id in str(matrix.get("resultStorage", {}).get("resultsDir", "")):
                     status = self._parse_matrix_status(matrix.get("state", ""))
                     return TestRun(
-                        run_id=run_id,
-                        provider="firebase",
-                        status=status,
-                        properties=matrix
+                        run_id=run_id, provider="firebase", status=status, properties=matrix
                     )
 
             raise CloudTestRunError("firebase", run_id, "Test run not found")
@@ -409,10 +389,7 @@ class FirebaseTestLabProvider(CloudProvider):
         return state_map.get(state.upper(), TestRunStatus.PENDING)
 
     def wait_for_completion(
-        self,
-        run: TestRun,
-        timeout: Optional[int] = None,
-        poll_interval: int = 30
+        self, run: TestRun, timeout: Optional[int] = None, poll_interval: int = 30
     ) -> TestRun:
         """Wait for a test run to complete."""
         start_time = time.time()
@@ -447,10 +424,11 @@ class FirebaseTestLabProvider(CloudProvider):
             return artifacts
 
         try:
-            result = self._run_gcloud([
-                "storage", "ls", "-r",
-                f"gs://{results_bucket}/{results_dir}/"
-            ], timeout=60, check=False)
+            result = self._run_gcloud(
+                ["storage", "ls", "-r", f"gs://{results_bucket}/{results_dir}/"],
+                timeout=60,
+                check=False,
+            )
 
             if result.returncode != 0:
                 return artifacts
@@ -491,21 +469,15 @@ class FirebaseTestLabProvider(CloudProvider):
             return ArtifactType.PERFORMANCE
         return ArtifactType.OTHER
 
-    def download_artifact(
-        self,
-        artifact: TestArtifact,
-        output_path: Union[str, Path]
-    ) -> Path:
+    def download_artifact(self, artifact: TestArtifact, output_path: Union[str, Path]) -> Path:
         """Download an artifact from GCS."""
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            result = self._run_gcloud([
-                "storage", "cp",
-                artifact.url,
-                str(output_path)
-            ], timeout=300, check=True)
+            self._run_gcloud(
+                ["storage", "cp", artifact.url, str(output_path)], timeout=300, check=True
+            )
 
             artifact.local_path = str(output_path)
             return output_path

@@ -14,23 +14,19 @@ Features:
 import os
 import re
 import sys
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from recorder.ui_dumper import get_center
-from recorder.element_matcher import (
-    find_elements_with_confidence,
-    find_best_match,
-    score_element_match,
-    calculate_string_similarity,
-    MatchResult,
-    DEFAULT_MIN_CONFIDENCE,
-)
-from core.ad_filter import is_ad_element, get_ad_filter, filter_ad_elements
+from core.ad_filter import get_ad_filter
 from core.logging_config import get_logger
-from core.config_manager import get_config_value
+from recorder.element_matcher import (
+    DEFAULT_MIN_CONFIDENCE,
+    calculate_string_similarity,
+    find_best_match,
+)
+from recorder.ui_dumper import get_center
 
 # Module logger
 logger = get_logger("locator")
@@ -71,8 +67,10 @@ class LocatorResult:
 
     def __str__(self) -> str:
         if self.found:
-            return (f"Found via {self.strategy_used} at {self.coordinates} "
-                    f"(confidence: {self.confidence:.0%}, fallback: {self.fallback_level})")
+            return (
+                f"Found via {self.strategy_used} at {self.coordinates} "
+                f"(confidence: {self.confidence:.0%}, fallback: {self.fallback_level})"
+            )
         return "Element not found"
 
     @property
@@ -202,7 +200,9 @@ class ElementLocator:
 
         # Return best match if found
         if best_result:
-            logger.debug(f"Best match via {best_result.strategy_used} with {best_confidence:.0%} confidence")
+            logger.debug(
+                f"Best match via {best_result.strategy_used} with {best_confidence:.0%} confidence"
+            )
             return best_result
 
         # All strategies failed - use recorded bounds as last resort
@@ -276,7 +276,11 @@ class ElementLocator:
             center = get_center(bounds)
 
             # Determine which strategy matched best
-            strategy = "text" if text else "id" if resource_id else "content_desc" if content_desc else "class"
+            strategy = (
+                "text"
+                if text
+                else "id" if resource_id else "content_desc" if content_desc else "class"
+            )
 
             return LocatorResult(
                 found=True,
@@ -291,9 +295,7 @@ class ElementLocator:
         return LocatorResult(found=False, confidence=0.0)
 
     def _find_by_id(
-        self,
-        resource_id: str,
-        elements: List[Dict[str, Any]]
+        self, resource_id: str, elements: List[Dict[str, Any]]
     ) -> Tuple[Optional[Dict[str, Any]], float, Dict[str, float]]:
         """
         Find element by resource-id with confidence scoring.
@@ -309,14 +311,14 @@ class ElementLocator:
         best_confidence = 0.0
         best_details = {}
 
-        search_id = resource_id.split('/')[-1].lower()
+        search_id = resource_id.split("/")[-1].lower()
 
         for elem in elements:
             elem_id = elem.get("resource_id", "")
             if not elem_id:
                 continue
 
-            elem_id_part = elem_id.split('/')[-1].lower()
+            elem_id_part = elem_id.split("/")[-1].lower()
 
             # Calculate confidence
             if elem_id == resource_id:
@@ -352,9 +354,7 @@ class ElementLocator:
         return best_match, best_confidence, best_details
 
     def _find_by_content_desc(
-        self,
-        content_desc: str,
-        elements: List[Dict[str, Any]]
+        self, content_desc: str, elements: List[Dict[str, Any]]
     ) -> Tuple[Optional[Dict[str, Any]], float, Dict[str, float]]:
         """
         Find element by content-description with confidence scoring.
@@ -408,9 +408,7 @@ class ElementLocator:
         return best_match, best_confidence, best_details
 
     def _find_by_text(
-        self,
-        text: str,
-        elements: List[Dict[str, Any]]
+        self, text: str, elements: List[Dict[str, Any]]
     ) -> Tuple[Optional[Dict[str, Any]], float, Dict[str, float]]:
         """
         Find element by visible text with confidence scoring.
@@ -476,9 +474,7 @@ class ElementLocator:
         return best_match, best_confidence, best_details
 
     def _find_by_xpath(
-        self,
-        xpath: str,
-        elements: List[Dict[str, Any]]
+        self, xpath: str, elements: List[Dict[str, Any]]
     ) -> Tuple[Optional[Dict[str, Any]], float, Dict[str, float]]:
         """
         Find element by XPath expression with confidence scoring.
@@ -495,7 +491,7 @@ class ElementLocator:
             Tuple of (element, confidence, match_details)
         """
         # Parse simple XPath: //ClassName[@attr='value' and @attr2='value2']
-        match = re.match(r'//([^\[]+)(?:\[(.*)\])?', xpath)
+        match = re.match(r"//([^\[]+)(?:\[(.*)\])?", xpath)
         if not match:
             return None, 0.0, {}
 
@@ -550,9 +546,7 @@ class ElementLocator:
         return best_match, best_confidence, best_details
 
     def _find_by_bounds(
-        self,
-        bounds: Any,
-        elements: List[Dict[str, Any]]
+        self, bounds: Any, elements: List[Dict[str, Any]]
     ) -> Tuple[Optional[Dict[str, Any]], float, Dict[str, float]]:
         """
         Find element by bounds with confidence scoring.
@@ -605,8 +599,10 @@ class ElementLocator:
                     # Also consider center distance
                     target_center = ((tx1 + tx2) / 2, (ty1 + ty2) / 2)
                     elem_center = ((ex1 + ex2) / 2, (ey1 + ey2) / 2)
-                    center_dist = ((target_center[0] - elem_center[0])**2 +
-                                   (target_center[1] - elem_center[1])**2) ** 0.5
+                    center_dist = (
+                        (target_center[0] - elem_center[0]) ** 2
+                        + (target_center[1] - elem_center[1]) ** 2
+                    ) ** 0.5
                     max_dist = max(tx2 - tx1, ty2 - ty1)
                     center_score = max(0, 1 - (center_dist / max_dist)) if max_dist > 0 else 0
 

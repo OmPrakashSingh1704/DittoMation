@@ -13,9 +13,8 @@ Tests SafeExpressionEngine for:
 
 import pytest
 
+from core.expressions import ExpressionResult, SafeExpressionEngine
 from core.variables import VariableContext
-from core.expressions import SafeExpressionEngine, ExpressionResult
-from core.exceptions import UnsafeExpressionError, VariableNotFoundError
 
 
 class TestBasicExpressions:
@@ -334,7 +333,7 @@ class TestCollections:
     def test_dict_literal(self):
         """Test dict literal."""
         result = self.engine.evaluate("{'a': 1, 'b': 2}")
-        assert result.value == {'a': 1, 'b': 2}
+        assert result.value == {"a": 1, "b": 2}
 
     def test_set_literal(self):
         """Test set literal."""

@@ -21,33 +21,60 @@ Usage:
     workflow.save("my_workflow.json")
 """
 
-from .interactive_recorder import InteractiveRecorder
-from .workflow import WorkflowStep, WorkflowRecorder
-from .gesture_classifier import TouchPoint, TouchTrack, Gesture, GestureClassifier
-from .event_listener import TouchEvent, TouchEventListener, MultiTouchState
-from .element_matcher import MatchResult
-from .main import RecordingSession
-
+# Lazy imports to avoid circular dependencies
 __all__ = [
     # Main recording classes
     "InteractiveRecorder",
     "RecordingSession",
-
     # Workflow management
     "WorkflowStep",
     "WorkflowRecorder",
-
     # Gesture classification
     "TouchPoint",
     "TouchTrack",
     "Gesture",
     "GestureClassifier",
-
     # Event handling
     "TouchEvent",
     "TouchEventListener",
     "MultiTouchState",
-
-    # Element matching
-    "MatchResult",
 ]
+
+
+def __getattr__(name):
+    """Lazy import of submodules to avoid circular imports."""
+    if name in ("TouchEvent", "TouchEventListener", "MultiTouchState"):
+        from .event_listener import MultiTouchState, TouchEvent, TouchEventListener
+
+        return {
+            "TouchEvent": TouchEvent,
+            "TouchEventListener": TouchEventListener,
+            "MultiTouchState": MultiTouchState,
+        }[name]
+
+    if name in ("Gesture", "GestureClassifier", "TouchPoint", "TouchTrack"):
+        from .gesture_classifier import Gesture, GestureClassifier, TouchPoint, TouchTrack
+
+        return {
+            "Gesture": Gesture,
+            "GestureClassifier": GestureClassifier,
+            "TouchPoint": TouchPoint,
+            "TouchTrack": TouchTrack,
+        }[name]
+
+    if name == "InteractiveRecorder":
+        from .interactive_recorder import InteractiveRecorder
+
+        return InteractiveRecorder
+
+    if name == "RecordingSession":
+        from .main import RecordingSession
+
+        return RecordingSession
+
+    if name in ("WorkflowRecorder", "WorkflowStep"):
+        from .workflow import WorkflowRecorder, WorkflowStep
+
+        return {"WorkflowRecorder": WorkflowRecorder, "WorkflowStep": WorkflowStep}[name]
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

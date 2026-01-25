@@ -88,7 +88,17 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]
-ignore = ["E501"]  # Line length handled by formatter
+ignore = [
+    "E501",   # Line length handled by formatter
+    "SIM102", # Nested if statements (readability preference)
+    "SIM103", # Return negated condition directly (readability)
+    "SIM105", # contextlib.suppress (explicit try-except preferred)
+    "SIM108", # Ternary operator (readability - if/else often clearer)
+    "SIM109", # Multiple equality comparisons (readability)
+    "SIM110", # for-loop vs any/all (readability)
+    "B027",   # Empty method in ABC without abstract decorator (intentional)
+    "B904",   # raise-without-from (many false positives in exception handlers)
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["core", "recorder", "replayer"]
@@ -120,4 +130,11 @@ fail_under = 30
 
 [tool.bandit]
 exclude_dirs = ["tests", "venv", ".venv"]
-skips = ["B101"]  # Skip assert warnings in non-test code
+skips = [
+    "B101",  # assert statements (acceptable in non-test code)
+    "B110",  # try_except_pass (used for cleanup/shutdown)
+    "B314",  # xml.etree.ElementTree.fromstring (parsing device UI XML)
+    "B404",  # import subprocess (required for ADB commands)
+    "B405",  # xml.etree.ElementTree (used for UI hierarchy parsing)
+    "B603",  # subprocess calls (required for ADB execution)
+]

@@ -1,9 +1,10 @@
 """Tests for core.android module."""
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from core.android import Android, DIRECTION_OFFSETS
+import pytest
+
+from core.android import DIRECTION_OFFSETS, Android
 from core.exceptions import DeviceNotFoundError
 
 
@@ -70,10 +71,14 @@ class TestAndroidGestures:
     @patch("core.android.find_best_match")
     @patch("core.android.get_center")
     @patch("core.android._tap")
-    def test_tap_with_text(self, mock_tap, mock_center, mock_match, mock_ui, mock_locator, mock_serial):
+    def test_tap_with_text(
+        self, mock_tap, mock_center, mock_match, mock_ui, mock_locator, mock_serial
+    ):
         mock_locator.return_value = MagicMock()
         mock_ui.return_value = (None, [{"text": "Login", "bounds": (100, 200, 200, 250)}])
-        mock_match.return_value = MagicMock(element={"bounds": (100, 200, 200, 250)}, confidence=0.9)
+        mock_match.return_value = MagicMock(
+            element={"bounds": (100, 200, 200, 250)}, confidence=0.9
+        )
         mock_center.return_value = (150, 225)
         mock_tap.return_value = True
 

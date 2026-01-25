@@ -19,18 +19,18 @@ Usage:
 
 import ast
 import operator
-import re
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 if TYPE_CHECKING:
-    from core.variables import VariableContext
     from core.android import Android
+    from core.variables import VariableContext
 
 
 @dataclass
 class ExpressionResult:
     """Result of expression evaluation."""
+
     value: Any
     success: bool
     error: Optional[str] = None
@@ -101,25 +101,55 @@ class SafeExpressionEngine:
 
     # Allowed string methods
     ALLOWED_STRING_METHODS = {
-        'upper', 'lower', 'strip', 'lstrip', 'rstrip',
-        'startswith', 'endswith', 'replace', 'split', 'join',
-        'find', 'rfind', 'index', 'count', 'isdigit', 'isalpha',
-        'isalnum', 'isspace', 'title', 'capitalize', 'swapcase',
-        'format', 'center', 'ljust', 'rjust', 'zfill',
+        "upper",
+        "lower",
+        "strip",
+        "lstrip",
+        "rstrip",
+        "startswith",
+        "endswith",
+        "replace",
+        "split",
+        "join",
+        "find",
+        "rfind",
+        "index",
+        "count",
+        "isdigit",
+        "isalpha",
+        "isalnum",
+        "isspace",
+        "title",
+        "capitalize",
+        "swapcase",
+        "format",
+        "center",
+        "ljust",
+        "rjust",
+        "zfill",
     }
 
     # Allowed list/dict methods
     ALLOWED_COLLECTION_METHODS = {
-        'append', 'extend', 'insert', 'remove', 'pop', 'clear',
-        'index', 'count', 'sort', 'reverse', 'copy',
-        'keys', 'values', 'items', 'get', 'update',
+        "append",
+        "extend",
+        "insert",
+        "remove",
+        "pop",
+        "clear",
+        "index",
+        "count",
+        "sort",
+        "reverse",
+        "copy",
+        "keys",
+        "values",
+        "items",
+        "get",
+        "update",
     }
 
-    def __init__(
-        self,
-        context: 'VariableContext',
-        android: Optional['Android'] = None
-    ):
+    def __init__(self, context: "VariableContext", android: Optional["Android"] = None):
         """
         Initialize expression engine.
 
@@ -133,42 +163,40 @@ class SafeExpressionEngine:
         # Build allowed functions dict
         self._functions: Dict[str, Callable] = {
             # Built-in functions
-            'len': len,
-            'str': str,
-            'int': int,
-            'float': float,
-            'bool': bool,
-            'abs': abs,
-            'min': min,
-            'max': max,
-            'sum': sum,
-            'any': any,
-            'all': all,
-            'round': round,
-            'sorted': sorted,
-            'reversed': lambda x: list(reversed(x)),
-            'enumerate': lambda x: list(enumerate(x)),
-            'zip': lambda *args: list(zip(*args)),
-            'range': lambda *args: list(range(*args)),
-            'list': list,
-            'dict': dict,
-            'set': set,
-            'tuple': tuple,
-            'type': lambda x: type(x).__name__,
-
+            "len": len,
+            "str": str,
+            "int": int,
+            "float": float,
+            "bool": bool,
+            "abs": abs,
+            "min": min,
+            "max": max,
+            "sum": sum,
+            "any": any,
+            "all": all,
+            "round": round,
+            "sorted": sorted,
+            "reversed": lambda x: list(reversed(x)),
+            "enumerate": lambda x: list(enumerate(x)),
+            "zip": lambda *args: list(zip(*args)),
+            "range": lambda *args: list(range(*args)),
+            "list": list,
+            "dict": dict,
+            "set": set,
+            "tuple": tuple,
+            "type": lambda x: type(x).__name__,
             # String functions (also available as methods)
-            'lower': lambda s: str(s).lower(),
-            'upper': lambda s: str(s).upper(),
-            'strip': lambda s: str(s).strip(),
-            'contains': lambda s, sub: sub in str(s),
-            'startswith': lambda s, prefix: str(s).startswith(prefix),
-            'endswith': lambda s, suffix: str(s).endswith(suffix),
-
+            "lower": lambda s: str(s).lower(),
+            "upper": lambda s: str(s).upper(),
+            "strip": lambda s: str(s).strip(),
+            "contains": lambda s, sub: sub in str(s),
+            "startswith": lambda s, prefix: str(s).startswith(prefix),
+            "endswith": lambda s, suffix: str(s).endswith(suffix),
             # Element functions (require Android)
-            'element_exists': self._element_exists,
-            'element_text': self._element_text,
-            'element_count': self._element_count,
-            'element_visible': self._element_visible,
+            "element_exists": self._element_exists,
+            "element_text": self._element_text,
+            "element_count": self._element_count,
+            "element_visible": self._element_visible,
         }
 
     def evaluate(self, expression: str) -> ExpressionResult:
@@ -186,14 +214,12 @@ class SafeExpressionEngine:
         # Handle empty expression
         if not expression:
             return ExpressionResult(
-                value=None,
-                success=False,
-                error="Empty expression",
-                expression=expression
+                value=None, success=False, error="Empty expression", expression=expression
             )
 
         # First, resolve any {{variable}} syntax
         from core.variables import VariableResolver
+
         resolver = VariableResolver(self.context)
         if resolver.has_variables(expression):
             try:
@@ -203,12 +229,12 @@ class SafeExpressionEngine:
                     value=None,
                     success=False,
                     error=f"Variable resolution error: {e}",
-                    expression=expression
+                    expression=expression,
                 )
 
         try:
             # Parse the expression
-            tree = ast.parse(expression, mode='eval')
+            tree = ast.parse(expression, mode="eval")
 
             # Validate the AST (check for unsafe operations)
             self._validate_ast(tree)
@@ -216,26 +242,14 @@ class SafeExpressionEngine:
             # Evaluate the AST
             result = self._eval_node(tree.body)
 
-            return ExpressionResult(
-                value=result,
-                success=True,
-                expression=expression
-            )
+            return ExpressionResult(value=result, success=True, expression=expression)
 
         except SyntaxError as e:
             return ExpressionResult(
-                value=None,
-                success=False,
-                error=f"Syntax error: {e}",
-                expression=expression
+                value=None, success=False, error=f"Syntax error: {e}", expression=expression
             )
         except Exception as e:
-            return ExpressionResult(
-                value=None,
-                success=False,
-                error=str(e),
-                expression=expression
-            )
+            return ExpressionResult(value=None, success=False, error=str(e), expression=expression)
 
     def evaluate_bool(self, expression: str) -> bool:
         """
@@ -262,7 +276,7 @@ class SafeExpressionEngine:
             # Disallow dangerous constructs
             if isinstance(node, (ast.Import, ast.ImportFrom)):
                 self._raise_unsafe("Import statements not allowed")
-            if isinstance(node, ast.Exec) if hasattr(ast, 'Exec') else False:
+            if isinstance(node, ast.Exec) if hasattr(ast, "Exec") else False:
                 self._raise_unsafe("Exec not allowed")
             if isinstance(node, ast.Call):
                 self._validate_call(node)
@@ -286,16 +300,25 @@ class SafeExpressionEngine:
         attr_name = node.attr
 
         # Block dunder attributes (except __len__, __getitem__, __contains__)
-        if attr_name.startswith('__') and attr_name.endswith('__'):
-            allowed_dunders = {'__len__', '__getitem__', '__contains__', '__iter__'}
+        if attr_name.startswith("__") and attr_name.endswith("__"):
+            allowed_dunders = {"__len__", "__getitem__", "__contains__", "__iter__"}
             if attr_name not in allowed_dunders:
                 self._raise_unsafe(f"Access to {attr_name} not allowed")
 
         # Block dangerous attributes
         dangerous_attrs = {
-            'func_code', 'func_globals', '__code__', '__globals__',
-            '__builtins__', '__class__', '__bases__', '__subclasses__',
-            '__mro__', '__dict__', 'gi_frame', 'gi_code',
+            "func_code",
+            "func_globals",
+            "__code__",
+            "__globals__",
+            "__builtins__",
+            "__class__",
+            "__bases__",
+            "__subclasses__",
+            "__mro__",
+            "__dict__",
+            "gi_frame",
+            "gi_code",
         }
         if attr_name in dangerous_attrs:
             self._raise_unsafe(f"Access to {attr_name} not allowed")
@@ -303,6 +326,7 @@ class SafeExpressionEngine:
     def _raise_unsafe(self, message: str) -> None:
         """Raise an UnsafeExpressionError."""
         from core.exceptions import UnsafeExpressionError
+
         raise UnsafeExpressionError(message)
 
     def _eval_node(self, node: ast.AST) -> Any:
@@ -316,7 +340,7 @@ class SafeExpressionEngine:
             return node.n
         if isinstance(node, ast.Str):
             return node.s
-        if hasattr(ast, 'NameConstant') and isinstance(node, ast.NameConstant):
+        if hasattr(ast, "NameConstant") and isinstance(node, ast.NameConstant):
             return node.value
 
         # Names (variables)
@@ -326,17 +350,18 @@ class SafeExpressionEngine:
             if name in self._functions:
                 return self._functions[name]
             # Check built-in constants
-            if name == 'True':
+            if name == "True":
                 return True
-            if name == 'False':
+            if name == "False":
                 return False
-            if name == 'None':
+            if name == "None":
                 return None
             # Look up in context
             if self.context.has(name):
                 return self.context.get(name)
             # Raise error for unknown names
             from core.exceptions import VariableNotFoundError
+
             raise VariableNotFoundError(name)
 
         # Binary operations
@@ -439,10 +464,7 @@ class SafeExpressionEngine:
 
         # Dict literal
         if isinstance(node, ast.Dict):
-            return {
-                self._eval_node(k): self._eval_node(v)
-                for k, v in zip(node.keys, node.values)
-            }
+            return {self._eval_node(k): self._eval_node(v) for k, v in zip(node.keys, node.values)}
 
         # If-expression (ternary)
         if isinstance(node, ast.IfExp):
@@ -465,7 +487,7 @@ class SafeExpressionEngine:
                     parts.append(str(self._eval_node(value.value)))
                 else:
                     parts.append(str(self._eval_node(value)))
-            return ''.join(parts)
+            return "".join(parts)
 
         raise ValueError(f"Unsupported expression type: {type(node).__name__}")
 
@@ -508,7 +530,7 @@ class SafeExpressionEngine:
         text: Optional[str] = None,
         id: Optional[str] = None,
         desc: Optional[str] = None,
-        min_confidence: float = 0.3
+        min_confidence: float = 0.3,
     ) -> bool:
         """Check if an element exists on screen."""
         if self.android is None:
@@ -526,7 +548,7 @@ class SafeExpressionEngine:
         text: Optional[str] = None,
         id: Optional[str] = None,
         desc: Optional[str] = None,
-        min_confidence: float = 0.3
+        min_confidence: float = 0.3,
     ) -> Optional[str]:
         """Get text of an element."""
         if self.android is None:
@@ -536,7 +558,7 @@ class SafeExpressionEngine:
                 text=text, id=id, desc=desc, min_confidence=min_confidence
             )
             if result and result.element:
-                return result.element.get('text', '')
+                return result.element.get("text", "")
             return None
         except Exception:
             return None
@@ -547,15 +569,14 @@ class SafeExpressionEngine:
         id: Optional[str] = None,
         desc: Optional[str] = None,
         class_name: Optional[str] = None,
-        min_confidence: float = 0.3
+        min_confidence: float = 0.3,
     ) -> int:
         """Count matching elements on screen."""
         if self.android is None:
             return 0
         try:
             results = self.android.find_all_with_confidence(
-                text=text, id=id, desc=desc, class_name=class_name,
-                min_confidence=min_confidence
+                text=text, id=id, desc=desc, class_name=class_name, min_confidence=min_confidence
             )
             return len(results)
         except Exception:
@@ -566,7 +587,7 @@ class SafeExpressionEngine:
         text: Optional[str] = None,
         id: Optional[str] = None,
         desc: Optional[str] = None,
-        min_confidence: float = 0.3
+        min_confidence: float = 0.3,
     ) -> bool:
         """Check if an element is visible (exists and has non-zero bounds)."""
         if self.android is None:
@@ -576,7 +597,7 @@ class SafeExpressionEngine:
                 text=text, id=id, desc=desc, min_confidence=min_confidence
             )
             if result and result.element:
-                bounds = result.element.get('bounds', (0, 0, 0, 0))
+                bounds = result.element.get("bounds", (0, 0, 0, 0))
                 # Check if bounds are valid (non-zero width and height)
                 if len(bounds) == 4:
                     width = bounds[2] - bounds[0]

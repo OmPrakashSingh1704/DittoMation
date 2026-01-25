@@ -9,12 +9,11 @@ from unittest.mock import patch
 import pytest
 
 from core.config_manager import (
+    DEFAULT_CONFIG,
     ConfigManager,
-    init_config,
     get_config,
     get_config_value,
-    DEFAULT_CONFIG,
-    ENV_PREFIX,
+    init_config,
 )
 from core.exceptions import ConfigLoadError, ConfigValidationError
 
@@ -75,7 +74,7 @@ class TestConfigManagerLoadFile:
     """Tests for loading configuration from files."""
 
     def test_load_json_file(self):
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"logging": {"level": "DEBUG"}}, f)
             f.flush()
             filepath = f.name
@@ -92,7 +91,7 @@ class TestConfigManagerLoadFile:
         assert "not found" in str(exc_info.value).lower()
 
     def test_load_invalid_json(self):
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("{ invalid json }")
             f.flush()
             filepath = f.name
@@ -105,7 +104,7 @@ class TestConfigManagerLoadFile:
             os.unlink(filepath)
 
     def test_load_merges_with_defaults(self):
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"logging": {"level": "DEBUG"}}, f)
             f.flush()
             filepath = f.name
@@ -223,7 +222,7 @@ class TestConfigManagerDeviceConfig:
     """Tests for device-specific configuration."""
 
     def test_load_device_config(self):
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump({"custom_setting": "value"}, f)
             f.flush()
             filepath = f.name
@@ -252,6 +251,7 @@ class TestGlobalConfigFunctions:
     def test_init_config(self):
         # Reset global config
         import core.config_manager as cm
+
         cm._global_config = None
 
         config = init_config(validate=False)
@@ -260,6 +260,7 @@ class TestGlobalConfigFunctions:
 
     def test_get_config_initializes_if_needed(self):
         import core.config_manager as cm
+
         cm._global_config = None
 
         config = get_config()
@@ -268,6 +269,7 @@ class TestGlobalConfigFunctions:
 
     def test_get_config_value(self):
         import core.config_manager as cm
+
         cm._global_config = None
 
         value = get_config_value("logging.level", "DEFAULT")
@@ -283,9 +285,17 @@ class TestDefaultConfig:
 
     def test_default_config_has_required_sections(self):
         required_sections = [
-            "logging", "adb", "recording", "replay",
-            "nl_runner", "gestures", "ui_capture", "device",
-            "ad_filter", "emulator", "cloud"
+            "logging",
+            "adb",
+            "recording",
+            "replay",
+            "nl_runner",
+            "gestures",
+            "ui_capture",
+            "device",
+            "ad_filter",
+            "emulator",
+            "cloud",
         ]
         for section in required_sections:
             assert section in DEFAULT_CONFIG

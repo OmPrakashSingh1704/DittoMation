@@ -9,13 +9,13 @@ This module provides a centralized logging framework with:
 - Separate loggers for different components
 """
 
+import json
 import logging
 import logging.handlers
 import sys
-import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 # Default log directory
 DEFAULT_LOG_DIR = Path("logs")
@@ -33,7 +33,7 @@ LOG_LEVELS = {
     "INFO": logging.INFO,
     "WARNING": logging.WARNING,
     "ERROR": logging.ERROR,
-    "CRITICAL": logging.CRITICAL
+    "CRITICAL": logging.CRITICAL,
 }
 
 
@@ -49,7 +49,7 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
             "module": record.module,
             "function": record.funcName,
-            "line": record.lineno
+            "line": record.lineno,
         }
 
         # Add exception info if present
@@ -96,7 +96,7 @@ def setup_logging(
     json_format: bool = False,
     max_file_size_mb: int = 10,
     backup_count: int = 5,
-    component: Optional[str] = None
+    component: Optional[str] = None,
 ) -> logging.Logger:
     """
     Set up logging with the specified configuration.
@@ -152,7 +152,7 @@ def setup_logging(
             log_filename,
             maxBytes=max_file_size_mb * 1024 * 1024,
             backupCount=backup_count,
-            encoding="utf-8"
+            encoding="utf-8",
         )
         file_handler.setLevel(log_level)
         file_handler.setFormatter(formatter)
@@ -174,8 +174,9 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(f"dittoMation.{name}")
 
 
-def log_exception(logger: logging.Logger, exc: Exception,
-                  context: Optional[Dict[str, Any]] = None) -> None:
+def log_exception(
+    logger: logging.Logger, exc: Exception, context: Optional[Dict[str, Any]] = None
+) -> None:
     """
     Log an exception with optional context.
 
@@ -193,13 +194,13 @@ def log_exception(logger: logging.Logger, exc: Exception,
         logger.error(
             f"{exc.__class__.__name__}: {exc.message}",
             extra={"extra_data": error_data},
-            exc_info=True
+            exc_info=True,
         )
     else:
         logger.error(
             f"{exc.__class__.__name__}: {str(exc)}",
             extra={"extra_data": context} if context else {},
-            exc_info=True
+            exc_info=True,
         )
 
 
@@ -217,6 +218,7 @@ class LoggerMixin:
 # ============================================================================
 # Convenience functions for quick logging setup
 # ============================================================================
+
 
 def setup_recorder_logging(level: str = "INFO", **kwargs) -> logging.Logger:
     """Set up logging for the recorder component."""

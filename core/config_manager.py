@@ -15,15 +15,12 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from .exceptions import (
-    ConfigLoadError,
-    ConfigValidationError,
-    InvalidConfigValueError
-)
+from .exceptions import ConfigLoadError, ConfigValidationError
 
 # Try to import YAML support (optional dependency)
 try:
     import yaml
+
     YAML_AVAILABLE = True
 except ImportError:
     YAML_AVAILABLE = False
@@ -48,36 +45,32 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "log_dir": "logs",
         "json_format": False,
         "max_file_size_mb": 10,
-        "backup_count": 5
+        "backup_count": 5,
     },
-
     # ADB configuration
     "adb": {
         "path": None,  # Auto-detect if None
         "timeout": 30,
         "retry_count": 3,
         "retry_delay": 1.0,
-        "retry_backoff": 2.0  # Exponential backoff multiplier
+        "retry_backoff": 2.0,  # Exponential backoff multiplier
     },
-
     # Recording configuration
     "recording": {
         "output_dir": "output",
         "default_workflow_file": "workflow.json",
         "capture_screenshots": False,
         "double_tap_threshold_ms": 300,
-        "double_tap_distance_px": 50
+        "double_tap_distance_px": 50,
     },
-
     # Replay configuration
     "replay": {
         "default_delay_ms": 500,
         "element_timeout_ms": 5000,
         "retry_on_failure": True,
         "max_retries": 3,
-        "screenshot_on_failure": False
+        "screenshot_on_failure": False,
     },
-
     # Natural language runner configuration
     "nl_runner": {
         "default_delay_ms": 800,
@@ -85,32 +78,24 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "swipe_distance_px": 400,
         "scroll_duration_ms": 400,
         "swipe_duration_ms": 200,
-        "min_clickable_area_px": 5000
+        "min_clickable_area_px": 5000,
     },
-
     # Gesture configuration
     "gestures": {
         "tap_max_duration_ms": 500,
         "tap_max_movement_px": 50,
         "swipe_min_distance_px": 50,
         "long_press_duration_ms": 1000,
-        "pinch_distance_threshold": 30
+        "pinch_distance_threshold": 30,
     },
-
     # UI capture configuration
-    "ui_capture": {
-        "max_retries": 5,
-        "retry_delay_ms": 1000,
-        "loading_screen_timeout_ms": 10000
-    },
-
+    "ui_capture": {"max_retries": 5, "retry_delay_ms": 1000, "loading_screen_timeout_ms": 10000},
     # Device configuration
     "device": {
         "default_device": None,  # Auto-select if None
         "screen_width": None,  # Auto-detect
-        "screen_height": None  # Auto-detect
+        "screen_height": None,  # Auto-detect
     },
-
     # Ad filter configuration
     "ad_filter": {
         "enabled": True,  # Enable ad filtering
@@ -121,10 +106,9 @@ DEFAULT_CONFIG: Dict[str, Any] = {
             "text": [],
             "content_desc": [],
             "package": [],
-            "class": []
-        }
+            "class": [],
+        },
     },
-
     # Emulator configuration
     "emulator": {
         "default_avd": None,  # Default AVD to use
@@ -138,7 +122,6 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "no_audio": True,  # Disable audio
         "no_boot_anim": True,  # Skip boot animation
     },
-
     # Cloud provider configuration
     "cloud": {
         "default_provider": None,  # Default cloud provider (firebase, aws)
@@ -154,52 +137,42 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         },
         "test_timeout": 3600,  # Default test timeout in seconds
         "poll_interval": 30,  # Status poll interval in seconds
-    }
+    },
 }
 
 
 # Configuration schema for validation
 CONFIG_SCHEMA: Dict[str, Dict[str, Any]] = {
-    "logging.level": {
-        "type": str,
-        "allowed": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-    },
+    "logging.level": {"type": str, "allowed": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]},
     "logging.log_to_file": {"type": bool},
     "logging.log_to_console": {"type": bool},
     "logging.log_dir": {"type": str},
     "logging.json_format": {"type": bool},
     "logging.max_file_size_mb": {"type": int, "min": 1, "max": 1000},
     "logging.backup_count": {"type": int, "min": 0, "max": 100},
-
     "adb.timeout": {"type": int, "min": 1, "max": 300},
     "adb.retry_count": {"type": int, "min": 0, "max": 10},
     "adb.retry_delay": {"type": (int, float), "min": 0},
     "adb.retry_backoff": {"type": (int, float), "min": 1},
-
     "recording.double_tap_threshold_ms": {"type": int, "min": 100, "max": 2000},
     "recording.double_tap_distance_px": {"type": int, "min": 10, "max": 200},
-
     "replay.default_delay_ms": {"type": int, "min": 0, "max": 10000},
     "replay.element_timeout_ms": {"type": int, "min": 1000, "max": 60000},
     "replay.max_retries": {"type": int, "min": 0, "max": 10},
-
     "nl_runner.default_delay_ms": {"type": int, "min": 0, "max": 10000},
     "nl_runner.scroll_distance_px": {"type": int, "min": 100, "max": 2000},
     "nl_runner.swipe_distance_px": {"type": int, "min": 100, "max": 2000},
-
     "gestures.tap_max_duration_ms": {"type": int, "min": 100, "max": 2000},
     "gestures.tap_max_movement_px": {"type": int, "min": 10, "max": 200},
     "gestures.swipe_min_distance_px": {"type": int, "min": 20, "max": 500},
     "gestures.long_press_duration_ms": {"type": int, "min": 500, "max": 5000},
-
     "ui_capture.max_retries": {"type": int, "min": 1, "max": 20},
     "ui_capture.retry_delay_ms": {"type": int, "min": 100, "max": 5000},
-
     # Emulator configuration validation
     "emulator.headless": {"type": bool},
     "emulator.gpu": {
         "type": str,
-        "allowed": ["auto", "host", "swiftshader_indirect", "angle_indirect", "off"]
+        "allowed": ["auto", "host", "swiftshader_indirect", "angle_indirect", "off"],
     },
     "emulator.memory_mb": {"type": int, "min": 512, "max": 16384},
     "emulator.cores": {"type": int, "min": 1, "max": 16},
@@ -208,7 +181,6 @@ CONFIG_SCHEMA: Dict[str, Dict[str, Any]] = {
     "emulator.auto_stop": {"type": bool},
     "emulator.no_audio": {"type": bool},
     "emulator.no_boot_anim": {"type": bool},
-
     # Cloud configuration validation
     "cloud.test_timeout": {"type": int, "min": 60, "max": 14400},
     "cloud.poll_interval": {"type": int, "min": 5, "max": 300},
@@ -259,7 +231,7 @@ class ConfigManager:
                 if not YAML_AVAILABLE:
                     raise ConfigLoadError(
                         str(config_path),
-                        "YAML support not available. Install PyYAML or use JSON format."
+                        "YAML support not available. Install PyYAML or use JSON format.",
                     )
                 data = yaml.safe_load(content)
             else:
@@ -275,9 +247,9 @@ class ConfigManager:
                 raise
             raise ConfigLoadError(str(config_path), str(e))
 
-    def _merge_config(self, data: Dict[str, Any],
-                      target: Optional[Dict[str, Any]] = None,
-                      prefix: str = "") -> None:
+    def _merge_config(
+        self, data: Dict[str, Any], target: Optional[Dict[str, Any]] = None, prefix: str = ""
+    ) -> None:
         """
         Recursively merge configuration data into target.
 
@@ -307,7 +279,7 @@ class ConfigManager:
                 continue
 
             # Convert DITTO_LOGGING_LEVEL to logging.level
-            config_key = env_key[len(ENV_PREFIX):].lower().replace("_", ".", 1)
+            config_key = env_key[len(ENV_PREFIX) :].lower().replace("_", ".", 1)
 
             # Find the section and key
             parts = config_key.split(".", 1)
@@ -360,9 +332,7 @@ class ConfigManager:
                 # Handle tuple of types (e.g., (int, float))
                 if isinstance(expected_type, tuple):
                     type_names = " or ".join(t.__name__ for t in expected_type)
-                    errors.append(
-                        f"{key_path}: expected {type_names}, got {type(value).__name__}"
-                    )
+                    errors.append(f"{key_path}: expected {type_names}, got {type(value).__name__}")
                 else:
                     errors.append(
                         f"{key_path}: expected {expected_type.__name__}, got {type(value).__name__}"
@@ -372,9 +342,7 @@ class ConfigManager:
             # Allowed values check
             allowed = schema.get("allowed")
             if allowed and value not in allowed:
-                errors.append(
-                    f"{key_path}: value '{value}' not in allowed values {allowed}"
-                )
+                errors.append(f"{key_path}: value '{value}' not in allowed values {allowed}")
 
             # Range check
             min_val = schema.get("min")
@@ -449,8 +417,7 @@ class ConfigManager:
         """
         return deepcopy(self._config.get(section, {}))
 
-    def load_device_config(self, device_id: str,
-                          config_file: Union[str, Path]) -> None:
+    def load_device_config(self, device_id: str, config_file: Union[str, Path]) -> None:
         """
         Load device-specific configuration.
 
@@ -479,8 +446,7 @@ class ConfigManager:
                 raise
             raise ConfigLoadError(str(config_path), str(e))
 
-    def get_device_config(self, device_id: str, key: str,
-                         default: Any = None) -> Any:
+    def get_device_config(self, device_id: str, key: str, default: Any = None) -> Any:
         """
         Get a device-specific configuration value.
 
@@ -560,9 +526,9 @@ class ConfigManager:
 _global_config: Optional[ConfigManager] = None
 
 
-def init_config(config_file: Optional[Union[str, Path]] = None,
-                load_env: bool = True,
-                validate: bool = True) -> ConfigManager:
+def init_config(
+    config_file: Optional[Union[str, Path]] = None, load_env: bool = True, validate: bool = True
+) -> ConfigManager:
     """
     Initialize the global configuration.
 

@@ -1,16 +1,15 @@
 """Tests for core.cloud.models module."""
 
-import pytest
 from datetime import datetime
 
 from core.cloud.models import (
-    TestRunStatus,
-    DeviceFormFactor,
-    CloudDevice,
-    TestRun,
-    TestArtifact,
     ArtifactType,
+    CloudDevice,
     DeviceFilter,
+    DeviceFormFactor,
+    TestArtifact,
+    TestRun,
+    TestRunStatus,
 )
 
 

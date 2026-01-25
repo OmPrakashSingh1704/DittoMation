@@ -18,20 +18,20 @@ Usage:
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
-from core.logging_config import get_logger
 from core.exceptions import (
-    LoopLimitError,
     BreakException,
     ContinueException,
     InvalidControlFlowError,
+    LoopLimitError,
 )
+from core.logging_config import get_logger
 
 if TYPE_CHECKING:
+    from core.automation import Step, StepResult
     from core.expressions import SafeExpressionEngine
     from core.variables import VariableContext
-    from core.automation import Step, StepResult
 
 
 logger = get_logger("control_flow")
@@ -48,10 +48,11 @@ class IfBlock:
         elif_blocks: List of (condition, steps) tuples for elif clauses
         else_steps: Steps to execute if all conditions are False
     """
+
     condition: str
-    then_steps: List['Step'] = field(default_factory=list)
-    elif_blocks: List[Tuple[str, List['Step']]] = field(default_factory=list)
-    else_steps: List['Step'] = field(default_factory=list)
+    then_steps: List["Step"] = field(default_factory=list)
+    elif_blocks: List[Tuple[str, List["Step"]]] = field(default_factory=list)
+    else_steps: List["Step"] = field(default_factory=list)
 
 
 @dataclass
@@ -66,9 +67,10 @@ class ForBlock:
         steps: Steps to execute for each item
         max_iterations: Maximum iterations before raising LoopLimitError
     """
+
     items: str
     item_var: str
-    steps: List['Step'] = field(default_factory=list)
+    steps: List["Step"] = field(default_factory=list)
     index_var: Optional[str] = None
     max_iterations: int = 100
 
@@ -84,8 +86,9 @@ class WhileBlock:
         max_iterations: Maximum iterations before raising LoopLimitError
         counter_var: Optional variable name to store iteration count
     """
+
     condition: str
-    steps: List['Step'] = field(default_factory=list)
+    steps: List["Step"] = field(default_factory=list)
     max_iterations: int = 100
     counter_var: Optional[str] = None
 
@@ -101,8 +104,9 @@ class UntilBlock:
         max_iterations: Maximum iterations before raising LoopLimitError
         counter_var: Optional variable name to store iteration count
     """
+
     condition: str
-    steps: List['Step'] = field(default_factory=list)
+    steps: List["Step"] = field(default_factory=list)
     max_iterations: int = 100
     counter_var: Optional[str] = None
 
@@ -127,9 +131,9 @@ class ControlFlowExecutor:
 
     def __init__(
         self,
-        expr_engine: 'SafeExpressionEngine',
-        context: 'VariableContext',
-        step_executor: Callable[[List['Step']], List['StepResult']]
+        expr_engine: "SafeExpressionEngine",
+        context: "VariableContext",
+        step_executor: Callable[[List["Step"]], List["StepResult"]],
     ):
         """
         Initialize control flow executor.
@@ -145,7 +149,7 @@ class ControlFlowExecutor:
         self._in_loop = False
         self._loop_depth = 0
 
-    def execute_if(self, if_block: IfBlock) -> List['StepResult']:
+    def execute_if(self, if_block: IfBlock) -> List["StepResult"]:
         """
         Execute an if/elif/else block.
 
@@ -174,7 +178,7 @@ class ControlFlowExecutor:
         logger.debug("All conditions False and no else block")
         return []
 
-    def execute_for(self, for_block: ForBlock) -> List['StepResult']:
+    def execute_for(self, for_block: ForBlock) -> List["StepResult"]:
         """
         Execute a for loop.
 
@@ -190,11 +194,11 @@ class ControlFlowExecutor:
             raise ValueError(f"Failed to evaluate items expression: {result.error}")
 
         items = result.value
-        if not hasattr(items, '__iter__'):
+        if not hasattr(items, "__iter__"):
             raise ValueError(f"Items expression must be iterable, got: {type(items).__name__}")
 
         items = list(items)
-        all_results: List['StepResult'] = []
+        all_results: List[StepResult] = []
 
         # Check max iterations
         if len(items) > for_block.max_iterations:
@@ -233,7 +237,7 @@ class ControlFlowExecutor:
 
         return all_results
 
-    def execute_while(self, while_block: WhileBlock) -> List['StepResult']:
+    def execute_while(self, while_block: WhileBlock) -> List["StepResult"]:
         """
         Execute a while loop.
 
@@ -243,7 +247,7 @@ class ControlFlowExecutor:
         Returns:
             List of all StepResults from all iterations
         """
-        all_results: List['StepResult'] = []
+        all_results: List[StepResult] = []
         iteration = 0
 
         self._loop_depth += 1
@@ -260,7 +264,9 @@ class ControlFlowExecutor:
                 if while_block.counter_var:
                     self.context.set(while_block.counter_var, iteration)
 
-                logger.debug(f"While loop iteration {iteration}: condition '{while_block.condition}'")
+                logger.debug(
+                    f"While loop iteration {iteration}: condition '{while_block.condition}'"
+                )
 
                 try:
                     results = self.step_executor(while_block.steps)
@@ -282,7 +288,7 @@ class ControlFlowExecutor:
 
         return all_results
 
-    def execute_until(self, until_block: UntilBlock) -> List['StepResult']:
+    def execute_until(self, until_block: UntilBlock) -> List["StepResult"]:
         """
         Execute an until loop (loops until condition becomes True).
 
@@ -292,7 +298,7 @@ class ControlFlowExecutor:
         Returns:
             List of all StepResults from all iterations
         """
-        all_results: List['StepResult'] = []
+        all_results: List[StepResult] = []
         iteration = 0
 
         self._loop_depth += 1
@@ -309,7 +315,9 @@ class ControlFlowExecutor:
                 if until_block.counter_var:
                     self.context.set(until_block.counter_var, iteration)
 
-                logger.debug(f"Until loop iteration {iteration}: condition '{until_block.condition}'")
+                logger.debug(
+                    f"Until loop iteration {iteration}: condition '{until_block.condition}'"
+                )
 
                 try:
                     results = self.step_executor(until_block.steps)
@@ -326,7 +334,9 @@ class ControlFlowExecutor:
 
                 # Check termination condition after steps
                 if self.expr_engine.evaluate_bool(until_block.condition):
-                    logger.debug(f"Until condition '{until_block.condition}' became True, exiting loop")
+                    logger.debug(
+                        f"Until condition '{until_block.condition}' became True, exiting loop"
+                    )
                     break
 
         finally:
@@ -391,22 +401,19 @@ def parse_if_block(step_data: Dict[str, Any]) -> IfBlock:
     """
     from core.automation import Step
 
-    condition = step_data.get('condition', '')
-    then_steps = [Step(**s) for s in step_data.get('then', step_data.get('then_steps', []))]
+    condition = step_data.get("condition", "")
+    then_steps = [Step(**s) for s in step_data.get("then", step_data.get("then_steps", []))]
 
     elif_blocks = []
-    for elif_data in step_data.get('elif', step_data.get('elif_blocks', [])):
-        elif_cond = elif_data.get('condition', '')
-        elif_steps = [Step(**s) for s in elif_data.get('steps', [])]
+    for elif_data in step_data.get("elif", step_data.get("elif_blocks", [])):
+        elif_cond = elif_data.get("condition", "")
+        elif_steps = [Step(**s) for s in elif_data.get("steps", [])]
         elif_blocks.append((elif_cond, elif_steps))
 
-    else_steps = [Step(**s) for s in step_data.get('else', step_data.get('else_steps', []))]
+    else_steps = [Step(**s) for s in step_data.get("else", step_data.get("else_steps", []))]
 
     return IfBlock(
-        condition=condition,
-        then_steps=then_steps,
-        elif_blocks=elif_blocks,
-        else_steps=else_steps
+        condition=condition, then_steps=then_steps, elif_blocks=elif_blocks, else_steps=else_steps
     )
 
 
@@ -427,11 +434,11 @@ def parse_for_block(step_data: Dict[str, Any]) -> ForBlock:
     from core.automation import Step
 
     return ForBlock(
-        items=step_data.get('items', '[]'),
-        item_var=step_data.get('item_var', 'item'),
-        index_var=step_data.get('index_var'),
-        steps=[Step(**s) for s in step_data.get('steps', step_data.get('loop_steps', []))],
-        max_iterations=step_data.get('max_iterations', 100)
+        items=step_data.get("items", "[]"),
+        item_var=step_data.get("item_var", "item"),
+        index_var=step_data.get("index_var"),
+        steps=[Step(**s) for s in step_data.get("steps", step_data.get("loop_steps", []))],
+        max_iterations=step_data.get("max_iterations", 100),
     )
 
 
@@ -451,10 +458,10 @@ def parse_while_block(step_data: Dict[str, Any]) -> WhileBlock:
     from core.automation import Step
 
     return WhileBlock(
-        condition=step_data.get('condition', 'False'),
-        steps=[Step(**s) for s in step_data.get('steps', step_data.get('loop_steps', []))],
-        max_iterations=step_data.get('max_iterations', 100),
-        counter_var=step_data.get('counter_var')
+        condition=step_data.get("condition", "False"),
+        steps=[Step(**s) for s in step_data.get("steps", step_data.get("loop_steps", []))],
+        max_iterations=step_data.get("max_iterations", 100),
+        counter_var=step_data.get("counter_var"),
     )
 
 
@@ -474,8 +481,8 @@ def parse_until_block(step_data: Dict[str, Any]) -> UntilBlock:
     from core.automation import Step
 
     return UntilBlock(
-        condition=step_data.get('condition', 'True'),
-        steps=[Step(**s) for s in step_data.get('steps', step_data.get('loop_steps', []))],
-        max_iterations=step_data.get('max_iterations', 100),
-        counter_var=step_data.get('counter_var')
+        condition=step_data.get("condition", "True"),
+        steps=[Step(**s) for s in step_data.get("steps", step_data.get("loop_steps", []))],
+        max_iterations=step_data.get("max_iterations", 100),
+        counter_var=step_data.get("counter_var"),
     )

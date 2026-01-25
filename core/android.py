@@ -26,50 +26,62 @@ Usage:
 import os
 import sys
 import time
-from typing import Optional, Tuple, List, Dict, Any, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from core.exceptions import (
+    DeviceNotFoundError,
+)
+from core.logging_config import get_logger
 from recorder.adb_wrapper import (
-    run_adb,
-    get_device_serial,
     get_connected_devices,
-    get_screen_size,
     get_current_app,
-    check_device_connected,
+    get_device_serial,
+    get_screen_size,
+    run_adb,
+)
+from recorder.element_matcher import (
+    MatchResult,
+    find_best_match,
+    find_elements_with_confidence,
 )
 from recorder.ui_dumper import (
     capture_ui_fast,
     get_center,
-    get_all_elements,
+)
+from replayer.executor import (
+    input_text as _input_text,
+)
+from replayer.executor import (
+    long_press as _long_press,
+)
+from replayer.executor import (
+    pinch as _pinch,
+)
+from replayer.executor import (
+    press_back as _press_back,
+)
+from replayer.executor import (
+    press_enter as _press_enter,
+)
+from replayer.executor import (
+    press_home as _press_home,
+)
+from replayer.executor import (
+    press_key as _press_key,
+)
+from replayer.executor import (
+    scroll as _scroll,
+)
+from replayer.executor import (
+    swipe as _swipe,
 )
 from replayer.executor import (
     tap as _tap,
-    long_press as _long_press,
-    swipe as _swipe,
-    scroll as _scroll,
-    pinch as _pinch,
-    input_text as _input_text,
-    press_key as _press_key,
-    press_back as _press_back,
-    press_home as _press_home,
-    press_enter as _press_enter,
 )
-from replayer.locator import ElementLocator, LocatorResult
-from recorder.element_matcher import (
-    find_elements_with_confidence,
-    find_best_match,
-    MatchResult,
-    DEFAULT_MIN_CONFIDENCE,
-)
-
-from core.logging_config import get_logger
-from core.exceptions import (
-    DeviceNotFoundError,
-    ElementNotFoundError,
-    DittoMationError,
-)
+from replayer.locator import ElementLocator
 
 # Module logger
 logger = get_logger("android")
@@ -165,7 +177,9 @@ class Android:
             android.tap("Login")            # Tap element with text "Login"
             android.tap(id="btn_submit")    # Tap element by ID
         """
-        coords = self._resolve_target(x_or_text, y, id=id, desc=desc, timeout=timeout, min_confidence=min_confidence)
+        coords = self._resolve_target(
+            x_or_text, y, id=id, desc=desc, timeout=timeout, min_confidence=min_confidence
+        )
         if coords:
             return _tap(coords[0], coords[1])
         return False
@@ -196,7 +210,9 @@ class Android:
         Returns:
             True if long press was successful
         """
-        coords = self._resolve_target(x_or_text, y, id=id, desc=desc, timeout=timeout, min_confidence=min_confidence)
+        coords = self._resolve_target(
+            x_or_text, y, id=id, desc=desc, timeout=timeout, min_confidence=min_confidence
+        )
         if coords:
             return _long_press(coords[0], coords[1], duration_ms)
         return False
@@ -282,15 +298,23 @@ class Android:
         if direction in ("up", "down"):
             delta = int(height * distance)
             if direction == "up":
-                return _scroll(center_x, center_y + delta // 2, center_x, center_y - delta // 2, duration_ms)
+                return _scroll(
+                    center_x, center_y + delta // 2, center_x, center_y - delta // 2, duration_ms
+                )
             else:
-                return _scroll(center_x, center_y - delta // 2, center_x, center_y + delta // 2, duration_ms)
+                return _scroll(
+                    center_x, center_y - delta // 2, center_x, center_y + delta // 2, duration_ms
+                )
         else:
             delta = int(width * distance)
             if direction == "left":
-                return _scroll(center_x + delta // 2, center_y, center_x - delta // 2, center_y, duration_ms)
+                return _scroll(
+                    center_x + delta // 2, center_y, center_x - delta // 2, center_y, duration_ms
+                )
             else:
-                return _scroll(center_x - delta // 2, center_y, center_x + delta // 2, center_y, duration_ms)
+                return _scroll(
+                    center_x - delta // 2, center_y, center_x + delta // 2, center_y, duration_ms
+                )
 
     def pinch(
         self,
@@ -382,7 +406,7 @@ class Android:
             True if app launch was initiated
         """
         try:
-            if "." in app and not " " in app:
+            if "." in app and " " not in app:
                 # Looks like a package name
                 package = app
             else:
@@ -393,8 +417,9 @@ class Android:
                     package = app
 
             # Launch with monkey tool (reliable for starting apps)
-            run_adb(['shell', 'monkey', '-p', package, '-c',
-                    'android.intent.category.LAUNCHER', '1'])
+            run_adb(
+                ["shell", "monkey", "-p", package, "-c", "android.intent.category.LAUNCHER", "1"]
+            )
             logger.info(f"Launched app: {package}")
             return True
         except Exception as e:
@@ -414,15 +439,15 @@ class Android:
     def _find_package_by_name(self, name: str) -> Optional[str]:
         """Find package name by app name from installed packages."""
         try:
-            output = run_adb(['shell', 'pm', 'list', 'packages', '-f'])
+            output = run_adb(["shell", "pm", "list", "packages", "-f"])
             name_lower = name.lower().replace(" ", "")
 
-            for line in output.strip().split('\n'):
-                if '=' in line:
+            for line in output.strip().split("\n"):
+                if "=" in line:
                     # Format: package:/data/app/com.app.name-xxx/base.apk=com.app.name
-                    package = line.split('=')[-1].strip()
+                    package = line.split("=")[-1].strip()
                     # Check if app name matches package name
-                    package_simple = package.split('.')[-1].lower()
+                    package_simple = package.split(".")[-1].lower()
                     if name_lower in package_simple or package_simple in name_lower:
                         return package
 
@@ -467,15 +492,15 @@ class Android:
             filename = f"screenshot_{timestamp}.png"
 
         # Ensure .png extension
-        if not filename.lower().endswith('.png'):
-            filename += '.png'
+        if not filename.lower().endswith(".png"):
+            filename += ".png"
 
         # Capture screenshot on device and pull
-        device_path = '/sdcard/screenshot_tmp.png'
+        device_path = "/sdcard/screenshot_tmp.png"
         try:
-            run_adb(['shell', 'screencap', '-p', device_path])
-            run_adb(['pull', device_path, filename])
-            run_adb(['shell', 'rm', device_path])
+            run_adb(["shell", "screencap", "-p", device_path])
+            run_adb(["pull", device_path, filename])
+            run_adb(["shell", "rm", device_path])
             logger.info(f"Screenshot saved: {filename}")
             return os.path.abspath(filename)
         except Exception as e:
@@ -521,8 +546,7 @@ class Android:
             None if no match above confidence threshold.
         """
         result = self._find_element_with_confidence(
-            text=text, id=id, desc=desc,
-            timeout=timeout, min_confidence=min_confidence
+            text=text, id=id, desc=desc, timeout=timeout, min_confidence=min_confidence
         )
         return result.element if result else None
 
@@ -556,8 +580,7 @@ class Android:
                 print(f"Match details: {result.match_details}")
         """
         return self._find_element_with_confidence(
-            text=text, id=id, desc=desc,
-            timeout=timeout, min_confidence=min_confidence
+            text=text, id=id, desc=desc, timeout=timeout, min_confidence=min_confidence
         )
 
     def find_all(
@@ -583,8 +606,7 @@ class Android:
             List of matching element dicts, sorted by confidence (highest first)
         """
         results = self.find_all_with_confidence(
-            text=text, id=id, desc=desc,
-            class_name=class_name, min_confidence=min_confidence
+            text=text, id=id, desc=desc, class_name=class_name, min_confidence=min_confidence
         )
         return [r.element for r in results]
 
@@ -655,9 +677,12 @@ class Android:
             Element dict if found, None if timeout
         """
         result = self._find_element_with_confidence(
-            text=text, id=id, desc=desc,
-            timeout=timeout, poll_interval=poll_interval,
-            min_confidence=min_confidence
+            text=text,
+            id=id,
+            desc=desc,
+            timeout=timeout,
+            poll_interval=poll_interval,
+            min_confidence=min_confidence,
         )
         return result.element if result else None
 
@@ -686,9 +711,12 @@ class Android:
             MatchResult if found, None if timeout
         """
         return self._find_element_with_confidence(
-            text=text, id=id, desc=desc,
-            timeout=timeout, poll_interval=poll_interval,
-            min_confidence=min_confidence
+            text=text,
+            id=id,
+            desc=desc,
+            timeout=timeout,
+            poll_interval=poll_interval,
+            min_confidence=min_confidence,
         )
 
     def exists(
@@ -712,8 +740,7 @@ class Android:
             True if element exists above confidence threshold
         """
         result = self._find_element_with_confidence(
-            text=text, id=id, desc=desc,
-            timeout=0, min_confidence=min_confidence
+            text=text, id=id, desc=desc, timeout=0, min_confidence=min_confidence
         )
         return result is not None
 
@@ -736,8 +763,7 @@ class Android:
             Confidence score (0.0-1.0), or 0.0 if not found
         """
         result = self._find_element_with_confidence(
-            text=text, id=id, desc=desc,
-            timeout=0, min_confidence=0.0  # Get any match
+            text=text, id=id, desc=desc, timeout=0, min_confidence=0.0  # Get any match
         )
         return result.confidence if result else 0.0
 
@@ -768,10 +794,12 @@ class Android:
 
         try:
             # Get additional device info
-            info["model"] = run_adb(['shell', 'getprop', 'ro.product.model']).strip()
-            info["android_version"] = run_adb(['shell', 'getprop', 'ro.build.version.release']).strip()
-            info["sdk_version"] = run_adb(['shell', 'getprop', 'ro.build.version.sdk']).strip()
-            info["manufacturer"] = run_adb(['shell', 'getprop', 'ro.product.manufacturer']).strip()
+            info["model"] = run_adb(["shell", "getprop", "ro.product.model"]).strip()
+            info["android_version"] = run_adb(
+                ["shell", "getprop", "ro.build.version.release"]
+            ).strip()
+            info["sdk_version"] = run_adb(["shell", "getprop", "ro.build.version.sdk"]).strip()
+            info["manufacturer"] = run_adb(["shell", "getprop", "ro.product.manufacturer"]).strip()
         except Exception as e:
             logger.debug(f"Could not get all device info: {e}")
 
@@ -809,7 +837,7 @@ class Android:
             )
             if result:
                 logger.debug(f"Found element with {result.confidence:.0%} confidence")
-                return get_center(result.element['bounds'])
+                return get_center(result.element["bounds"])
             else:
                 locator_desc = id or desc or x_or_text
                 logger.error(f"Element not found: {locator_desc}")

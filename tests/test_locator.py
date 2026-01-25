@@ -1,13 +1,12 @@
 """Tests for replayer.locator module."""
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from replayer.locator import (
-    LocatorResult,
-    ElementLocator,
-)
 from recorder.element_matcher import DEFAULT_MIN_CONFIDENCE
+from replayer.locator import (
+    ElementLocator,
+    LocatorResult,
+)
 
 
 class TestLocatorResult:
@@ -245,9 +244,7 @@ class TestLocatorResultConfidence:
 
     def test_match_details(self):
         result = LocatorResult(
-            found=True,
-            confidence=0.85,
-            match_details={"text_exact": 1.0, "clickable_bonus": 0.1}
+            found=True, confidence=0.85, match_details={"text_exact": 1.0, "clickable_bonus": 0.1}
         )
         assert "text_exact" in result.match_details
         assert result.match_details["text_exact"] == 1.0

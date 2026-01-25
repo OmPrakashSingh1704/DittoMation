@@ -1,19 +1,18 @@
 """Tests for replayer.executor module."""
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from replayer.executor import (
-    tap,
-    long_press,
-    swipe,
-    scroll,
-    pinch,
     input_text,
-    press_key,
+    long_press,
+    pinch,
     press_back,
-    press_home,
     press_enter,
+    press_home,
+    press_key,
+    scroll,
+    swipe,
+    tap,
 )
 
 
