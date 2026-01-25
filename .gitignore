@@ -40,6 +40,9 @@ recorder/output/
 workflow.json
 recorder/workflow.json
 
+# Test artifacts in examples
+examples/test_*.json
+
 # Claude settings
 .claude/
 
@@ -51,7 +54,42 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+coverage.xml
+.tox/
+.nox/
+
+# Security - sensitive files
+.env
+.env.*
+*.env
+.envrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+credentials.json
+service-account*.json
+secrets.json
+secrets.yaml
+secrets.yml
+*.secret
+
+# AWS credentials
+.aws/
+aws-credentials*
+
+# Google Cloud credentials
+.gcloud/
+gcloud-credentials*
 
 # android
 flutter_app
 android
+
+# MyPy cache
+.mypy_cache/
+
+# Ruff cache
+.ruff_cache/

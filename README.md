@@ -1,5 +1,11 @@
 # DittoMation
 
+[![PyPI version](https://img.shields.io/pypi/v/dittomation.svg)](https://pypi.org/project/dittomation/)
+[![Python versions](https://img.shields.io/pypi/pyversions/dittomation.svg)](https://pypi.org/project/dittomation/)
+[![CI](https://github.com/OmPrakashSingh1704/DittoMation/actions/workflows/ci.yml/badge.svg)](https://github.com/OmPrakashSingh1704/DittoMation/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/OmPrakashSingh1704/DittoMation/branch/main/graph/badge.svg)](https://codecov.io/gh/OmPrakashSingh1704/DittoMation)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Android automation framework that records touch interactions, maps them to UI elements, and replays them using smart element location. Supports natural language commands for intuitive automation.
 
 ## Features
@@ -9,6 +15,8 @@ Android automation framework that records touch interactions, maps them to UI el
 - **Natural Language** command execution - describe actions in plain English
 - **Smart Locators** - fallback chain (resource-id → content-desc → text → xpath → coordinates)
 - **Intent-based App Launching** - reliable app opening via Android intents
+- **Variables & Expressions** - dynamic scripts with `{{variable}}` syntax and safe expression evaluation
+- **Control Flow** - if/else conditions, for/while/until loops for complex automation
 
 ## Requirements
 
@@ -18,18 +26,45 @@ Android automation framework that records touch interactions, maps them to UI el
 
 ## Installation
 
+### From PyPI (Recommended)
+
+```bash
+pip install dittomation
+```
+
+With optional cloud provider support:
+
+```bash
+pip install dittomation[aws]      # AWS Device Farm
+pip install dittomation[firebase] # Firebase Test Lab
+pip install dittomation[all]      # All extras
+```
+
+### From Source
+
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/OmPrakashSingh1704/DittoMation.git
 cd DittoMation
 ```
 
-2. Install dependencies:
+2. Install the package:
+
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
-3. Ensure ADB is accessible:
+For development:
+
+```bash
+pip install -e .[dev]
+```
+
+### Verify Installation
+
+Ensure ADB is accessible:
+
 ```bash
 adb devices  # Should show your connected device
 ```
@@ -113,6 +148,50 @@ python replayer/main.py --workflow my_workflow.json
 python replayer/main.py --workflow my_workflow.json --delay 1000
 ```
 
+### Scripted Automation with Variables
+
+Run automation scripts with variables and control flow:
+
+```bash
+# Basic script execution
+ditto run script.json
+
+# With command-line variables
+ditto run login.json --var username=myuser --var password=secret
+
+# With variables file
+ditto run script.json --vars-file config.json --verbose
+```
+
+Example script with variables and conditions (`login.json`):
+
+```json
+{
+  "name": "smart_login",
+  "variables": {
+    "username": "testuser",
+    "max_retries": 3
+  },
+  "steps": [
+    {"action": "open", "app": "MyApp"},
+    {
+      "action": "if",
+      "expr": "element_exists(text='Welcome')",
+      "then_steps": [
+        {"action": "log", "message": "Already logged in"}
+      ],
+      "else_steps": [
+        {"action": "tap", "text": "Login"},
+        {"action": "type", "value": "{{username}}"},
+        {"action": "tap", "text": "Submit"}
+      ]
+    }
+  ]
+}
+```
+
+See [Variables and Control Flow Guide](docs/variables-and-control-flow.md) for complete documentation.
+
 ### Text-based Commands
 
 ```bash
@@ -166,6 +245,10 @@ This can happen on slow devices. The tool types in chunks with delays to mitigat
 ### App not found
 Use the exact app name as it appears on the device, or use one of the supported intent-based apps (clock, settings, youtube, etc.).
 
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
 ## License
 
-MIT License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

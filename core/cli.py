@@ -658,46 +658,185 @@ def _confidence_quality(confidence: float) -> str:
               help='Take screenshot when a step fails')
 @click.option('--output', '-o', type=click.Path(), help='Save result to JSON file')
 @click.option('--verbose', '-v', is_flag=True, help='Show detailed step output')
+@click.option('--var', '-V', multiple=True,
+              help='Set variable: --var name=value (can be used multiple times)')
+@click.option('--vars-file', type=click.Path(exists=True),
+              help='Load variables from JSON or YAML file')
+@click.option('--device', help='Device serial or AVD name to use')
+@click.option('--headless', is_flag=True, help='Start emulator in headless mode if needed')
+@click.option('--cloud-provider', type=click.Choice(['firebase', 'aws']),
+              help='Run on cloud provider instead of local device')
+@click.option('--cloud-device', help='Cloud device model to use')
 def run_automation(script_file, retries, timeout, delay, stop_on_failure,
-                   screenshot_on_failure, output, verbose):
+                   screenshot_on_failure, output, verbose, var, vars_file,
+                   device, headless, cloud_provider, cloud_device):
     """Run an automation script from JSON file.
 
     The script file should contain a JSON array of steps or an object with a "steps" key.
+    Scripts can also define variables in a "variables" object that can be referenced
+    using {{variable}} syntax in step fields.
 
-    Example script (alarm.json):
+    Example script with variables (login.json):
 
     \b
-        [
-            {"action": "open", "app": "clock"},
-            {"action": "wait", "timeout": 1.0},
-            {"action": "tap", "text": "Alarm"},
-            {"action": "tap", "desc": "Add alarm"},
-            {"action": "tap", "text": "11"},
-            {"action": "tap", "text": "10"},
-            {"action": "tap", "text": "OK"}
-        ]
+        {
+            "name": "login_test",
+            "variables": {
+                "username": "testuser",
+                "password": "secret123"
+            },
+            "steps": [
+                {"action": "open", "app": "MyApp"},
+                {"action": "tap", "text": "Login"},
+                {"action": "type", "value": "{{username}}"},
+                {"action": "tap", "text": "Submit"}
+            ]
+        }
+
+    Example with conditional logic:
+
+    \b
+        {
+            "steps": [
+                {"action": "if", "expr": "element_exists(text='Welcome')",
+                 "then_steps": [{"action": "log", "message": "Already logged in"}],
+                 "else_steps": [{"action": "tap", "text": "Login"}]}
+            ]
+        }
 
     Examples:
 
         ditto run alarm.json
 
-        ditto run alarm.json --retries 3 --verbose
+        ditto run login.json --var username=myuser --var password=secret
 
-        ditto run alarm.json -o result.json
+        ditto run script.json --vars-file config.json --verbose
+
+        ditto run script.json --device emulator-5554
+
+        ditto run script.json --device Pixel_6_API_33 --headless
+
+        ditto run script.json --cloud-provider firebase --cloud-device Pixel_6
     """
     from core.automation import Automation
 
+    # Handle cloud execution
+    if cloud_provider:
+        if not cloud_device:
+            click.echo("Error: --cloud-device is required when using --cloud-provider", err=True)
+            sys.exit(1)
+
+        try:
+            provider = _get_cloud_provider(cloud_provider)
+            devices = [provider.acquire_device(cloud_device)]
+
+            click.echo(f"Running on {cloud_provider}: {cloud_device}")
+            run = provider.run_test(
+                devices=devices,
+                workflow_path=script_file,
+                timeout=3600
+            )
+
+            click.echo(f"Test run started: {run.run_id}")
+            click.echo("Waiting for completion...")
+
+            run = provider.wait_for_completion(run, poll_interval=30)
+
+            if run.is_successful:
+                click.echo("Test completed successfully!")
+            else:
+                click.echo(f"Test failed: {run.error_message or run.status.value}", err=True)
+                sys.exit(1)
+            return
+
+        except Exception as e:
+            click.echo(f"Cloud execution failed: {e}", err=True)
+            sys.exit(1)
+
+    # Handle local/emulator execution
+    device_serial = None
+    started_emulator = None
+
     try:
+        # Device selection
+        if device:
+            from core.device_manager import DeviceManager
+            from core.emulator import EmulatorConfig
+
+            dm = DeviceManager()
+            selected = dm.select_device(serial=device, avd_name=device)
+
+            if selected:
+                emulator_config = None
+                if headless:
+                    emulator_config = EmulatorConfig(headless=True)
+
+                device_serial = dm.connect(
+                    selected,
+                    start_if_avd=True,
+                    emulator_config=emulator_config
+                )
+                click.echo(f"Using device: {device_serial}")
+
+                # Track if we started an emulator so we can stop it later
+                if device_serial and device_serial.startswith("emulator-"):
+                    from core.config_manager import get_config
+                    config = get_config()
+                    if config.get("emulator.auto_stop", True):
+                        started_emulator = device_serial
+            else:
+                click.echo(f"Device not found: {device}", err=True)
+                sys.exit(1)
+
+        # Parse command-line variables
+        extra_vars = {}
+        for var_str in var:
+            if '=' in var_str:
+                key, value = var_str.split('=', 1)
+                # Try to parse as JSON for complex values
+                try:
+                    extra_vars[key.strip()] = json.loads(value)
+                except json.JSONDecodeError:
+                    extra_vars[key.strip()] = value
+            else:
+                click.echo(f"Invalid variable format: {var_str} (expected name=value)", err=True)
+                sys.exit(1)
+
+        # Load variables from file if specified
+        if vars_file:
+            import os
+            ext = os.path.splitext(vars_file)[1].lower()
+            with open(vars_file, 'r', encoding='utf-8') as f:
+                if ext in ('.yaml', '.yml'):
+                    try:
+                        import yaml
+                        file_vars = yaml.safe_load(f)
+                    except ImportError:
+                        click.echo("PyYAML required for YAML files. Install with: pip install pyyaml", err=True)
+                        sys.exit(1)
+                else:
+                    file_vars = json.load(f)
+
+            if isinstance(file_vars, dict):
+                # File vars are loaded first, CLI vars override
+                merged_vars = dict(file_vars)
+                merged_vars.update(extra_vars)
+                extra_vars = merged_vars
+
         auto = Automation(
             default_retries=retries,
             default_timeout=timeout,
             step_delay=delay,
             stop_on_failure=stop_on_failure,
             screenshot_on_failure=screenshot_on_failure,
+            device_serial=device_serial,
         )
 
         click.echo(f"Running automation: {script_file}")
-        result = auto.run_from_file(script_file)
+        if extra_vars:
+            click.echo(f"Variables: {', '.join(extra_vars.keys())}")
+
+        result = auto.run_from_file(script_file, extra_vars=extra_vars if extra_vars else None)
 
         # Show results
         if verbose:
@@ -726,6 +865,16 @@ def run_automation(script_file, retries, timeout, delay, stop_on_failure,
     except Exception as e:
         click.echo(f"Automation failed: {e}", err=True)
         sys.exit(1)
+    finally:
+        # Stop emulator if we started one and auto_stop is enabled
+        if started_emulator:
+            try:
+                from core.emulator import EmulatorManager
+                manager = EmulatorManager()
+                manager.stop(started_emulator)
+                click.echo(f"Stopped emulator: {started_emulator}")
+            except Exception:
+                pass  # Ignore errors when stopping
 
 
 @main.command('create-script')
@@ -826,6 +975,528 @@ def validate_script(script_file):
     except json.JSONDecodeError as e:
         click.echo(f"Invalid JSON: {e}", err=True)
         sys.exit(1)
+
+
+# =============================================================================
+# Emulator Commands
+# =============================================================================
+
+@main.group()
+def emulator():
+    """Manage Android emulators.
+
+    Commands for listing, starting, stopping, and monitoring Android emulators.
+    Useful for headless CI/CD environments.
+
+    Examples:
+
+        ditto emulator list                # List available AVDs
+
+        ditto emulator start Pixel_6       # Start an emulator
+
+        ditto emulator stop emulator-5554  # Stop an emulator
+
+        ditto emulator status              # Show running emulators
+    """
+    pass
+
+
+@emulator.command('list')
+@click.option('--json', 'as_json', is_flag=True, help='Output as JSON')
+def emulator_list(as_json):
+    """List available AVDs (Android Virtual Devices).
+
+    Shows all AVDs that can be started as emulators.
+
+    Examples:
+
+        ditto emulator list
+
+        ditto emulator list --json
+    """
+    from core.emulator import EmulatorManager
+
+    try:
+        manager = EmulatorManager()
+        avds = manager.list_avds()
+
+        if as_json:
+            click.echo(json.dumps([avd.to_dict() for avd in avds], indent=2))
+        else:
+            if not avds:
+                click.echo("No AVDs found. Create one using Android Studio or avdmanager.")
+                return
+
+            click.echo(f"Available AVDs ({len(avds)}):")
+            for avd in avds:
+                info_parts = [avd.name]
+                if avd.device:
+                    info_parts.append(f"({avd.device})")
+                if avd.target:
+                    info_parts.append(f"[{avd.target}]")
+                click.echo(f"  {' '.join(info_parts)}")
+
+    except Exception as e:
+        click.echo(f"Error listing AVDs: {e}", err=True)
+        sys.exit(1)
+
+
+@emulator.command('start')
+@click.argument('avd_name')
+@click.option('--headless/--no-headless', default=True, help='Run without window (default: headless)')
+@click.option('--gpu', default='swiftshader_indirect',
+              type=click.Choice(['auto', 'host', 'swiftshader_indirect', 'angle_indirect', 'off']),
+              help='GPU rendering mode')
+@click.option('--memory', type=int, default=2048, help='Memory in MB')
+@click.option('--cores', type=int, default=2, help='Number of CPU cores')
+@click.option('--timeout', type=int, default=300, help='Boot timeout in seconds')
+@click.option('--no-wait', is_flag=True, help='Don\'t wait for boot completion')
+@click.option('--wipe-data', is_flag=True, help='Wipe user data before starting')
+def emulator_start(avd_name, headless, gpu, memory, cores, timeout, no_wait, wipe_data):
+    """Start an Android emulator.
+
+    Starts the specified AVD as an emulator. By default runs in headless
+    mode (no window) which is ideal for CI/CD environments.
+
+    Examples:
+
+        ditto emulator start Pixel_6_API_33
+
+        ditto emulator start Pixel_6 --headless --gpu swiftshader_indirect
+
+        ditto emulator start Pixel_6 --no-headless  # Show emulator window
+    """
+    from core.emulator import EmulatorConfig, EmulatorManager
+
+    try:
+        manager = EmulatorManager()
+
+        config = EmulatorConfig(
+            headless=headless,
+            gpu=gpu,
+            memory_mb=memory,
+            cores=cores,
+            no_window=headless,
+            wipe_data=wipe_data,
+        )
+
+        click.echo(f"Starting emulator: {avd_name}...")
+        if headless:
+            click.echo("  Mode: headless (no window)")
+        click.echo(f"  GPU: {gpu}")
+        click.echo(f"  Memory: {memory}MB")
+
+        instance = manager.start(
+            avd_name,
+            config=config,
+            wait_boot=not no_wait,
+            timeout=timeout
+        )
+
+        click.echo(f"Emulator started: {instance.serial}")
+        if instance.boot_completed:
+            click.echo("Boot completed successfully.")
+
+    except Exception as e:
+        click.echo(f"Error starting emulator: {e}", err=True)
+        sys.exit(1)
+
+
+@emulator.command('stop')
+@click.argument('serial', required=False)
+@click.option('--all', 'stop_all', is_flag=True, help='Stop all running emulators')
+@click.option('--force', is_flag=True, help='Force kill the emulator')
+def emulator_stop(serial, stop_all, force):
+    """Stop a running emulator.
+
+    Stop a specific emulator by its serial number, or stop all running
+    emulators with --all.
+
+    Examples:
+
+        ditto emulator stop emulator-5554
+
+        ditto emulator stop --all
+
+        ditto emulator stop emulator-5554 --force
+    """
+    from core.emulator import EmulatorManager
+
+    try:
+        manager = EmulatorManager()
+
+        if stop_all:
+            count = manager.stop_all()
+            click.echo(f"Stopped {count} emulator(s)")
+        elif serial:
+            success = manager.stop(serial, force=force)
+            if success:
+                click.echo(f"Stopped emulator: {serial}")
+            else:
+                click.echo(f"Failed to stop emulator: {serial}", err=True)
+                sys.exit(1)
+        else:
+            click.echo("Error: Provide a serial number or use --all", err=True)
+            sys.exit(1)
+
+    except Exception as e:
+        click.echo(f"Error stopping emulator: {e}", err=True)
+        sys.exit(1)
+
+
+@emulator.command('status')
+@click.option('--json', 'as_json', is_flag=True, help='Output as JSON')
+def emulator_status(as_json):
+    """Show running emulators.
+
+    Displays information about all currently running Android emulators.
+
+    Examples:
+
+        ditto emulator status
+
+        ditto emulator status --json
+    """
+    from core.emulator import EmulatorManager
+
+    try:
+        manager = EmulatorManager()
+        running = manager.get_running_emulators()
+
+        if as_json:
+            click.echo(json.dumps([emu.to_dict() for emu in running], indent=2))
+        else:
+            if not running:
+                click.echo("No emulators running")
+                return
+
+            click.echo(f"Running emulators ({len(running)}):")
+            for emu in running:
+                parts = [f"  {emu.serial}"]
+                if emu.avd_name:
+                    parts.append(f"({emu.avd_name})")
+                parts.append(f"[{emu.state.value}]")
+                click.echo(" ".join(parts))
+
+    except Exception as e:
+        click.echo(f"Error getting emulator status: {e}", err=True)
+        sys.exit(1)
+
+
+# =============================================================================
+# Cloud Commands
+# =============================================================================
+
+@main.group()
+def cloud():
+    """Run tests on cloud device platforms.
+
+    Commands for running DittoMation workflows on Firebase Test Lab
+    or AWS Device Farm.
+
+    Examples:
+
+        ditto cloud list-devices --provider firebase
+
+        ditto cloud run workflow.json --provider aws --device Pixel_6
+
+        ditto cloud status <run-id> --provider firebase
+    """
+    pass
+
+
+def _get_cloud_provider(provider_name: str):
+    """Get a cloud provider instance."""
+    from core.config_manager import get_config
+
+    config = get_config()
+
+    if provider_name == "firebase":
+        from core.cloud.firebase import FirebaseTestLabProvider
+        return FirebaseTestLabProvider(
+            project_id=config.get("cloud.firebase.project_id"),
+            credentials_file=config.get("cloud.firebase.credentials_file"),
+            results_bucket=config.get("cloud.firebase.results_bucket"),
+        )
+    elif provider_name == "aws":
+        from core.cloud.aws import AWSDeviceFarmProvider
+        return AWSDeviceFarmProvider(
+            project_arn=config.get("cloud.aws.project_arn"),
+            region=config.get("cloud.aws.region", "us-west-2"),
+            device_pool_arn=config.get("cloud.aws.device_pool_arn"),
+        )
+    else:
+        raise click.ClickException(f"Unknown provider: {provider_name}")
+
+
+@cloud.command('list-devices')
+@click.option('--provider', '-p', required=True,
+              type=click.Choice(['firebase', 'aws']),
+              help='Cloud provider to use')
+@click.option('--model', '-m', help='Filter by model name')
+@click.option('--os-version', '-o', help='Filter by OS version')
+@click.option('--json', 'as_json', is_flag=True, help='Output as JSON')
+def cloud_list_devices(provider, model, os_version, as_json):
+    """List available devices on a cloud platform.
+
+    Examples:
+
+        ditto cloud list-devices --provider firebase
+
+        ditto cloud list-devices --provider aws --model Pixel
+
+        ditto cloud list-devices --provider firebase --os-version 13 --json
+    """
+    from core.cloud.models import DeviceFilter
+
+    try:
+        cloud_provider = _get_cloud_provider(provider)
+
+        # Build filter if criteria provided
+        device_filter = None
+        if model or os_version:
+            device_filter = DeviceFilter(
+                models=[model] if model else None,
+                os_versions=[os_version] if os_version else None,
+            )
+
+        devices = cloud_provider.list_devices(filters=device_filter)
+
+        if as_json:
+            click.echo(json.dumps([d.to_dict() for d in devices], indent=2))
+        else:
+            if not devices:
+                click.echo("No devices found matching criteria")
+                return
+
+            click.echo(f"Available devices ({len(devices)}):")
+            for device in devices:
+                parts = [f"  {device.model}"]
+                if device.os_version:
+                    parts.append(f"(Android {device.os_version})")
+                if device.manufacturer:
+                    parts.append(f"[{device.manufacturer}]")
+                click.echo(" ".join(parts))
+
+    except Exception as e:
+        click.echo(f"Error listing devices: {e}", err=True)
+        sys.exit(1)
+
+
+@cloud.command('run')
+@click.argument('workflow_file', type=click.Path(exists=True))
+@click.option('--provider', '-p', required=True,
+              type=click.Choice(['firebase', 'aws']),
+              help='Cloud provider to use')
+@click.option('--device', '-d', multiple=True, required=True,
+              help='Device model(s) to run on (can be specified multiple times)')
+@click.option('--os-version', '-o', help='OS version to use')
+@click.option('--timeout', type=int, default=3600, help='Test timeout in seconds')
+@click.option('--app', type=click.Path(exists=True), help='APK file to test')
+@click.option('--wait/--no-wait', default=True, help='Wait for completion')
+@click.option('--json', 'as_json', is_flag=True, help='Output as JSON')
+def cloud_run(workflow_file, provider, device, os_version, timeout, app, wait, as_json):
+    """Run a workflow on cloud devices.
+
+    Examples:
+
+        ditto cloud run test.json --provider firebase --device Pixel_6
+
+        ditto cloud run test.json --provider aws --device Pixel_6 --device Pixel_7
+
+        ditto cloud run test.json --provider firebase --device Pixel_6 --app myapp.apk
+    """
+    try:
+        cloud_provider = _get_cloud_provider(provider)
+
+        # Get requested devices
+        devices = []
+        for device_model in device:
+            found = cloud_provider.acquire_device(device_model, os_version)
+            devices.append(found)
+
+        click.echo(f"Starting test on {len(devices)} device(s)...")
+
+        # Build options
+        options = {}
+        if app:
+            options["app_apk"] = app
+
+        # Start test
+        run = cloud_provider.run_test(
+            devices=devices,
+            workflow_path=workflow_file,
+            timeout=timeout,
+            **options
+        )
+
+        click.echo(f"Test run started: {run.run_id}")
+
+        if wait:
+            click.echo("Waiting for completion...")
+            from core.config_manager import get_config
+            config = get_config()
+            poll_interval = config.get("cloud.poll_interval", 30)
+
+            run = cloud_provider.wait_for_completion(
+                run,
+                timeout=timeout + 300,
+                poll_interval=poll_interval
+            )
+
+            if as_json:
+                click.echo(json.dumps(run.to_dict(), indent=2))
+            else:
+                click.echo(f"Test completed: {run.status.value}")
+                if run.is_successful:
+                    click.echo("Result: PASSED")
+                else:
+                    click.echo("Result: FAILED")
+                    if run.error_message:
+                        click.echo(f"Error: {run.error_message}")
+        else:
+            click.echo("Test running in background")
+            click.echo(f"Check status with: ditto cloud status {run.run_id} --provider {provider}")
+
+    except Exception as e:
+        click.echo(f"Error running test: {e}", err=True)
+        sys.exit(1)
+
+
+@cloud.command('status')
+@click.argument('run_id')
+@click.option('--provider', '-p', required=True,
+              type=click.Choice(['firebase', 'aws']),
+              help='Cloud provider')
+@click.option('--json', 'as_json', is_flag=True, help='Output as JSON')
+def cloud_status(run_id, provider, as_json):
+    """Get the status of a cloud test run.
+
+    Examples:
+
+        ditto cloud status abc123 --provider firebase
+
+        ditto cloud status arn:aws:... --provider aws --json
+    """
+    try:
+        cloud_provider = _get_cloud_provider(provider)
+        run = cloud_provider.get_run_status(run_id)
+
+        if as_json:
+            click.echo(json.dumps(run.to_dict(), indent=2))
+        else:
+            click.echo(f"Run ID: {run.run_id}")
+            click.echo(f"Status: {run.status.value}")
+            if run.started_at:
+                click.echo(f"Started: {run.started_at}")
+            if run.completed_at:
+                click.echo(f"Completed: {run.completed_at}")
+            if run.duration_seconds:
+                click.echo(f"Duration: {run.duration_seconds:.1f}s")
+            if run.error_message:
+                click.echo(f"Error: {run.error_message}")
+
+    except Exception as e:
+        click.echo(f"Error getting status: {e}", err=True)
+        sys.exit(1)
+
+
+@cloud.command('artifacts')
+@click.argument('run_id')
+@click.option('--provider', '-p', required=True,
+              type=click.Choice(['firebase', 'aws']),
+              help='Cloud provider')
+@click.option('--output', '-o', type=click.Path(), default='./artifacts',
+              help='Output directory')
+@click.option('--type', 'artifact_types', multiple=True,
+              type=click.Choice(['screenshot', 'video', 'log', 'all']),
+              help='Artifact types to download')
+def cloud_artifacts(run_id, provider, output, artifact_types):
+    """Download artifacts from a cloud test run.
+
+    Examples:
+
+        ditto cloud artifacts abc123 --provider firebase --output ./results
+
+        ditto cloud artifacts arn:aws:... --provider aws --type screenshot --type log
+    """
+    try:
+        cloud_provider = _get_cloud_provider(provider)
+        run = cloud_provider.get_run_status(run_id)
+
+        # Determine artifact types to download
+        types_to_download = None
+        if artifact_types and 'all' not in artifact_types:
+            types_to_download = list(artifact_types)
+
+        click.echo(f"Collecting artifacts from run: {run_id}")
+
+        artifacts = cloud_provider.collect_artifacts(
+            run,
+            output_dir=output,
+            artifact_types=types_to_download
+        )
+
+        click.echo(f"Downloaded {len(artifacts)} artifact(s) to: {output}")
+        for artifact in artifacts:
+            click.echo(f"  - {artifact.name} ({artifact.artifact_type.value})")
+
+    except Exception as e:
+        click.echo(f"Error downloading artifacts: {e}", err=True)
+        sys.exit(1)
+
+
+@cloud.command('configure')
+@click.option('--provider', '-p', required=True,
+              type=click.Choice(['firebase', 'aws']),
+              help='Cloud provider to configure')
+@click.option('--project', help='Project ID (Firebase) or Project ARN (AWS)')
+@click.option('--region', help='AWS region')
+@click.option('--credentials', type=click.Path(exists=True),
+              help='Path to credentials file (Firebase)')
+@click.option('--bucket', help='Results bucket (Firebase)')
+def cloud_configure(provider, project, region, credentials, bucket):
+    """Configure cloud provider settings.
+
+    Saves configuration to the DittoMation config file.
+
+    Examples:
+
+        ditto cloud configure --provider firebase --project my-project-id
+
+        ditto cloud configure --provider aws --project arn:aws:... --region us-west-2
+    """
+    from core.config_manager import get_config
+
+    config = get_config()
+    changes = []
+
+    if provider == "firebase":
+        if project:
+            config.set("cloud.firebase.project_id", project)
+            changes.append(f"firebase.project_id = {project}")
+        if credentials:
+            config.set("cloud.firebase.credentials_file", credentials)
+            changes.append(f"firebase.credentials_file = {credentials}")
+        if bucket:
+            config.set("cloud.firebase.results_bucket", bucket)
+            changes.append(f"firebase.results_bucket = {bucket}")
+
+    elif provider == "aws":
+        if project:
+            config.set("cloud.aws.project_arn", project)
+            changes.append(f"aws.project_arn = {project}")
+        if region:
+            config.set("cloud.aws.region", region)
+            changes.append(f"aws.region = {region}")
+
+    if changes:
+        click.echo("Configuration updated:")
+        for change in changes:
+            click.echo(f"  {change}")
+        click.echo("\nTo persist, save config: ditto config save")
+    else:
+        click.echo("No changes made. Provide at least one option to configure.")
 
 
 if __name__ == '__main__':

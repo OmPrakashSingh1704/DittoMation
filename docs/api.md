@@ -706,25 +706,145 @@ print(f"Screen: {info['screen_size'][0]}x{info['screen_size'][1]}")
 
 ---
 
+## Automation Class
+
+The `Automation` class provides a high-level interface for running multi-step automation scripts with variables, conditions, and loops.
+
+### Constructor
+
+```python
+Automation(
+    device: str = None,
+    min_confidence: float = 0.3,
+    default_timeout: float = 5.0,
+    default_retries: int = 2,
+    step_delay: float = 0.3,
+    stop_on_failure: bool = True,
+    screenshot_on_failure: bool = False,
+    initial_vars: Dict[str, Any] = None
+)
+```
+
+**Parameters:**
+- `device`: Device serial (auto-detect if None)
+- `min_confidence`: Default confidence for element matching
+- `default_timeout`: Default timeout for element search
+- `default_retries`: Default retry count per step
+- `step_delay`: Delay between steps in seconds
+- `stop_on_failure`: Stop on first failure
+- `screenshot_on_failure`: Capture screenshot on failure
+- `initial_vars`: Initial variables for the context
+
+### run()
+
+Execute a list of automation steps.
+
+```python
+run(steps: List[Step], initial_vars: Dict[str, Any] = None) -> AutomationResult
+```
+
+**Example:**
+```python
+from core.automation import Automation, Step
+
+auto = Automation(initial_vars={"username": "test"})
+
+steps = [
+    Step(action="open", app="MyApp"),
+    Step(action="tap", text="Login"),
+    Step(action="type", value="{{username}}"),
+]
+
+result = auto.run(steps)
+print(result.summary())
+```
+
+### run_from_file()
+
+Load and run automation from a JSON file.
+
+```python
+run_from_file(filepath: str, extra_vars: Dict[str, Any] = None) -> AutomationResult
+```
+
+**Example:**
+```python
+auto = Automation()
+result = auto.run_from_file("script.json", extra_vars={"password": "secret"})
+```
+
+### Variable Methods
+
+```python
+# Set a variable
+auto.set_variable("count", 5)
+
+# Get a variable
+value = auto.get_variable("count", default=0)
+
+# Access context directly
+ctx = auto.context
+```
+
+### Supported Step Types
+
+| Action | Description |
+|--------|-------------|
+| `tap` | Tap element or coordinates |
+| `long_press` | Long press element |
+| `swipe` | Swipe gesture |
+| `scroll` | Scroll gesture |
+| `type` | Type text |
+| `press` | Press device button |
+| `open` | Open app |
+| `wait` | Wait for duration |
+| `wait_for` | Wait for element |
+| `assert_exists` | Assert element exists |
+| `assert_not_exists` | Assert element doesn't exist |
+| `screenshot` | Take screenshot |
+| `set_variable` | Set variable value |
+| `extract` | Extract data from element |
+| `if` | Conditional branching |
+| `for` | For loop |
+| `while` | While loop |
+| `until` | Until loop |
+| `break` | Break from loop |
+| `continue` | Continue to next iteration |
+| `log` | Log message |
+| `assert` | Assert condition |
+
+> **See also:** [Variables and Control Flow Guide](variables-and-control-flow.md) for detailed documentation.
+
+---
+
 ## Exception Classes
 
 Import exceptions for error handling:
 
 ```python
 from core.exceptions import (
-    DittoMationError,      # Base exception
-    DeviceNotFoundError,   # No device connected
-    DeviceOfflineError,    # Device is offline
-    ElementNotFoundError,  # Element not found
-    ADBCommandError,       # ADB command failed
-    ADBTimeoutError,       # ADB command timed out
+    DittoMationError,         # Base exception
+    DeviceNotFoundError,      # No device connected
+    DeviceOfflineError,       # Device is offline
+    ElementNotFoundError,     # Element not found
+    ADBCommandError,          # ADB command failed
+    ADBTimeoutError,          # ADB command timed out
+    # Variables & Expressions
+    ExpressionError,          # Expression evaluation failed
+    UnsafeExpressionError,    # Unsafe expression blocked
+    VariableNotFoundError,    # Variable not defined
+    # Control Flow
+    LoopLimitError,           # Loop exceeded max iterations
+    ControlFlowError,         # Control flow error
+    InvalidControlFlowError,  # break/continue outside loop
+    AssertionFailedError,     # Assert condition failed
 )
 ```
 
 **Example:**
 ```python
 from core import Android
-from core.exceptions import DeviceNotFoundError
+from core.exceptions import DeviceNotFoundError, VariableNotFoundError
 
 try:
     android = Android()

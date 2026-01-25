@@ -1,0 +1,51 @@
+{
+  "name": "variables_and_loops",
+  "description": "Example automation script demonstrating variables, conditions, and loops",
+  "variables": {
+    "username": "testuser",
+    "password": "secret123",
+    "max_retries": 3,
+    "items": ["Item A", "Item B", "Item C"]
+  },
+  "steps": [
+    {
+      "action": "log",
+      "message": "Starting automation with username: {{username}}"
+    },
+    {
+      "action": "set_variable",
+      "variable": "counter",
+      "value": "0"
+    },
+    {
+      "action": "log",
+      "message": "Counter initialized to {{counter}}"
+    },
+    {
+      "action": "set_variable",
+      "variable": "greeting",
+      "expr": "'Hello, ' + '{{username}}' + '!'"
+    },
+    {
+      "action": "log",
+      "message": "Computed greeting: {{greeting}}"
+    },
+    {
+      "action": "for",
+      "items": "items",
+      "item_var": "item",
+      "index_var": "idx",
+      "loop_steps": [
+        {
+          "action": "log",
+          "message": "Processing item {{idx}}: {{item}}"
+        }
+      ],
+      "max_iterations": 10
+    },
+    {
+      "action": "log",
+      "message": "Automation completed successfully"
+    }
+  ]
+}

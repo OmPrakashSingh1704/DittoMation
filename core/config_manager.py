@@ -123,6 +123,37 @@ DEFAULT_CONFIG: Dict[str, Any] = {
             "package": [],
             "class": []
         }
+    },
+
+    # Emulator configuration
+    "emulator": {
+        "default_avd": None,  # Default AVD to use
+        "headless": True,  # Run emulators in headless mode
+        "gpu": "swiftshader_indirect",  # GPU rendering mode
+        "memory_mb": 2048,  # Emulator memory in MB
+        "cores": 2,  # Number of CPU cores
+        "boot_timeout": 300,  # Boot timeout in seconds
+        "auto_start": False,  # Auto-start emulator if no device
+        "auto_stop": True,  # Auto-stop emulator after automation
+        "no_audio": True,  # Disable audio
+        "no_boot_anim": True,  # Skip boot animation
+    },
+
+    # Cloud provider configuration
+    "cloud": {
+        "default_provider": None,  # Default cloud provider (firebase, aws)
+        "firebase": {
+            "project_id": None,  # Google Cloud project ID
+            "credentials_file": None,  # Path to service account JSON
+            "results_bucket": None,  # GCS bucket for results
+        },
+        "aws": {
+            "region": "us-west-2",  # AWS region
+            "project_arn": None,  # Device Farm project ARN
+            "device_pool_arn": None,  # Device pool ARN (optional)
+        },
+        "test_timeout": 3600,  # Default test timeout in seconds
+        "poll_interval": 30,  # Status poll interval in seconds
     }
 }
 
@@ -163,6 +194,25 @@ CONFIG_SCHEMA: Dict[str, Dict[str, Any]] = {
 
     "ui_capture.max_retries": {"type": int, "min": 1, "max": 20},
     "ui_capture.retry_delay_ms": {"type": int, "min": 100, "max": 5000},
+
+    # Emulator configuration validation
+    "emulator.headless": {"type": bool},
+    "emulator.gpu": {
+        "type": str,
+        "allowed": ["auto", "host", "swiftshader_indirect", "angle_indirect", "off"]
+    },
+    "emulator.memory_mb": {"type": int, "min": 512, "max": 16384},
+    "emulator.cores": {"type": int, "min": 1, "max": 16},
+    "emulator.boot_timeout": {"type": int, "min": 30, "max": 900},
+    "emulator.auto_start": {"type": bool},
+    "emulator.auto_stop": {"type": bool},
+    "emulator.no_audio": {"type": bool},
+    "emulator.no_boot_anim": {"type": bool},
+
+    # Cloud configuration validation
+    "cloud.test_timeout": {"type": int, "min": 60, "max": 14400},
+    "cloud.poll_interval": {"type": int, "min": 5, "max": 300},
+    "cloud.aws.region": {"type": str},
 }
 
 

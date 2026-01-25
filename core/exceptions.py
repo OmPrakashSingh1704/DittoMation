@@ -376,7 +376,7 @@ class EventParseError(InputError):
 
     def __init__(self, event_line: str, reason: Optional[str] = None,
                  details: Optional[Dict[str, Any]] = None):
-        message = f"Failed to parse input event"
+        message = "Failed to parse input event"
         if reason:
             message += f": {reason}"
         details = details or {}
@@ -478,3 +478,322 @@ class UnknownActionError(NaturalLanguageError):
                 "long press, back, home, search, open"
             )
         super().__init__(message, details, hint)
+
+
+# ============================================================================
+# Expression & Variable Errors
+# ============================================================================
+
+class ExpressionError(DittoMationError):
+    """Base exception for expression evaluation errors."""
+
+    def __init__(self, expression: str, reason: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"Expression evaluation failed: {expression}"
+        if reason:
+            message += f" ({reason})"
+        details = details or {}
+        details["expression"] = expression
+        hint = (
+            "Check the expression syntax. Supported: comparisons (==, !=, <, >), "
+            "boolean (and, or, not), arithmetic (+, -, *, /), and functions (len, str, int)."
+        )
+        super().__init__(message, details, hint)
+
+
+class UnsafeExpressionError(ExpressionError):
+    """Raised when expression contains unsafe operations."""
+
+    def __init__(self, reason: str, expression: str = "",
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"Unsafe expression blocked: {reason}"
+        details = details or {}
+        details["reason"] = reason
+        if expression:
+            details["expression"] = expression
+        hint = (
+            "Expressions cannot use imports, exec, eval, or access private attributes. "
+            "Only whitelisted functions and operations are allowed."
+        )
+        # Call DittoMationError.__init__ directly to avoid ExpressionError's signature
+        DittoMationError.__init__(self, message, details, hint)
+
+
+class VariableNotFoundError(DittoMationError):
+    """Raised when a referenced variable doesn't exist."""
+
+    def __init__(self, variable: str, available: Optional[List[str]] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"Variable not found: '{variable}'"
+        details = details or {}
+        details["variable"] = variable
+        if available:
+            details["available_variables"] = available[:10]  # Limit to first 10
+            hint = f"Available variables: {', '.join(available[:5])}"
+            if len(available) > 5:
+                hint += f" (and {len(available) - 5} more)"
+        else:
+            hint = (
+                "Make sure the variable is defined before use. "
+                "Use set_variable action or pass via --var CLI option."
+            )
+        super().__init__(message, details, hint)
+
+
+# ============================================================================
+# Control Flow Errors
+# ============================================================================
+
+class ControlFlowError(DittoMationError):
+    """Base exception for control flow errors."""
+    pass
+
+
+class LoopLimitError(ControlFlowError):
+    """Raised when a loop exceeds its maximum iterations."""
+
+    def __init__(self, loop_type: str, max_iterations: int,
+                 condition: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"{loop_type} loop exceeded maximum iterations ({max_iterations})"
+        details = details or {}
+        details.update({
+            "loop_type": loop_type,
+            "max_iterations": max_iterations
+        })
+        if condition:
+            details["condition"] = condition
+        hint = (
+            "The loop ran too many times. Check your loop condition to ensure "
+            "it will eventually terminate, or increase max_iterations if needed."
+        )
+        super().__init__(message, details, hint)
+
+
+class BreakException(ControlFlowError):
+    """Internal exception for break statement (not an error)."""
+
+    def __init__(self):
+        super().__init__("Break statement executed")
+
+
+class ContinueException(ControlFlowError):
+    """Internal exception for continue statement (not an error)."""
+
+    def __init__(self):
+        super().__init__("Continue statement executed")
+
+
+class InvalidControlFlowError(ControlFlowError):
+    """Raised when break/continue used outside of loop."""
+
+    def __init__(self, statement: str, details: Optional[Dict[str, Any]] = None):
+        message = f"'{statement}' statement outside of loop"
+        details = details or {}
+        details["statement"] = statement
+        hint = f"The '{statement}' action can only be used inside for, while, or until loops."
+        super().__init__(message, details, hint)
+
+
+class AssertionFailedError(DittoMationError):
+    """Raised when an assert action fails."""
+
+    def __init__(self, condition: str, message_text: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"Assertion failed: {condition}"
+        if message_text:
+            message += f" - {message_text}"
+        details = details or {}
+        details["condition"] = condition
+        hint = "The assert condition evaluated to False. Check your test conditions."
+        super().__init__(message, details, hint)
+
+
+# ============================================================================
+# Emulator Errors
+# ============================================================================
+
+class EmulatorError(DittoMationError):
+    """Base exception for emulator-related errors."""
+    pass
+
+
+class AVDNotFoundError(EmulatorError):
+    """Raised when an AVD (Android Virtual Device) is not found."""
+
+    def __init__(self, avd_name: str, available_avds: Optional[List[str]] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"AVD not found: '{avd_name}'"
+        details = details or {}
+        details["avd_name"] = avd_name
+        if available_avds:
+            details["available_avds"] = available_avds
+            hint = f"Available AVDs: {', '.join(available_avds)}"
+        else:
+            hint = (
+                "Run 'emulator -list-avds' to see available AVDs. "
+                "Create an AVD using Android Studio or 'avdmanager' command."
+            )
+        super().__init__(message, details, hint)
+
+
+class EmulatorStartError(EmulatorError):
+    """Raised when an emulator fails to start."""
+
+    def __init__(self, avd_name: str, reason: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"Failed to start emulator: '{avd_name}'"
+        if reason:
+            message += f" ({reason})"
+        details = details or {}
+        details["avd_name"] = avd_name
+        hint = (
+            "Check that the emulator is installed and the AVD is valid. "
+            "Try running 'emulator -avd <name>' manually to see detailed errors."
+        )
+        super().__init__(message, details, hint)
+
+
+class EmulatorBootTimeoutError(EmulatorError):
+    """Raised when an emulator fails to boot within the timeout period."""
+
+    def __init__(self, avd_name: str, timeout: int, serial: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"Emulator '{avd_name}' failed to boot within {timeout} seconds"
+        details = details or {}
+        details.update({
+            "avd_name": avd_name,
+            "timeout": timeout
+        })
+        if serial:
+            details["serial"] = serial
+        hint = (
+            "The emulator may be too slow or encountered an error during boot. "
+            "Try increasing the boot timeout or checking emulator logs."
+        )
+        super().__init__(message, details, hint)
+
+
+class EmulatorNotRunningError(EmulatorError):
+    """Raised when an operation requires a running emulator but none is found."""
+
+    def __init__(self, serial: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        if serial:
+            message = f"Emulator '{serial}' is not running"
+        else:
+            message = "No emulator is running"
+        details = details or {}
+        if serial:
+            details["serial"] = serial
+        hint = "Start an emulator using 'ditto emulator start <avd-name>'."
+        super().__init__(message, details, hint)
+
+
+# ============================================================================
+# Cloud Provider Errors
+# ============================================================================
+
+class CloudProviderError(DittoMationError):
+    """Base exception for cloud provider errors."""
+
+    def __init__(self, provider: str, message: str,
+                 details: Optional[Dict[str, Any]] = None,
+                 hint: Optional[str] = None):
+        details = details or {}
+        details["provider"] = provider
+        super().__init__(f"[{provider}] {message}", details, hint)
+
+
+class CloudAuthenticationError(CloudProviderError):
+    """Raised when cloud provider authentication fails."""
+
+    def __init__(self, provider: str, reason: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = "Authentication failed"
+        if reason:
+            message += f": {reason}"
+        if provider.lower() == "firebase":
+            hint = (
+                "Run 'gcloud auth login' and 'gcloud config set project <project-id>'. "
+                "Ensure you have Firebase Test Lab permissions."
+            )
+        elif provider.lower() == "aws":
+            hint = (
+                "Configure AWS credentials using 'aws configure' or set "
+                "AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables."
+            )
+        else:
+            hint = "Check your cloud provider credentials and permissions."
+        super().__init__(provider, message, details, hint)
+
+
+class CloudDeviceNotAvailableError(CloudProviderError):
+    """Raised when a requested cloud device is not available."""
+
+    def __init__(self, provider: str, device_model: str,
+                 os_version: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"Device not available: {device_model}"
+        if os_version:
+            message += f" (OS {os_version})"
+        details = details or {}
+        details.update({
+            "device_model": device_model,
+            "os_version": os_version
+        })
+        hint = (
+            f"The requested device may not exist or is currently unavailable. "
+            f"Use 'ditto cloud list-devices --provider {provider}' to see available devices."
+        )
+        super().__init__(provider, message, details, hint)
+
+
+class CloudTestRunError(CloudProviderError):
+    """Raised when a cloud test run fails."""
+
+    def __init__(self, provider: str, run_id: str, reason: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"Test run failed: {run_id}"
+        if reason:
+            message += f" ({reason})"
+        details = details or {}
+        details["run_id"] = run_id
+        hint = (
+            f"Check the test run status and logs using "
+            f"'ditto cloud status {run_id} --provider {provider}'."
+        )
+        super().__init__(provider, message, details, hint)
+
+
+class CloudQuotaExceededError(CloudProviderError):
+    """Raised when cloud provider quota is exceeded."""
+
+    def __init__(self, provider: str, quota_type: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None):
+        message = "Quota exceeded"
+        if quota_type:
+            message += f" ({quota_type})"
+        details = details or {}
+        if quota_type:
+            details["quota_type"] = quota_type
+        hint = (
+            "You have exceeded your cloud provider's usage quota. "
+            "Wait for the quota to reset or upgrade your plan."
+        )
+        super().__init__(provider, message, details, hint)
+
+
+class CloudTimeoutError(CloudProviderError):
+    """Raised when a cloud operation times out."""
+
+    def __init__(self, provider: str, operation: str, timeout: int,
+                 details: Optional[Dict[str, Any]] = None):
+        message = f"Operation timed out: {operation} (after {timeout}s)"
+        details = details or {}
+        details.update({
+            "operation": operation,
+            "timeout": timeout
+        })
+        hint = "The operation took too long. Try increasing the timeout or retry later."
+        super().__init__(provider, message, details, hint)

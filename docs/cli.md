@@ -724,3 +724,133 @@ ditto find --class "" --all --json > elements.json
 ### Permission Denied
 
 Ensure USB debugging is enabled and the computer is authorized on the device.
+
+---
+
+## Automation Commands
+
+### run
+
+Run an automation script from a JSON file with support for variables, conditions, and loops.
+
+```bash
+ditto run SCRIPT_FILE [OPTIONS]
+```
+
+**Arguments:**
+| Argument | Description |
+|----------|-------------|
+| `SCRIPT_FILE` | Path to JSON script file |
+
+**Options:**
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--retries` | `-r` | Default retry count per step (default: 2) |
+| `--timeout` | `-t` | Default timeout in seconds (default: 5.0) |
+| `--delay` | `-d` | Delay between steps in seconds (default: 0.3) |
+| `--stop-on-failure` | | Stop on first failure (default) |
+| `--continue-on-failure` | | Continue on failure |
+| `--screenshot-on-failure` | | Take screenshot when a step fails |
+| `--output` | `-o` | Save result to JSON file |
+| `--verbose` | `-v` | Show detailed step output |
+| `--var` | `-V` | Set variable: `--var name=value` (can be used multiple times) |
+| `--vars-file` | | Load variables from JSON or YAML file |
+
+**Examples:**
+```bash
+# Basic script execution
+ditto run my_script.json
+
+# With retries and verbose output
+ditto run my_script.json --retries 3 --verbose
+
+# With variables from command line
+ditto run login.json --var username=testuser --var password=secret
+
+# With variables from file
+ditto run script.json --vars-file config.json
+
+# Combine CLI vars and file (CLI overrides file)
+ditto run script.json --vars-file defaults.json --var username=override
+
+# Save results
+ditto run my_script.json -o result.json --verbose
+```
+
+**Script Format with Variables:**
+```json
+{
+  "name": "login_test",
+  "variables": {
+    "username": "default_user",
+    "timeout": 10
+  },
+  "steps": [
+    {"action": "open", "app": "MyApp"},
+    {"action": "tap", "text": "Login"},
+    {"action": "type", "value": "{{username}}"},
+    {"action": "tap", "text": "Submit"}
+  ]
+}
+```
+
+**See:** [Variables and Control Flow Guide](variables-and-control-flow.md) for complete documentation.
+
+---
+
+### create-script
+
+Create a new automation script from a template.
+
+```bash
+ditto create-script NAME [OPTIONS]
+```
+
+**Arguments:**
+| Argument | Description |
+|----------|-------------|
+| `NAME` | Script filename (`.json` added if not present) |
+
+**Options:**
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--template` | `-t` | Template to use: `empty`, `alarm`, `app` (default: empty) |
+
+**Examples:**
+```bash
+# Create empty script
+ditto create-script my_automation
+
+# Create from alarm template
+ditto create-script set_alarm --template alarm
+
+# Create from app template
+ditto create-script app_test -t app
+```
+
+---
+
+### validate
+
+Validate an automation script without running it.
+
+```bash
+ditto validate SCRIPT_FILE
+```
+
+**Examples:**
+```bash
+ditto validate my_script.json
+```
+
+**Output:**
+```
+Script is valid: 7 steps
+```
+
+Or if there are errors:
+```
+Validation failed with 2 error(s):
+  - Step 1: Invalid action 'tapp'
+  - Step 3: on_failure must be 'stop', 'continue', or 'retry'
+```

@@ -1,0 +1,143 @@
+# DittoMation Docker Compose Configuration
+#
+# This file provides a complete setup for running DittoMation
+# with an Android emulator in a containerized environment.
+#
+# Usage:
+#   # Build and run
+#   docker-compose up -d
+#
+#   # Run a workflow
+#   docker-compose exec dittomation ditto run /app/workflows/test.json
+#
+#   # Stop
+#   docker-compose down
+
+version: '3.8'
+
+services:
+  # Main DittoMation service with emulator
+  dittomation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dittomation:latest
+    container_name: dittomation
+
+    # Privileged mode required for KVM (hardware acceleration)
+    privileged: true
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+
+    # Environment configuration
+    environment:
+      - START_EMULATOR=true
+      - AVD_NAME=dittomation_avd
+      - EMULATOR_TIMEOUT=300
+      - DITTO_EMULATOR_HEADLESS=true
+      - DITTO_EMULATOR_GPU=swiftshader_indirect
+      - DITTO_EMULATOR_MEMORY=2048
+      - DITTO_EMULATOR_CORES=2
+      # Cloud provider configuration (optional)
+      # - GCLOUD_PROJECT=your-project-id
+      # - AWS_DEVICE_FARM_PROJECT_ARN=arn:aws:...
+      # - AWS_REGION=us-west-2
+
+    # Mount points
+    volumes:
+      # Workflow files
+      - ./workflows:/app/workflows:ro
+      # Output directory for screenshots and results
+      - ./output:/app/output
+      # Config file (optional)
+      - ./config:/app/config:ro
+      # KVM device for hardware acceleration
+      - /dev/kvm:/dev/kvm
+
+    # Network configuration
+    ports:
+      # ADB port
+      - "5555:5555"
+
+    # Keep container running
+    stdin_open: true
+    tty: true
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "adb", "devices", "-l"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+    # Restart policy
+    restart: unless-stopped
+
+  # Interactive shell service (alternative profile)
+  dittomation-shell:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dittomation:latest
+    container_name: dittomation-shell
+    privileged: true
+
+    environment:
+      - START_EMULATOR=true
+      - DITTO_EMULATOR_HEADLESS=true
+
+    volumes:
+      - ./workflows:/app/workflows:ro
+      - ./output:/app/output
+      - /dev/kvm:/dev/kvm
+
+    stdin_open: true
+    tty: true
+
+    # Override entrypoint for interactive use
+    command: /bin/bash
+
+    profiles:
+      - shell
+
+  # Headless runner service (no emulator, uses external device)
+  dittomation-headless:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dittomation:latest
+    container_name: dittomation-headless
+
+    environment:
+      - START_EMULATOR=false
+      # Connect to external ADB server
+      - ADB_SERVER_SOCKET=tcp:host.docker.internal:5037
+
+    volumes:
+      - ./workflows:/app/workflows:ro
+      - ./output:/app/output
+
+    # Use host network to connect to external ADB
+    network_mode: host
+
+    profiles:
+      - headless
+
+# Named volumes for persistent data
+volumes:
+  dittomation-output:
+    driver: local
+
+# Network configuration
+networks:
+  default:
+    name: dittomation-network

@@ -16,6 +16,8 @@ Usage:
     android.open_app("Chrome")
 """
 
+__version__ = "1.0.0"
+
 from .android import Android
 
 from .exceptions import (
@@ -122,6 +124,9 @@ from .automation import (
 )
 
 __all__ = [
+    # Version
+    "__version__",
+
     # Android API
     "Android",
 
