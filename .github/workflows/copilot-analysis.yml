@@ -1,0 +1,159 @@
+name: Copilot Code Analysis
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      analysis_type:
+        description: 'Type of analysis to perform'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - security
+          - improvements
+          - ideas
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  copilot-analysis:
+    name: Copilot Deep Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate Code Summary
+        id: summary
+        run: |
+          echo "## Code Statistics" > analysis_context.md
+          echo "" >> analysis_context.md
+          echo "### File Count by Type" >> analysis_context.md
+          echo '```' >> analysis_context.md
+          find . -name "*.py" -not -path "./venv/*" -not -path "./.venv/*" | wc -l | xargs -I {} echo "Python files: {}"  >> analysis_context.md
+          echo '```' >> analysis_context.md
+          echo "" >> analysis_context.md
+          echo "### Directory Structure" >> analysis_context.md
+          echo '```' >> analysis_context.md
+          find . -type d -name "__pycache__" -prune -o -type d -name ".git" -prune -o -type d -name "venv" -prune -o -type d -name ".venv" -prune -o -type f -name "*.py" -print | head -50 >> analysis_context.md
+          echo '```' >> analysis_context.md
+
+      - name: Copilot Security Analysis
+        uses: github/copilot-code-review-action@v1
+        with:
+          model: auto
+          custom_prompt: |
+            Please perform a comprehensive security analysis of this codebase. Focus on:
+
+            ## Security Flows
+            1. Identify any security-sensitive code paths (authentication, authorization, data handling)
+            2. Check for potential injection vulnerabilities (command injection, path traversal)
+            3. Review subprocess and shell command usage for security risks
+            4. Analyze file I/O operations for security concerns
+            5. Check for hardcoded credentials or sensitive data exposure
+
+            ## Potential Errors
+            1. Identify race conditions or concurrency issues
+            2. Find potential null/None reference errors
+            3. Check for unhandled exceptions that could crash the application
+            4. Look for resource leaks (file handles, connections)
+            5. Identify edge cases that may not be handled
+
+            ## Feasible Upgrades
+            1. Suggest performance improvements
+            2. Recommend better error handling patterns
+            3. Identify code that could benefit from async/await
+            4. Suggest type hint improvements
+            5. Recommend test coverage improvements
+
+            ## New Ideas to Implement
+            1. Suggest new features that would enhance the tool
+            2. Recommend integrations that would be valuable
+            3. Propose UX/DX improvements
+            4. Suggest documentation improvements
+            5. Recommend CI/CD enhancements
+
+            Format your response with clear sections and actionable recommendations.
+            Prioritize findings by severity (Critical, High, Medium, Low).
+
+  security-focused:
+    name: Security Deep Dive
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.analysis_type == 'full' || github.event.inputs.analysis_type == 'security')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copilot Security Review
+        uses: github/copilot-code-review-action@v1
+        with:
+          model: auto
+          custom_prompt: |
+            Perform an in-depth security audit focusing on:
+
+            1. **Command Injection Risks**: Review all subprocess, os.system, and shell command executions
+            2. **Path Traversal**: Check file path handling for directory traversal vulnerabilities
+            3. **Input Validation**: Identify missing input sanitization
+            4. **Sensitive Data**: Find any hardcoded secrets, API keys, or credentials
+            5. **Dependency Security**: Flag any known vulnerable patterns
+            6. **ADB Security**: Review Android Debug Bridge command construction for injection risks
+            7. **XML Parsing**: Check for XML External Entity (XXE) vulnerabilities
+            8. **Logging Security**: Ensure sensitive data isn't logged
+
+            Provide specific file locations and line numbers for each finding.
+            Rate each finding: CRITICAL / HIGH / MEDIUM / LOW
+
+  improvement-ideas:
+    name: Improvement Suggestions
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.analysis_type == 'full' || github.event.inputs.analysis_type == 'improvements' || github.event.inputs.analysis_type == 'ideas')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copilot Improvement Analysis
+        uses: github/copilot-code-review-action@v1
+        with:
+          model: auto
+          custom_prompt: |
+            Analyze this Android automation framework and suggest improvements:
+
+            ## Architecture Improvements
+            - Identify tightly coupled components that could be decoupled
+            - Suggest design pattern improvements
+            - Recommend modularity enhancements
+
+            ## Performance Optimizations
+            - Find inefficient algorithms or data structures
+            - Identify unnecessary I/O operations
+            - Suggest caching opportunities
+
+            ## Developer Experience
+            - Recommend API improvements for better usability
+            - Suggest better error messages
+            - Identify missing documentation
+
+            ## Feature Ideas
+            - Parallel device execution
+            - Cloud device farm integrations
+            - Visual test recording/playback
+            - AI-powered element detection improvements
+            - Natural language command enhancements
+            - Report generation features
+
+            ## Testing Improvements
+            - Identify untested code paths
+            - Suggest integration test scenarios
+            - Recommend mocking strategies
+
+            Prioritize suggestions by impact and implementation effort.
