@@ -1,4 +1,0 @@
-search for clock app
-Open clock
-set alarm for 12:00
-return to home screen

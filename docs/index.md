@@ -86,7 +86,7 @@ Tested across 4 UI versions (original, layout shift, redesign, tablet):
 | **Success Rate** | 70% | 100% |
 | **Maintenance fixes** | 6 | 0 |
 
-[See full benchmark details](benchmark.md)
+[See full benchmark details](approach.md)
 
 ---
 

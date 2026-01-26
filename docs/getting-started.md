@@ -127,5 +127,5 @@ android.press_back()
 
 - [Smart Locator](features/smart-locator.md) - Learn how element detection works
 - [Natural Language](features/natural-language.md) - Full command reference
-- [Control Flow](features/control-flow.md) - Variables, loops, and conditions
+- [Variables & Control Flow](variables-and-control-flow.md) - Variables, loops, and conditions
 - [API Reference](api.md) - Complete API documentation
