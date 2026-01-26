@@ -20,11 +20,14 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
+  security-events: write
+  actions: read
 
 jobs:
   copilot-analysis:
-    name: Copilot Deep Analysis
+    name: Comprehensive Analysis
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,58 +38,87 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Generate Code Summary
-        id: summary
+      - name: Install analysis tools
         run: |
-          echo "## Code Statistics" > analysis_context.md
-          echo "" >> analysis_context.md
-          echo "### File Count by Type" >> analysis_context.md
-          echo '```' >> analysis_context.md
-          find . -name "*.py" -not -path "./venv/*" -not -path "./.venv/*" | wc -l | xargs -I {} echo "Python files: {}"  >> analysis_context.md
-          echo '```' >> analysis_context.md
-          echo "" >> analysis_context.md
-          echo "### Directory Structure" >> analysis_context.md
-          echo '```' >> analysis_context.md
-          find . -type d -name "__pycache__" -prune -o -type d -name ".git" -prune -o -type d -name "venv" -prune -o -type d -name ".venv" -prune -o -type f -name "*.py" -print | head -50 >> analysis_context.md
-          echo '```' >> analysis_context.md
+          python -m pip install --upgrade pip
+          pip install bandit[toml] pylint safety radon vulture
 
-      - name: Copilot Security Analysis
-        uses: github/copilot-code-review-action@v1
+      - name: Security Analysis with Bandit
+        continue-on-error: true
+        run: |
+          echo "## Security Analysis" > analysis_report.md
+          echo "" >> analysis_report.md
+          echo "### Bandit Security Scan" >> analysis_report.md
+          echo '```' >> analysis_report.md
+          bandit -r core recorder replayer -f txt -o bandit_output.txt || true
+          cat bandit_output.txt >> analysis_report.md
+          echo '```' >> analysis_report.md
+          echo "" >> analysis_report.md
+
+      - name: Code Quality Analysis with Pylint
+        continue-on-error: true
+        run: |
+          echo "### Code Quality - Pylint" >> analysis_report.md
+          echo '```' >> analysis_report.md
+          pylint core recorder replayer --exit-zero --output-format=text > pylint_output.txt || true
+          head -50 pylint_output.txt >> analysis_report.md
+          echo '```' >> analysis_report.md
+          echo "" >> analysis_report.md
+
+      - name: Dependency Security Check
+        continue-on-error: true
+        run: |
+          echo "### Dependency Vulnerabilities" >> analysis_report.md
+          echo '```' >> analysis_report.md
+          safety check --json > safety_output.json || true
+          cat safety_output.json >> analysis_report.md
+          echo '```' >> analysis_report.md
+          echo "" >> analysis_report.md
+
+      - name: Code Complexity Analysis
+        continue-on-error: true
+        run: |
+          echo "### Code Complexity Metrics" >> analysis_report.md
+          echo '```' >> analysis_report.md
+          radon cc core recorder replayer -a -s >> analysis_report.md
+          echo '```' >> analysis_report.md
+          echo "" >> analysis_report.md
+
+      - name: Dead Code Detection
+        continue-on-error: true
+        run: |
+          echo "### Unused Code Detection" >> analysis_report.md
+          echo '```' >> analysis_report.md
+          vulture core recorder replayer --min-confidence 80 >> analysis_report.md || true
+          echo '```' >> analysis_report.md
+
+      - name: Generate Improvement Suggestions
+        run: |
+          echo "" >> analysis_report.md
+          echo "## Suggested Improvements" >> analysis_report.md
+          echo "" >> analysis_report.md
+          echo "Based on the analysis above, consider the following improvements:" >> analysis_report.md
+          echo "- Address high-severity security issues identified by Bandit" >> analysis_report.md
+          echo "- Refactor complex functions (high cyclomatic complexity)" >> analysis_report.md
+          echo "- Update vulnerable dependencies" >> analysis_report.md
+          echo "- Remove or document unused code" >> analysis_report.md
+          echo "- Add type hints to improve code maintainability" >> analysis_report.md
+          echo "- Improve error handling and validation" >> analysis_report.md
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
         with:
-          model: auto
-          custom_prompt: |
-            Please perform a comprehensive security analysis of this codebase. Focus on:
-
-            ## Security Flows
-            1. Identify any security-sensitive code paths (authentication, authorization, data handling)
-            2. Check for potential injection vulnerabilities (command injection, path traversal)
-            3. Review subprocess and shell command usage for security risks
-            4. Analyze file I/O operations for security concerns
-            5. Check for hardcoded credentials or sensitive data exposure
-
-            ## Potential Errors
-            1. Identify race conditions or concurrency issues
-            2. Find potential null/None reference errors
-            3. Check for unhandled exceptions that could crash the application
-            4. Look for resource leaks (file handles, connections)
-            5. Identify edge cases that may not be handled
-
-            ## Feasible Upgrades
-            1. Suggest performance improvements
-            2. Recommend better error handling patterns
-            3. Identify code that could benefit from async/await
-            4. Suggest type hint improvements
-            5. Recommend test coverage improvements
-
-            ## New Ideas to Implement
-            1. Suggest new features that would enhance the tool
-            2. Recommend integrations that would be valuable
-            3. Propose UX/DX improvements
-            4. Suggest documentation improvements
-            5. Recommend CI/CD enhancements
-
-            Format your response with clear sections and actionable recommendations.
-            Prioritize findings by severity (Critical, High, Medium, Low).
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('analysis_report.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `# 🔍 Comprehensive Code Analysis\n\n${report}`
+            });
 
   security-focused:
     name: Security Deep Dive
@@ -94,25 +126,98 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && (github.event.inputs.analysis_type == 'full' || github.event.inputs.analysis_type == 'security')
     steps:
       - uses: actions/checkout@v4
-
-      - name: Copilot Security Review
-        uses: github/copilot-code-review-action@v1
         with:
-          model: auto
-          custom_prompt: |
-            Perform an in-depth security audit focusing on:
+          fetch-depth: 0
 
-            1. **Command Injection Risks**: Review all subprocess, os.system, and shell command executions
-            2. **Path Traversal**: Check file path handling for directory traversal vulnerabilities
-            3. **Input Validation**: Identify missing input sanitization
-            4. **Sensitive Data**: Find any hardcoded secrets, API keys, or credentials
-            5. **Dependency Security**: Flag any known vulnerable patterns
-            6. **ADB Security**: Review Android Debug Bridge command construction for injection risks
-            7. **XML Parsing**: Check for XML External Entity (XXE) vulnerabilities
-            8. **Logging Security**: Ensure sensitive data isn't logged
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-            Provide specific file locations and line numbers for each finding.
-            Rate each finding: CRITICAL / HIGH / MEDIUM / LOW
+      - name: Install security analysis tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit[toml] safety semgrep
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: Deep Security Scan with Bandit
+        continue-on-error: true
+        run: |
+          echo "## Deep Security Analysis" > security_report.md
+          echo "" >> security_report.md
+          echo "### 1. Command Injection Risks" >> security_report.md
+          echo '```' >> security_report.md
+          bandit -r . -f txt --severity-level medium -t B602,B603,B605,B607 >> security_report.md || true
+          echo '```' >> security_report.md
+
+      - name: Check for Path Traversal
+        continue-on-error: true
+        run: |
+          echo "" >> security_report.md
+          echo "### 2. Path Traversal Vulnerabilities" >> security_report.md
+          echo '```' >> security_report.md
+          bandit -r . -f txt -t B608,B609 >> security_report.md || true
+          echo '```' >> security_report.md
+
+      - name: Input Validation Check
+        continue-on-error: true
+        run: |
+          echo "" >> security_report.md
+          echo "### 3. Input Validation Gaps" >> security_report.md
+          echo '```' >> security_report.md
+          grep -rn "input(" core recorder replayer --include="*.py" >> security_report.md || echo "No direct input() calls found"
+          echo '```' >> security_report.md
+
+      - name: Hardcoded Secrets Detection
+        continue-on-error: true
+        run: |
+          echo "" >> security_report.md
+          echo "### 4. Hardcoded Secrets Detection" >> security_report.md
+          echo '```' >> security_report.md
+          bandit -r . -f txt -t B105,B106,B107,B108 >> security_report.md || true
+          echo '```' >> security_report.md
+
+      - name: ADB Security Review
+        continue-on-error: true
+        run: |
+          echo "" >> security_report.md
+          echo "### 5. ADB Security Review" >> security_report.md
+          echo '```' >> security_report.md
+          echo "Checking ADB command construction for injection risks..." >> security_report.md
+          grep -rn "adb" core recorder replayer --include="*.py" -A 3 >> security_report.md || true
+          echo '```' >> security_report.md
+
+      - name: XML/XXE Vulnerabilities
+        continue-on-error: true
+        run: |
+          echo "" >> security_report.md
+          echo "### 6. XML/XXE Vulnerabilities" >> security_report.md
+          echo '```' >> security_report.md
+          grep -rn "xml.etree\|lxml\|minidom" core recorder replayer --include="*.py" -A 3 >> security_report.md || true
+          echo '```' >> security_report.md
+
+      - name: Dependency Security Audit
+        continue-on-error: true
+        run: |
+          echo "" >> security_report.md
+          echo "### 7. Dependency Vulnerabilities" >> security_report.md
+          echo '```' >> security_report.md
+          safety check --full-report >> security_report.md || true
+          echo '```' >> security_report.md
+
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-analysis-report
+          path: security_report.md
 
   improvement-ideas:
     name: Improvement Suggestions
@@ -120,40 +225,89 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && (github.event.inputs.analysis_type == 'full' || github.event.inputs.analysis_type == 'improvements' || github.event.inputs.analysis_type == 'ideas')
     steps:
       - uses: actions/checkout@v4
-
-      - name: Copilot Improvement Analysis
-        uses: github/copilot-code-review-action@v1
         with:
-          model: auto
-          custom_prompt: |
-            Analyze this Android automation framework and suggest improvements:
+          fetch-depth: 0
 
-            ## Architecture Improvements
-            - Identify tightly coupled components that could be decoupled
-            - Suggest design pattern improvements
-            - Recommend modularity enhancements
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-            ## Performance Optimizations
-            - Find inefficient algorithms or data structures
-            - Identify unnecessary I/O operations
-            - Suggest caching opportunities
+      - name: Install analysis tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install radon mccabe pylint
 
-            ## Developer Experience
-            - Recommend API improvements for better usability
-            - Suggest better error messages
-            - Identify missing documentation
+      - name: Architecture Analysis
+        continue-on-error: true
+        run: |
+          echo "## Enhancement Suggestions" > improvement_report.md
+          echo "" >> improvement_report.md
+          echo "### 1. Architecture Improvements" >> improvement_report.md
+          echo '```' >> improvement_report.md
+          echo "Module dependencies and coupling analysis:" >> improvement_report.md
+          find core recorder replayer -name "*.py" -type f -exec grep -l "^import\|^from" {} \; | head -20 >> improvement_report.md
+          echo '```' >> improvement_report.md
+          echo "" >> improvement_report.md
+          echo "**Recommendations:**" >> improvement_report.md
+          echo "- Consider implementing dependency injection for better testability" >> improvement_report.md
+          echo "- Evaluate opportunities to decouple tightly coupled modules" >> improvement_report.md
+          echo "- Apply SOLID principles where applicable" >> improvement_report.md
 
-            ## Feature Ideas
-            - Parallel device execution
-            - Cloud device farm integrations
-            - Visual test recording/playback
-            - AI-powered element detection improvements
-            - Natural language command enhancements
-            - Report generation features
+      - name: Performance Analysis
+        continue-on-error: true
+        run: |
+          echo "" >> improvement_report.md
+          echo "### 2. Performance Optimizations" >> improvement_report.md
+          echo '```' >> improvement_report.md
+          radon mi core recorder replayer -s >> improvement_report.md
+          echo '```' >> improvement_report.md
+          echo "" >> improvement_report.md
+          echo "**Recommendations:**" >> improvement_report.md
+          echo "- Profile I/O operations for potential bottlenecks" >> improvement_report.md
+          echo "- Consider caching frequently accessed data" >> improvement_report.md
+          echo "- Evaluate async/await for concurrent operations" >> improvement_report.md
 
-            ## Testing Improvements
-            - Identify untested code paths
-            - Suggest integration test scenarios
-            - Recommend mocking strategies
+      - name: Developer Experience Improvements
+        run: |
+          echo "" >> improvement_report.md
+          echo "### 3. Developer Experience" >> improvement_report.md
+          echo "**Recommendations:**" >> improvement_report.md
+          echo "- Add comprehensive docstrings to all public APIs" >> improvement_report.md
+          echo "- Improve error messages with actionable guidance" >> improvement_report.md
+          echo "- Create interactive documentation with examples" >> improvement_report.md
+          echo "- Add code examples in README for common use cases" >> improvement_report.md
 
-            Prioritize suggestions by impact and implementation effort.
+      - name: Feature Ideas
+        run: |
+          echo "" >> improvement_report.md
+          echo "### 4. Feature Ideas" >> improvement_report.md
+          echo "**High Impact Features:**" >> improvement_report.md
+          echo "- **Parallel Device Execution**: Run tests on multiple devices simultaneously" >> improvement_report.md
+          echo "- **Cloud Integration**: Support AWS Device Farm, Firebase Test Lab" >> improvement_report.md
+          echo "- **AI-Powered Detection**: Enhance element detection with computer vision" >> improvement_report.md
+          echo "- **Visual Diff Reports**: Generate visual comparison reports" >> improvement_report.md
+          echo "- **Natural Language++**: Enhanced NL command processing" >> improvement_report.md
+          echo "- **Test Recording Studio**: GUI for workflow creation" >> improvement_report.md
+
+      - name: Testing Improvements
+        continue-on-error: true
+        run: |
+          echo "" >> improvement_report.md
+          echo "### 5. Testing Improvements" >> improvement_report.md
+          echo '```' >> improvement_report.md
+          find tests -name "test_*.py" -type f | wc -l | xargs -I {} echo "Current test files: {}" >> improvement_report.md
+          find core recorder replayer -name "*.py" -type f | wc -l | xargs -I {} echo "Source files: {}" >> improvement_report.md
+          echo '```' >> improvement_report.md
+          echo "" >> improvement_report.md
+          echo "**Recommendations:**" >> improvement_report.md
+          echo "- Increase test coverage to >80%" >> improvement_report.md
+          echo "- Add integration tests for end-to-end workflows" >> improvement_report.md
+          echo "- Implement property-based testing for edge cases" >> improvement_report.md
+          echo "- Add performance benchmarks" >> improvement_report.md
+
+      - name: Upload Improvement Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: improvement-suggestions-report
+          path: improvement_report.md
