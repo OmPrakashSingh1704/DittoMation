@@ -1,0 +1,61 @@
+site_name: DittoMation
+site_url: https://omprakashsingh1704.github.io/DittoMation/
+site_description: Android automation framework with smart element detection and natural language commands
+site_author: Om Prakash Singh
+
+repo_name: OmPrakashSingh1704/DittoMation
+repo_url: https://github.com/OmPrakashSingh1704/DittoMation
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - tables
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Features:
+      - Smart Locator: features/smart-locator.md
+      - Natural Language: features/natural-language.md
+      - Record & Replay: features/record-replay.md
+      - Control Flow: features/control-flow.md
+  - API Reference: api.md
+  - Benchmark: benchmark.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/OmPrakashSingh1704/DittoMation
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/dittomation/
