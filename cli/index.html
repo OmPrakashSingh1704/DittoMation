@@ -1,0 +1,2518 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Android automation framework with smart element detection and natural language commands">
+      
+      
+        <meta name="author" content="Om Prakash Singh">
+      
+      
+        <link rel="canonical" href="https://omprakashsingh1704.github.io/DittoMation/cli/">
+      
+      
+        <link rel="prev" href="../variables-and-control-flow/">
+      
+      
+        <link rel="next" href="../api/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>CLI Reference - DittoMation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dittomation-cli-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="DittoMation" class="md-header__button md-logo" aria-label="DittoMation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DittoMation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CLI Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/OmPrakashSingh1704/DittoMation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    OmPrakashSingh1704/DittoMation
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="DittoMation" class="md-nav__button md-logo" aria-label="DittoMation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DittoMation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/OmPrakashSingh1704/DittoMation" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    OmPrakashSingh1704/DittoMation
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/smart-locator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Smart Locator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/natural-language/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Natural Language
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/record-replay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Record & Replay
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../variables-and-control-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Variables & Control Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Help
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#confidence-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confidence Scoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gesture-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gesture Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gesture Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#long-press" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        long-press
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swipe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        swipe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scroll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scroll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pinch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pinch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Input Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#press" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        press
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        key
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#app-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        App Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="App Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        open
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        app
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screen-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screen Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Screen Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#screenshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        screenshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#screen-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        screen-size
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#element-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Element Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#find" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        find
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confidence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wait" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        wait
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#device-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Device Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#devices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        devices
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        info
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exit-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exit Codes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scripting-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scripting Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scripting Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shell-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shell Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loop-until-element-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loop Until Element Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-screenshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch Screenshots
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#device-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Not Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#element-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element Not Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permission-denied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permission Denied
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automation-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automation Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automation Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create-script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Help
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#confidence-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confidence Scoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gesture-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gesture Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gesture Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#long-press" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        long-press
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swipe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        swipe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scroll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scroll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pinch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pinch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Input Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#press" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        press
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        key
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#app-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        App Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="App Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        open
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        app
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screen-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screen Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Screen Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#screenshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        screenshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#screen-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        screen-size
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#element-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Element Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#find" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        find
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        confidence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wait" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        wait
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#device-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Device Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#devices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        devices
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        info
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exit-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exit Codes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scripting-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scripting Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scripting Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shell-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shell Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loop-until-element-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loop Until Element Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-screenshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch Screenshots
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#device-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Not Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#element-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element Not Found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permission-denied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permission Denied
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automation-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automation Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automation Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create-script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dittomation-cli-reference">DittoMation CLI Reference</h1>
+<p>Complete reference for the <code>ditto</code> command-line interface.</p>
+<h2 id="installation">Installation</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Install from source</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Or install click directly</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>pip<span class="w"> </span>install<span class="w"> </span>click
+</code></pre></div>
+<h2 id="usage">Usage</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ditto<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
+</code></pre></div>
+<h3 id="global-options">Global Options</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--version</code></td>
+<td>Show version and exit</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>Show help message and exit</td>
+</tr>
+</tbody>
+</table>
+<h3 id="getting-help">Getting Help</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># General help</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ditto<span class="w"> </span>--help
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Command-specific help</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>ditto<span class="w"> </span>tap<span class="w"> </span>--help
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>ditto<span class="w"> </span>swipe<span class="w"> </span>--help
+</code></pre></div>
+<h2 id="confidence-scoring">Confidence Scoring</h2>
+<p>DittoMation uses <strong>confidence scoring</strong> for element matching. Instead of exact matching, elements are scored based on how well they match your search criteria.</p>
+<ul>
+<li>Default minimum confidence: <strong>30%</strong></li>
+<li>Use <code>-c</code> or <code>--min-confidence</code> to adjust threshold</li>
+<li>Use <code>--show-confidence</code> to see scores</li>
+</ul>
+<p>See <a href="../confidence-scoring/">Confidence Scoring Guide</a> for details.</p>
+<hr />
+<h2 id="gesture-commands">Gesture Commands</h2>
+<h3 id="tap">tap</h3>
+<p>Tap at coordinates or on an element with confidence scoring.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ditto<span class="w"> </span>tap<span class="w"> </span><span class="o">[</span>X<span class="o">]</span><span class="w"> </span><span class="o">[</span>Y<span class="o">]</span><span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Description |
+|----------|-------------|
+| <code>X</code> | X coordinate (optional if using element options) |
+| <code>Y</code> | Y coordinate (optional if using element options) |</p>
+<p><strong>Options:</strong>
+| Option | Short | Description |
+|--------|-------|-------------|
+| <code>--text</code> | <code>-t</code> | Tap element by visible text |
+| <code>--id</code> | <code>-i</code> | Tap element by resource-id |
+| <code>--desc</code> | <code>-d</code> | Tap element by content-description |
+| <code>--timeout</code> | | Element search timeout in seconds (default: 5) |
+| <code>--min-confidence</code> | <code>-c</code> | Minimum confidence threshold 0.0-1.0 (default: 0.3) |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Tap at coordinates</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ditto<span class="w"> </span>tap<span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="m">500</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Tap element by text</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>ditto<span class="w"> </span>tap<span class="w"> </span>--text<span class="w"> </span><span class="s2">&quot;Login&quot;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>ditto<span class="w"> </span>tap<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Login&quot;</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1"># Tap element by resource-id</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>ditto<span class="w"> </span>tap<span class="w"> </span>--id<span class="w"> </span>btn_submit
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>ditto<span class="w"> </span>tap<span class="w"> </span>-i<span class="w"> </span>com.app:id/btn_submit
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="c1"># Tap element by content-description</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>ditto<span class="w"> </span>tap<span class="w"> </span>--desc<span class="w"> </span><span class="s2">&quot;Submit button&quot;</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="c1"># With custom timeout</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>ditto<span class="w"> </span>tap<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Loading...&quot;</span><span class="w"> </span>--timeout<span class="w"> </span><span class="m">15</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="c1"># Fuzzy matching with lower confidence (will match &quot;Settings&quot; even with typo)</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>ditto<span class="w"> </span>tap<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Setings&quot;</span><span class="w"> </span>-c<span class="w"> </span><span class="m">0</span>.5
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="c1"># Strict matching (require 90% confidence)</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>ditto<span class="w"> </span>tap<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Submit&quot;</span><span class="w"> </span>-c<span class="w"> </span><span class="m">0</span>.9
+</code></pre></div></p>
+<p><strong>Output with Confidence:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Tapped element: Login (95% confidence)
+</code></pre></div></p>
+<hr />
+<h3 id="long-press">long-press</h3>
+<p>Long press at coordinates or on an element.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ditto<span class="w"> </span>long-press<span class="w"> </span><span class="o">[</span>X<span class="o">]</span><span class="w"> </span><span class="o">[</span>Y<span class="o">]</span><span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Description |
+|----------|-------------|
+| <code>X</code> | X coordinate |
+| <code>Y</code> | Y coordinate |</p>
+<p><strong>Options:</strong>
+| Option | Short | Description |
+|--------|-------|-------------|
+| <code>--text</code> | <code>-t</code> | Element text |
+| <code>--id</code> | <code>-i</code> | Element resource-id |
+| <code>--desc</code> | <code>-d</code> | Element content-description |
+| <code>--duration</code> | | Press duration in ms (default: 1000) |
+| <code>--timeout</code> | | Element search timeout (default: 5) |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Long press at coordinates</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>ditto<span class="w"> </span>long-press<span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="m">500</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Long press for 2 seconds</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>ditto<span class="w"> </span>long-press<span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="m">500</span><span class="w"> </span>--duration<span class="w"> </span><span class="m">2000</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Long press element</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>ditto<span class="w"> </span>long-press<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Item to select&quot;</span>
+</code></pre></div></p>
+<hr />
+<h3 id="swipe">swipe</h3>
+<p>Swipe by direction or coordinates.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ditto<span class="w"> </span>swipe<span class="w"> </span>DIRECTION_OR_X1<span class="w"> </span><span class="o">[</span>Y1<span class="o">]</span><span class="w"> </span><span class="o">[</span>X2<span class="o">]</span><span class="w"> </span><span class="o">[</span>Y2<span class="o">]</span><span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Description |
+|----------|-------------|
+| <code>DIRECTION_OR_X1</code> | Direction (up/down/left/right) or start X |
+| <code>Y1</code> | Start Y coordinate (for coordinate swipe) |
+| <code>X2</code> | End X coordinate (for coordinate swipe) |
+| <code>Y2</code> | End Y coordinate (for coordinate swipe) |</p>
+<p><strong>Options:</strong>
+| Option | Description |
+|--------|-------------|
+| <code>--duration</code> | Swipe duration in ms (default: 300) |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Swipe by direction</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>ditto<span class="w"> </span>swipe<span class="w"> </span>up
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>ditto<span class="w"> </span>swipe<span class="w"> </span>down
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>ditto<span class="w"> </span>swipe<span class="w"> </span>left
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>ditto<span class="w"> </span>swipe<span class="w"> </span>right
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Swipe by coordinates</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>ditto<span class="w"> </span>swipe<span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="m">1500</span><span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="m">500</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="c1"># Slow swipe</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>ditto<span class="w"> </span>swipe<span class="w"> </span>up<span class="w"> </span>--duration<span class="w"> </span><span class="m">1000</span>
+</code></pre></div></p>
+<hr />
+<h3 id="scroll">scroll</h3>
+<p>Scroll in a direction.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>ditto<span class="w"> </span>scroll<span class="w"> </span>DIRECTION<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Values | Description |
+|----------|--------|-------------|
+| <code>DIRECTION</code> | up, down, left, right | Scroll direction |</p>
+<p><strong>Options:</strong>
+| Option | Description |
+|--------|-------------|
+| <code>--distance</code> | Scroll distance 0.0-1.0 (default: 0.5) |
+| <code>--duration</code> | Scroll duration in ms (default: 500) |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Basic scroll</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>ditto<span class="w"> </span>scroll<span class="w"> </span>down
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>ditto<span class="w"> </span>scroll<span class="w"> </span>up
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># Long scroll</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>ditto<span class="w"> </span>scroll<span class="w"> </span>down<span class="w"> </span>--distance<span class="w"> </span><span class="m">0</span>.8
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1"># Slow scroll</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>ditto<span class="w"> </span>scroll<span class="w"> </span>down<span class="w"> </span>--duration<span class="w"> </span><span class="m">1000</span>
+</code></pre></div></p>
+<hr />
+<h3 id="pinch">pinch</h3>
+<p>Pinch gesture for zooming.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>ditto<span class="w"> </span>pinch<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Options:</strong>
+| Option | Description |
+|--------|-------------|
+| <code>--scale</code> | Scale factor: &gt;1 zoom in, &lt;1 zoom out (default: 0.5) |
+| <code>--x</code> | Center X coordinate (default: screen center) |
+| <code>--y</code> | Center Y coordinate (default: screen center) |
+| <code>--duration</code> | Gesture duration in ms (default: 500) |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Zoom in</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>ditto<span class="w"> </span>pinch<span class="w"> </span>--scale<span class="w"> </span><span class="m">2</span>.0
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Zoom out</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>ditto<span class="w"> </span>pinch<span class="w"> </span>--scale<span class="w"> </span><span class="m">0</span>.5
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Pinch at specific location</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>ditto<span class="w"> </span>pinch<span class="w"> </span>--scale<span class="w"> </span><span class="m">1</span>.5<span class="w"> </span>--x<span class="w"> </span><span class="m">300</span><span class="w"> </span>--y<span class="w"> </span><span class="m">400</span>
+</code></pre></div></p>
+<hr />
+<h2 id="input-commands">Input Commands</h2>
+<h3 id="type">type</h3>
+<p>Type text into the focused field.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>ditto<span class="w"> </span><span class="nb">type</span><span class="w"> </span>TEXT<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Description |
+|----------|-------------|
+| <code>TEXT</code> | Text to type |</p>
+<p><strong>Options:</strong>
+| Option | Description |
+|--------|-------------|
+| <code>--clear</code> | Clear field before typing |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Type text</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>ditto<span class="w"> </span><span class="nb">type</span><span class="w"> </span><span class="s2">&quot;Hello World&quot;</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="c1"># Clear and type</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>ditto<span class="w"> </span><span class="nb">type</span><span class="w"> </span><span class="s2">&quot;new text&quot;</span><span class="w"> </span>--clear
+</code></pre></div></p>
+<hr />
+<h3 id="press">press</h3>
+<p>Press a device button.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>ditto<span class="w"> </span>press<span class="w"> </span>BUTTON
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Values |
+|----------|--------|
+| <code>BUTTON</code> | home, back, enter, menu, recent, search, volume-up, volume-down |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>ditto<span class="w"> </span>press<span class="w"> </span>home
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>ditto<span class="w"> </span>press<span class="w"> </span>back
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>ditto<span class="w"> </span>press<span class="w"> </span>enter
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>ditto<span class="w"> </span>press<span class="w"> </span>menu
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>ditto<span class="w"> </span>press<span class="w"> </span>volume-up
+</code></pre></div></p>
+<hr />
+<h3 id="key">key</h3>
+<p>Press any key by keycode.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>ditto<span class="w"> </span>key<span class="w"> </span>KEYCODE
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Description |
+|----------|-------------|
+| <code>KEYCODE</code> | Android keycode (e.g., KEYCODE_VOLUME_UP) |</p>
+<p><strong>Common Keycodes:</strong>
+- <code>KEYCODE_HOME</code> - Home button
+- <code>KEYCODE_BACK</code> - Back button
+- <code>KEYCODE_MENU</code> - Menu button
+- <code>KEYCODE_ENTER</code> - Enter key
+- <code>KEYCODE_DEL</code> - Backspace
+- <code>KEYCODE_POWER</code> - Power button
+- <code>KEYCODE_VOLUME_UP</code> - Volume up
+- <code>KEYCODE_VOLUME_DOWN</code> - Volume down
+- <code>KEYCODE_CAMERA</code> - Camera button</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>ditto<span class="w"> </span>key<span class="w"> </span>KEYCODE_VOLUME_UP
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>ditto<span class="w"> </span>key<span class="w"> </span>KEYCODE_POWER
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>ditto<span class="w"> </span>key<span class="w"> </span>KEYCODE_CAMERA
+</code></pre></div></p>
+<hr />
+<h2 id="app-commands">App Commands</h2>
+<h3 id="open">open</h3>
+<p>Open an app by name or package.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>ditto<span class="w"> </span>open<span class="w"> </span>APP_NAME
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Description |
+|----------|-------------|
+| <code>APP_NAME</code> | App name or package name |</p>
+<p><strong>Supported App Names:</strong>
+- Chrome, Settings, Camera, Phone, Messages
+- Gmail, YouTube, Maps, Play Store
+- Calculator, Clock, Calendar, Contacts, Files</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Open by name</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>ditto<span class="w"> </span>open<span class="w"> </span>Chrome
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>ditto<span class="w"> </span>open<span class="w"> </span>Settings
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>ditto<span class="w"> </span>open<span class="w"> </span><span class="s2">&quot;Play Store&quot;</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="c1"># Open by package</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>ditto<span class="w"> </span>open<span class="w"> </span>com.android.chrome
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>ditto<span class="w"> </span>open<span class="w"> </span>com.google.android.youtube
+</code></pre></div></p>
+<hr />
+<h3 id="app">app</h3>
+<p>Show current foreground app information.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>ditto<span class="w"> </span>app
+</code></pre></div>
+<p><strong>Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>Package:  com.android.chrome
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>Activity: org.chromium.chrome.browser.ChromeTabbedActivity
+</code></pre></div></p>
+<hr />
+<h2 id="screen-commands">Screen Commands</h2>
+<h3 id="screenshot">screenshot</h3>
+<p>Take a screenshot.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>ditto<span class="w"> </span>screenshot<span class="w"> </span><span class="o">[</span>FILENAME<span class="o">]</span>
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Description |
+|----------|-------------|
+| <code>FILENAME</code> | Output filename (optional, auto-generated if omitted) |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># Auto-named screenshot</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>ditto<span class="w"> </span>screenshot
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="c1"># Named screenshot</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>ditto<span class="w"> </span>screenshot<span class="w"> </span>login.png
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>ditto<span class="w"> </span>screenshot<span class="w"> </span>screens/home.png
+</code></pre></div></p>
+<hr />
+<h3 id="screen-size">screen-size</h3>
+<p>Show screen dimensions.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>ditto<span class="w"> </span>screen-size
+</code></pre></div>
+<p><strong>Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>1080 x 2340
+</code></pre></div></p>
+<hr />
+<h2 id="element-commands">Element Commands</h2>
+<h3 id="find">find</h3>
+<p>Find elements on screen with confidence scoring.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>ditto<span class="w"> </span>find<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Options:</strong>
+| Option | Short | Description |
+|--------|-------|-------------|
+| <code>--text</code> | <code>-t</code> | Find by visible text |
+| <code>--id</code> | <code>-i</code> | Find by resource-id |
+| <code>--desc</code> | <code>-d</code> | Find by content-description |
+| <code>--class</code> | | Find by class name |
+| <code>--all</code> | | Find all matching elements |
+| <code>--json</code> | | Output as JSON |
+| <code>--min-confidence</code> | <code>-c</code> | Minimum confidence threshold 0.0-1.0 (default: 0.3) |
+| <code>--show-confidence</code> | | Show confidence scores in output |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># Find single element by text</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>ditto<span class="w"> </span>find<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Login&quot;</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="c1"># Find by resource-id</span>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>ditto<span class="w"> </span>find<span class="w"> </span>--id<span class="w"> </span>btn_submit
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="c1"># Find all matching elements</span>
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>ditto<span class="w"> </span>find<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Item&quot;</span><span class="w"> </span>--all
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="c1"># Find with confidence display</span>
+<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a>ditto<span class="w"> </span>find<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Login&quot;</span><span class="w"> </span>--show-confidence
+<a id="__codelineno-29-12" name="__codelineno-29-12" href="#__codelineno-29-12"></a>
+<a id="__codelineno-29-13" name="__codelineno-29-13" href="#__codelineno-29-13"></a><span class="c1"># Fuzzy matching (find &quot;Settings&quot; with typo)</span>
+<a id="__codelineno-29-14" name="__codelineno-29-14" href="#__codelineno-29-14"></a>ditto<span class="w"> </span>find<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Setings&quot;</span><span class="w"> </span>-c<span class="w"> </span><span class="m">0</span>.5
+<a id="__codelineno-29-15" name="__codelineno-29-15" href="#__codelineno-29-15"></a>
+<a id="__codelineno-29-16" name="__codelineno-29-16" href="#__codelineno-29-16"></a><span class="c1"># Find all with scores</span>
+<a id="__codelineno-29-17" name="__codelineno-29-17" href="#__codelineno-29-17"></a>ditto<span class="w"> </span>find<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Save&quot;</span><span class="w"> </span>--all<span class="w"> </span>--show-confidence
+<a id="__codelineno-29-18" name="__codelineno-29-18" href="#__codelineno-29-18"></a>
+<a id="__codelineno-29-19" name="__codelineno-29-19" href="#__codelineno-29-19"></a><span class="c1"># Output as JSON (includes confidence)</span>
+<a id="__codelineno-29-20" name="__codelineno-29-20" href="#__codelineno-29-20"></a>ditto<span class="w"> </span>find<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Login&quot;</span><span class="w"> </span>--json
+</code></pre></div></p>
+<p><strong>Sample Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>  Button id=btn_login text=&quot;Login&quot; @(540,1200) [95% excellent]
+</code></pre></div></p>
+<p><strong>JSON Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="p">{</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="w">  </span><span class="nt">&quot;element&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="w">    </span><span class="nt">&quot;class&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;android.widget.Button&quot;</span><span class="p">,</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="w">    </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Login&quot;</span><span class="p">,</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="w">    </span><span class="err">...</span>
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="w">  </span><span class="nt">&quot;confidence&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.95</span><span class="p">,</span>
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a><span class="w">  </span><span class="nt">&quot;match_details&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a><span class="w">    </span><span class="nt">&quot;text_exact_ci&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.95</span><span class="p">,</span>
+<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a><span class="w">    </span><span class="nt">&quot;clickable_bonus&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.05</span>
+<a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a><span class="p">}</span>
+</code></pre></div></p>
+<hr />
+<h3 id="confidence">confidence</h3>
+<p>Get confidence score for an element match.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>ditto<span class="w"> </span>confidence<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Options:</strong>
+| Option | Short | Description |
+|--------|-------|-------------|
+| <code>--text</code> | <code>-t</code> | Check element by text |
+| <code>--id</code> | <code>-i</code> | Check element by resource-id |
+| <code>--desc</code> | <code>-d</code> | Check element by content-description |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Check confidence for exact text</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>ditto<span class="w"> </span>confidence<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Login&quot;</span>
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a><span class="c1"># Output: Confidence for &#39;Login&#39;: 100% (excellent)</span>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a><span class="c1"># Check confidence for typo</span>
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>ditto<span class="w"> </span>confidence<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Logn&quot;</span>
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="c1"># Output: Confidence for &#39;Logn&#39;: 72% (good)</span>
+<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>
+<a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a><span class="c1"># Check ID confidence</span>
+<a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a>ditto<span class="w"> </span>confidence<span class="w"> </span>-i<span class="w"> </span>btn_submit
+</code></pre></div></p>
+<p>This is useful for:
+- Debugging why elements aren't found
+- Testing if fuzzy matching will work
+- Verifying element presence before critical actions</p>
+<hr />
+<h3 id="wait">wait</h3>
+<p>Wait for an element to appear.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>ditto<span class="w"> </span><span class="nb">wait</span><span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Options:</strong>
+| Option | Short | Description |
+|--------|-------|-------------|
+| <code>--text</code> | <code>-t</code> | Wait for element by text |
+| <code>--id</code> | <code>-i</code> | Wait for element by resource-id |
+| <code>--desc</code> | <code>-d</code> | Wait for element by content-description |
+| <code>--timeout</code> | | Timeout in seconds (default: 10) |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="c1"># Wait for text</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>ditto<span class="w"> </span><span class="nb">wait</span><span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Welcome&quot;</span>
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a><span class="c1"># Wait with timeout</span>
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>ditto<span class="w"> </span><span class="nb">wait</span><span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Loading complete&quot;</span><span class="w"> </span>--timeout<span class="w"> </span><span class="m">30</span>
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>
+<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a><span class="c1"># Wait for element by ID</span>
+<a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a>ditto<span class="w"> </span><span class="nb">wait</span><span class="w"> </span>--id<span class="w"> </span>main_content<span class="w"> </span>--timeout<span class="w"> </span><span class="m">15</span>
+</code></pre></div></p>
+<hr />
+<h2 id="device-commands">Device Commands</h2>
+<h3 id="devices">devices</h3>
+<p>List connected devices.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>ditto<span class="w"> </span>devices
+</code></pre></div>
+<p><strong>Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>Connected devices (2):
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>  + emulator-5554 (device)
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>  + 192.168.1.100:5555 (device)
+</code></pre></div></p>
+<hr />
+<h3 id="info">info</h3>
+<p>Show device information.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>ditto<span class="w"> </span>info
+</code></pre></div>
+<p><strong>Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>Device Information:
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>  Serial:          emulator-5554
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>  Model:           Pixel 4
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a>  Manufacturer:    Google
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a>  Android Version: 12
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>  SDK Version:     31
+<a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a>  Screen Size:     1080 x 2340
+</code></pre></div></p>
+<hr />
+<h2 id="exit-codes">Exit Codes</h2>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>Success</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>Error (element not found, command failed, etc.)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="scripting-examples">Scripting Examples</h2>
+<h3 id="shell-script">Shell Script</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="ch">#!/bin/bash</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="c1"># Open app and navigate</span>
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>ditto<span class="w"> </span>open<span class="w"> </span>Settings
+<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>sleep<span class="w"> </span><span class="m">2</span>
+<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a>
+<a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a>ditto<span class="w"> </span>tap<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Network&quot;</span>
+<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a>sleep<span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a>
+<a id="__codelineno-40-10" name="__codelineno-40-10" href="#__codelineno-40-10"></a>ditto<span class="w"> </span>tap<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Wi-Fi&quot;</span>
+<a id="__codelineno-40-11" name="__codelineno-40-11" href="#__codelineno-40-11"></a>sleep<span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-40-12" name="__codelineno-40-12" href="#__codelineno-40-12"></a>
+<a id="__codelineno-40-13" name="__codelineno-40-13" href="#__codelineno-40-13"></a>ditto<span class="w"> </span>screenshot<span class="w"> </span>wifi_settings.png
+<a id="__codelineno-40-14" name="__codelineno-40-14" href="#__codelineno-40-14"></a>
+<a id="__codelineno-40-15" name="__codelineno-40-15" href="#__codelineno-40-15"></a>ditto<span class="w"> </span>press<span class="w"> </span>back
+<a id="__codelineno-40-16" name="__codelineno-40-16" href="#__codelineno-40-16"></a>ditto<span class="w"> </span>press<span class="w"> </span>back
+<a id="__codelineno-40-17" name="__codelineno-40-17" href="#__codelineno-40-17"></a>ditto<span class="w"> </span>press<span class="w"> </span>home
+</code></pre></div>
+<h3 id="loop-until-element-found">Loop Until Element Found</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="ch">#!/bin/bash</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="c1"># Scroll until element is found</span>
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a>
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..10<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span>ditto<span class="w"> </span>find<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Target Item&quot;</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="w">        </span>ditto<span class="w"> </span>tap<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Target Item&quot;</span>
+<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="w">        </span><span class="nb">exit</span><span class="w"> </span><span class="m">0</span>
+<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a><span class="w">    </span><span class="k">fi</span>
+<a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a><span class="w">    </span>ditto<span class="w"> </span>scroll<span class="w"> </span>down
+<a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a><span class="w">    </span>sleep<span class="w"> </span><span class="m">0</span>.5
+<a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a><span class="k">done</span>
+<a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a>
+<a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Element not found&quot;</span>
+<a id="__codelineno-41-14" name="__codelineno-41-14" href="#__codelineno-41-14"></a><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+<h3 id="batch-screenshots">Batch Screenshots</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="ch">#!/bin/bash</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="c1"># Take multiple screenshots</span>
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a>
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..5<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a><span class="w">    </span>ditto<span class="w"> </span>screenshot<span class="w"> </span><span class="s2">&quot;screen_</span><span class="nv">$i</span><span class="s2">.png&quot;</span>
+<a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a><span class="w">    </span>ditto<span class="w"> </span>swipe<span class="w"> </span>left
+<a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="w">    </span>sleep<span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a><span class="k">done</span>
+</code></pre></div>
+<h3 id="error-handling">Error Handling</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="ch">#!/bin/bash</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="c1"># With error handling</span>
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="k">if</span><span class="w"> </span>!<span class="w"> </span>ditto<span class="w"> </span>devices<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;device&quot;</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;No device connected&quot;</span>
+<a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a><span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="k">fi</span>
+<a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a>
+<a id="__codelineno-43-9" name="__codelineno-43-9" href="#__codelineno-43-9"></a><span class="k">if</span><span class="w"> </span>ditto<span class="w"> </span>tap<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Login&quot;</span><span class="w"> </span>--timeout<span class="w"> </span><span class="m">5</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-43-10" name="__codelineno-43-10" href="#__codelineno-43-10"></a><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Tapped Login button&quot;</span>
+<a id="__codelineno-43-11" name="__codelineno-43-11" href="#__codelineno-43-11"></a><span class="k">else</span>
+<a id="__codelineno-43-12" name="__codelineno-43-12" href="#__codelineno-43-12"></a><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Login button not found&quot;</span>
+<a id="__codelineno-43-13" name="__codelineno-43-13" href="#__codelineno-43-13"></a><span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-43-14" name="__codelineno-43-14" href="#__codelineno-43-14"></a><span class="k">fi</span>
+</code></pre></div>
+<hr />
+<h2 id="environment-variables">Environment Variables</h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ANDROID_HOME</code></td>
+<td>Path to Android SDK (for ADB detection)</td>
+</tr>
+<tr>
+<td><code>ANDROID_SDK_ROOT</code></td>
+<td>Alternative to ANDROID_HOME</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="device-not-found">Device Not Found</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="c1"># Check ADB sees the device</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>adb<span class="w"> </span>devices
+<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a>
+<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="c1"># Restart ADB server</span>
+<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a>adb<span class="w"> </span>kill-server
+<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a>adb<span class="w"> </span>start-server
+</code></pre></div>
+<h3 id="element-not-found">Element Not Found</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="c1"># Increase timeout</span>
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>ditto<span class="w"> </span>tap<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Login&quot;</span><span class="w"> </span>--timeout<span class="w"> </span><span class="m">15</span>
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="c1"># Check element exists</span>
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a>ditto<span class="w"> </span>find<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;Login&quot;</span>
+<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a>
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a><span class="c1"># List all elements (for debugging)</span>
+<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a>ditto<span class="w"> </span>find<span class="w"> </span>--class<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>--all<span class="w"> </span>--json<span class="w"> </span>&gt;<span class="w"> </span>elements.json
+</code></pre></div>
+<h3 id="permission-denied">Permission Denied</h3>
+<p>Ensure USB debugging is enabled and the computer is authorized on the device.</p>
+<hr />
+<h2 id="automation-commands">Automation Commands</h2>
+<h3 id="run">run</h3>
+<p>Run an automation script from a JSON file with support for variables, conditions, and loops.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>ditto<span class="w"> </span>run<span class="w"> </span>SCRIPT_FILE<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Description |
+|----------|-------------|
+| <code>SCRIPT_FILE</code> | Path to JSON script file |</p>
+<p><strong>Options:</strong>
+| Option | Short | Description |
+|--------|-------|-------------|
+| <code>--retries</code> | <code>-r</code> | Default retry count per step (default: 2) |
+| <code>--timeout</code> | <code>-t</code> | Default timeout in seconds (default: 5.0) |
+| <code>--delay</code> | <code>-d</code> | Delay between steps in seconds (default: 0.3) |
+| <code>--stop-on-failure</code> | | Stop on first failure (default) |
+| <code>--continue-on-failure</code> | | Continue on failure |
+| <code>--screenshot-on-failure</code> | | Take screenshot when a step fails |
+| <code>--output</code> | <code>-o</code> | Save result to JSON file |
+| <code>--verbose</code> | <code>-v</code> | Show detailed step output |
+| <code>--var</code> | <code>-V</code> | Set variable: <code>--var name=value</code> (can be used multiple times) |
+| <code>--vars-file</code> | | Load variables from JSON or YAML file |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="c1"># Basic script execution</span>
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a>ditto<span class="w"> </span>run<span class="w"> </span>my_script.json
+<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a>
+<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a><span class="c1"># With retries and verbose output</span>
+<a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a>ditto<span class="w"> </span>run<span class="w"> </span>my_script.json<span class="w"> </span>--retries<span class="w"> </span><span class="m">3</span><span class="w"> </span>--verbose
+<a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a>
+<a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a><span class="c1"># With variables from command line</span>
+<a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a>ditto<span class="w"> </span>run<span class="w"> </span>login.json<span class="w"> </span>--var<span class="w"> </span><span class="nv">username</span><span class="o">=</span>testuser<span class="w"> </span>--var<span class="w"> </span><span class="nv">password</span><span class="o">=</span>secret
+<a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a>
+<a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a><span class="c1"># With variables from file</span>
+<a id="__codelineno-47-11" name="__codelineno-47-11" href="#__codelineno-47-11"></a>ditto<span class="w"> </span>run<span class="w"> </span>script.json<span class="w"> </span>--vars-file<span class="w"> </span>config.json
+<a id="__codelineno-47-12" name="__codelineno-47-12" href="#__codelineno-47-12"></a>
+<a id="__codelineno-47-13" name="__codelineno-47-13" href="#__codelineno-47-13"></a><span class="c1"># Combine CLI vars and file (CLI overrides file)</span>
+<a id="__codelineno-47-14" name="__codelineno-47-14" href="#__codelineno-47-14"></a>ditto<span class="w"> </span>run<span class="w"> </span>script.json<span class="w"> </span>--vars-file<span class="w"> </span>defaults.json<span class="w"> </span>--var<span class="w"> </span><span class="nv">username</span><span class="o">=</span>override
+<a id="__codelineno-47-15" name="__codelineno-47-15" href="#__codelineno-47-15"></a>
+<a id="__codelineno-47-16" name="__codelineno-47-16" href="#__codelineno-47-16"></a><span class="c1"># Save results</span>
+<a id="__codelineno-47-17" name="__codelineno-47-17" href="#__codelineno-47-17"></a>ditto<span class="w"> </span>run<span class="w"> </span>my_script.json<span class="w"> </span>-o<span class="w"> </span>result.json<span class="w"> </span>--verbose
+</code></pre></div></p>
+<p><strong>Script Format with Variables:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="p">{</span>
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;login_test&quot;</span><span class="p">,</span>
+<a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a><span class="w">  </span><span class="nt">&quot;variables&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a><span class="w">    </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;default_user&quot;</span><span class="p">,</span>
+<a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a><span class="w">    </span><span class="nt">&quot;timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span>
+<a id="__codelineno-48-6" name="__codelineno-48-6" href="#__codelineno-48-6"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-48-7" name="__codelineno-48-7" href="#__codelineno-48-7"></a><span class="w">  </span><span class="nt">&quot;steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-48-8" name="__codelineno-48-8" href="#__codelineno-48-8"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;open&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;app&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MyApp&quot;</span><span class="p">},</span>
+<a id="__codelineno-48-9" name="__codelineno-48-9" href="#__codelineno-48-9"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tap&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Login&quot;</span><span class="p">},</span>
+<a id="__codelineno-48-10" name="__codelineno-48-10" href="#__codelineno-48-10"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;type&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{{username}}&quot;</span><span class="p">},</span>
+<a id="__codelineno-48-11" name="__codelineno-48-11" href="#__codelineno-48-11"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tap&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Submit&quot;</span><span class="p">}</span>
+<a id="__codelineno-48-12" name="__codelineno-48-12" href="#__codelineno-48-12"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-48-13" name="__codelineno-48-13" href="#__codelineno-48-13"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>See:</strong> <a href="../variables-and-control-flow/">Variables and Control Flow Guide</a> for complete documentation.</p>
+<hr />
+<h3 id="create-script">create-script</h3>
+<p>Create a new automation script from a template.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>ditto<span class="w"> </span>create-script<span class="w"> </span>NAME<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Arguments:</strong>
+| Argument | Description |
+|----------|-------------|
+| <code>NAME</code> | Script filename (<code>.json</code> added if not present) |</p>
+<p><strong>Options:</strong>
+| Option | Short | Description |
+|--------|-------|-------------|
+| <code>--template</code> | <code>-t</code> | Template to use: <code>empty</code>, <code>alarm</code>, <code>app</code> (default: empty) |</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="c1"># Create empty script</span>
+<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a>ditto<span class="w"> </span>create-script<span class="w"> </span>my_automation
+<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a>
+<a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a><span class="c1"># Create from alarm template</span>
+<a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a>ditto<span class="w"> </span>create-script<span class="w"> </span>set_alarm<span class="w"> </span>--template<span class="w"> </span>alarm
+<a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a>
+<a id="__codelineno-50-7" name="__codelineno-50-7" href="#__codelineno-50-7"></a><span class="c1"># Create from app template</span>
+<a id="__codelineno-50-8" name="__codelineno-50-8" href="#__codelineno-50-8"></a>ditto<span class="w"> </span>create-script<span class="w"> </span>app_test<span class="w"> </span>-t<span class="w"> </span>app
+</code></pre></div></p>
+<hr />
+<h3 id="validate">validate</h3>
+<p>Validate an automation script without running it.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>ditto<span class="w"> </span>validate<span class="w"> </span>SCRIPT_FILE
+</code></pre></div>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a>ditto<span class="w"> </span>validate<span class="w"> </span>my_script.json
+</code></pre></div></p>
+<p><strong>Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a>Script is valid: 7 steps
+</code></pre></div></p>
+<p>Or if there are errors:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>Validation failed with 2 error(s):
+<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>  - Step 1: Invalid action &#39;tapp&#39;
+<a id="__codelineno-54-3" name="__codelineno-54-3" href="#__codelineno-54-3"></a>  - Step 3: on_failure must be &#39;stop&#39;, &#39;continue&#39;, or &#39;retry&#39;
+</code></pre></div></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/OmPrakashSingh1704/DittoMation" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/dittomation/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
