@@ -49,9 +49,10 @@ nav:
       - Smart Locator: features/smart-locator.md
       - Natural Language: features/natural-language.md
       - Record & Replay: features/record-replay.md
-      - Control Flow: features/control-flow.md
+  - Guides:
+      - Variables & Control Flow: variables-and-control-flow.md
+      - CLI Reference: cli.md
   - API Reference: api.md
-  - Benchmark: benchmark.md
 
 extra:
   social:
