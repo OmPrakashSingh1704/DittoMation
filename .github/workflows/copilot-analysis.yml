@@ -23,6 +23,10 @@ permissions:
   security-events: write
   actions: read
 
+env:
+  PYTHON_DIRS: "core recorder replayer"
+  TEST_DIR: "tests"
+
 jobs:
   copilot-analysis:
     name: Comprehensive Analysis
@@ -50,7 +54,7 @@ jobs:
           echo "" >> analysis_report.md
           echo "### Bandit Security Scan" >> analysis_report.md
           echo '```' >> analysis_report.md
-          bandit -r core recorder replayer -f txt -o bandit_output.txt || true
+          bandit -r ${{ env.PYTHON_DIRS }} -f txt -o bandit_output.txt || true
           cat bandit_output.txt >> analysis_report.md
           echo '```' >> analysis_report.md
           echo "" >> analysis_report.md
@@ -60,7 +64,7 @@ jobs:
         run: |
           echo "### Code Quality - Pylint" >> analysis_report.md
           echo '```' >> analysis_report.md
-          pylint core recorder replayer --exit-zero --output-format=text > pylint_output.txt || true
+          pylint ${{ env.PYTHON_DIRS }} --exit-zero --output-format=text > pylint_output.txt || true
           head -50 pylint_output.txt >> analysis_report.md
           echo '```' >> analysis_report.md
           echo "" >> analysis_report.md
@@ -80,7 +84,7 @@ jobs:
         run: |
           echo "### Code Complexity Metrics" >> analysis_report.md
           echo '```' >> analysis_report.md
-          radon cc core recorder replayer -a -s >> analysis_report.md
+          radon cc ${{ env.PYTHON_DIRS }} -a -s >> analysis_report.md
           echo '```' >> analysis_report.md
           echo "" >> analysis_report.md
 
@@ -89,7 +93,7 @@ jobs:
         run: |
           echo "### Unused Code Detection" >> analysis_report.md
           echo '```' >> analysis_report.md
-          vulture core recorder replayer --min-confidence 80 >> analysis_report.md || true
+          vulture ${{ env.PYTHON_DIRS }} --min-confidence 80 >> analysis_report.md || true
           echo '```' >> analysis_report.md
 
       - name: Generate Improvement Suggestions
@@ -173,7 +177,7 @@ jobs:
           echo "" >> security_report.md
           echo "### 3. Input Validation Gaps" >> security_report.md
           echo '```' >> security_report.md
-          grep -rn "input(" core recorder replayer --include="*.py" >> security_report.md || echo "No direct input() calls found"
+          grep -rn "input(" ${{ env.PYTHON_DIRS }} --include="*.py" >> security_report.md || echo "No direct input() calls found"
           echo '```' >> security_report.md
 
       - name: Hardcoded Secrets Detection
@@ -192,7 +196,7 @@ jobs:
           echo "### 5. ADB Security Review" >> security_report.md
           echo '```' >> security_report.md
           echo "Checking ADB command construction for injection risks..." >> security_report.md
-          grep -rn "adb" core recorder replayer --include="*.py" -A 3 >> security_report.md || true
+          grep -rn "adb" ${{ env.PYTHON_DIRS }} --include="*.py" -A 3 >> security_report.md || true
           echo '```' >> security_report.md
 
       - name: XML/XXE Vulnerabilities
@@ -201,7 +205,7 @@ jobs:
           echo "" >> security_report.md
           echo "### 6. XML/XXE Vulnerabilities" >> security_report.md
           echo '```' >> security_report.md
-          grep -rn "xml.etree\|lxml\|minidom" core recorder replayer --include="*.py" -A 3 >> security_report.md || true
+          grep -rn "xml.etree\|lxml\|minidom" ${{ env.PYTHON_DIRS }} --include="*.py" -A 3 >> security_report.md || true
           echo '```' >> security_report.md
 
       - name: Dependency Security Audit
@@ -246,7 +250,7 @@ jobs:
           echo "### 1. Architecture Improvements" >> improvement_report.md
           echo '```' >> improvement_report.md
           echo "Module dependencies and coupling analysis:" >> improvement_report.md
-          find core recorder replayer -name "*.py" -type f -exec grep -l "^import\|^from" {} \; | head -20 >> improvement_report.md
+          for dir in ${{ env.PYTHON_DIRS }}; do find $dir -name "*.py" -type f -exec grep -l "^import\|^from" {} \; | head -20 >> improvement_report.md; done
           echo '```' >> improvement_report.md
           echo "" >> improvement_report.md
           echo "**Recommendations:**" >> improvement_report.md
@@ -260,7 +264,7 @@ jobs:
           echo "" >> improvement_report.md
           echo "### 2. Performance Optimizations" >> improvement_report.md
           echo '```' >> improvement_report.md
-          radon mi core recorder replayer -s >> improvement_report.md
+          radon mi ${{ env.PYTHON_DIRS }} -s >> improvement_report.md
           echo '```' >> improvement_report.md
           echo "" >> improvement_report.md
           echo "**Recommendations:**" >> improvement_report.md
@@ -296,8 +300,8 @@ jobs:
           echo "" >> improvement_report.md
           echo "### 5. Testing Improvements" >> improvement_report.md
           echo '```' >> improvement_report.md
-          find tests -name "test_*.py" -type f | wc -l | xargs -I {} echo "Current test files: {}" >> improvement_report.md
-          find core recorder replayer -name "*.py" -type f | wc -l | xargs -I {} echo "Source files: {}" >> improvement_report.md
+          find ${{ env.TEST_DIR }} -name "test_*.py" -type f 2>/dev/null | wc -l | xargs -I {} echo "Current test files: {}" >> improvement_report.md
+          for dir in ${{ env.PYTHON_DIRS }}; do find $dir -name "*.py" -type f 2>/dev/null; done | wc -l | xargs -I {} echo "Source files: {}" >> improvement_report.md
           echo '```' >> improvement_report.md
           echo "" >> improvement_report.md
           echo "**Recommendations:**" >> improvement_report.md
