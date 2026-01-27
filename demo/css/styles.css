@@ -1,0 +1,464 @@
+/* Custom Styles for DittoMation Demo */
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Terminal cursor animation */
+.terminal-cursor {
+    animation: blink 1s infinite;
+    color: #10B981;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* Terminal typing effect */
+.terminal-output p {
+    animation: fadeInUp 0.3s ease-out forwards;
+    opacity: 0;
+}
+
+.terminal-output p:nth-child(1) { animation-delay: 0.3s; }
+.terminal-output p:nth-child(2) { animation-delay: 0.6s; }
+.terminal-output p:nth-child(3) { animation-delay: 0.9s; }
+.terminal-output p:nth-child(4) { animation-delay: 1.2s; }
+.terminal-output p:nth-child(5) { animation-delay: 1.5s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Feature card hover effects */
+.feature-card {
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+}
+
+/* Fallback step animation */
+.fallback-step {
+    transition: all 0.3s ease;
+}
+
+.fallback-step.active {
+    transform: translateX(4px);
+}
+
+/* Code block styling */
+pre code {
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+/* Syntax highlighting overrides for dark theme */
+pre.bg-gray-900 code {
+    background: transparent !important;
+}
+
+pre.bg-gray-900 .hljs {
+    background: transparent !important;
+    color: #E5E7EB;
+}
+
+pre.bg-gray-900 .hljs-keyword {
+    color: #C084FC;
+}
+
+pre.bg-gray-900 .hljs-string {
+    color: #86EFAC;
+}
+
+pre.bg-gray-900 .hljs-number {
+    color: #FCD34D;
+}
+
+pre.bg-gray-900 .hljs-comment {
+    color: #6B7280;
+}
+
+pre.bg-gray-900 .hljs-attr {
+    color: #67E8F9;
+}
+
+pre.bg-gray-900 .hljs-built_in {
+    color: #F472B6;
+}
+
+/* Pulse slow animation */
+.animate-pulse-slow {
+    animation: pulse-slow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Gradient text */
+.text-gradient {
+    background: linear-gradient(135deg, #4F46E5 0%, #06B6D4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Section transitions */
+section {
+    transition: opacity 0.3s ease;
+}
+
+/* ========================================
+   Android Phone Simulator Styles
+   ======================================== */
+
+.android-phone {
+    perspective: 1000px;
+}
+
+.phone-frame {
+    box-shadow:
+        0 0 0 2px #1f2937,
+        0 25px 50px -12px rgba(0, 0, 0, 0.4),
+        inset 0 0 20px rgba(255, 255, 255, 0.05);
+    position: relative;
+}
+
+.phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 6px;
+    background: #374151;
+    border-radius: 3px;
+}
+
+.phone-screen {
+    position: relative;
+    overflow: hidden;
+}
+
+/* App icon tap animation */
+.app-icon {
+    transition: transform 0.15s ease;
+}
+
+.app-icon:active,
+.app-icon.animate-tap {
+    transform: scale(0.9);
+}
+
+@keyframes appTap {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.85); }
+    100% { transform: scale(1); }
+}
+
+.animate-tap {
+    animation: appTap 0.3s ease;
+}
+
+/* Tap ripple effect */
+.tap-ripple {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: ripple 0.6s ease-out forwards;
+}
+
+@keyframes ripple {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}
+
+/* Screen transitions */
+.home-screen,
+.settings-screen,
+.chrome-screen,
+.messages-screen {
+    animation: screenSlideIn 0.3s ease;
+}
+
+@keyframes screenSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Setting item highlight */
+.setting-item {
+    transition: all 0.3s ease;
+}
+
+.setting-item.ring-2 {
+    animation: highlightPulse 1s ease infinite;
+}
+
+@keyframes highlightPulse {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.5); }
+    50% { box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3); }
+}
+
+/* Action indicator animation */
+.animate-fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Toggle switch styling */
+.toggle-switch {
+    transition: background-color 0.3s ease;
+}
+
+.toggle-switch-knob {
+    transition: left 0.3s ease;
+}
+
+/* Phone navigation bar */
+.nav-bar {
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+}
+
+/* Execution log scrollbar */
+.max-h-64::-webkit-scrollbar {
+    width: 4px;
+}
+
+.max-h-64::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+
+.max-h-64::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 2px;
+}
+
+/* Quick command buttons */
+.quick-command {
+    transition: all 0.2s ease;
+}
+
+.quick-command:hover {
+    transform: translateY(-1px);
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .android-phone {
+        transform: scale(0.9);
+        margin: -20px 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .terminal-window {
+        margin: 0 -1rem;
+        border-radius: 0;
+    }
+
+    .feature-card {
+        padding: 1.5rem;
+    }
+
+    pre {
+        font-size: 0.75rem;
+    }
+
+    .android-phone {
+        transform: scale(0.85);
+        margin: -30px 0;
+    }
+
+    .phone-frame {
+        border-radius: 2rem;
+        padding: 8px;
+    }
+
+    .phone-screen {
+        border-radius: 1.75rem;
+        width: 260px !important;
+        height: 520px !important;
+    }
+}
+
+/* Scroll reveal fallback */
+[data-aos] {
+    opacity: 1;
+    transform: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #F3F4F6;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+
+/* Focus states */
+input:focus,
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Table hover effect */
+tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+    background-color: #F9FAFB;
+}
+
+/* Button active state */
+button:active {
+    transform: scale(0.98);
+}
+
+/* Link underline animation */
+a.hover\:underline:hover {
+    text-decoration-color: currentColor;
+    text-underline-offset: 2px;
+}
+
+/* Loading skeleton */
+.skeleton {
+    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Hero gradient background */
+.hero-gradient {
+    background: linear-gradient(135deg, #EEF2FF 0%, #F0FDFA 50%, #FDF2F8 100%);
+}
+
+/* Card shadow on hover */
+.card-shadow-hover {
+    transition: box-shadow 0.3s ease;
+}
+
+.card-shadow-hover:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Navigation sticky shadow */
+nav.scrolled {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Tab transition */
+.tab-content {
+    animation: tabFadeIn 0.3s ease;
+}
+
+@keyframes tabFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Confidence bar animation */
+.confidence-bar {
+    transition: width 1s ease-out;
+}
+
+/* Mobile menu (if needed in future) */
+.mobile-menu {
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.mobile-menu.open {
+    transform: translateX(0);
+}
+
+/* Typing cursor for chrome search */
+.typing-cursor::after {
+    content: '|';
+    animation: blink 1s infinite;
+    color: #4F46E5;
+}
+
+/* Loading spinner */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Print styles */
+@media print {
+    nav, footer {
+        display: none;
+    }
+
+    section {
+        page-break-inside: avoid;
+    }
+
+    .android-phone {
+        display: none;
+    }
+}

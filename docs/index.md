@@ -6,6 +6,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
+!!! tip "Try the Interactive Demo"
+    Experience DittoMation with our interactive Android simulator. Type natural language commands and watch them execute in real-time.
+
+    **[Launch Interactive Demo →](demo/index.html)**
+
 ---
 
 ## Why DittoMation?
@@ -92,6 +97,7 @@ Tested across 4 UI versions (original, layout shift, redesign, tablet):
 
 ## Links
 
+- [Interactive Demo](demo/index.html)
 - [GitHub Repository](https://github.com/OmPrakashSingh1704/DittoMation)
 - [PyPI Package](https://pypi.org/project/dittomation/)
 - [Getting Started Guide](getting-started.md)

@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DittoMation - Smart Android Automation</title>
+    <link rel="icon" type="image/jpeg" href="assets/images/logo.jpeg">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+
+    <!-- AOS - Animate On Scroll -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        'primary-dark': '#4338CA',
+                        accent: '#06B6D4',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white text-gray-800">
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-b border-gray-100 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-2">
+                        <img src="assets/images/logo.jpeg" alt="DittoMation" class="w-8 h-8 rounded-lg object-cover">
+                        <span class="font-bold text-xl text-gray-900">DittoMation</span>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="#features" class="text-gray-600 hover:text-primary transition-colors">Features</a>
+                        <a href="#demo" class="text-gray-600 hover:text-primary transition-colors">Demo</a>
+                        <a href="#examples" class="text-gray-600 hover:text-primary transition-colors">Examples</a>
+                        <a href="#quickstart" class="text-gray-600 hover:text-primary transition-colors">Quick Start</a>
+                        <a href="#feedback" class="text-gray-600 hover:text-primary transition-colors">Feedback</a>
+                        <a href="https://OmPrakashSingh1704.github.io/DittoMation/" class="text-gray-600 hover:text-primary transition-colors">Docs</a>
+                        <a href="https://github.com/OmPrakashSingh1704/DittoMation" class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+                            GitHub
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="pt-32 pb-20 px-4 overflow-hidden">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div data-aos="fade-right">
+                        <h1 class="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+                            Smart Android
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Automation</span>
+                        </h1>
+                        <p class="text-xl text-gray-600 mb-4">
+                            Write automation scripts in plain English. Let AI handle the complexity.
+                        </p>
+                        <div class="flex items-center space-x-4 mb-8">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                                <span class="text-gray-500">Coordinate-based: <span class="text-red-500 font-semibold">~70% success</span></span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                                <span class="text-gray-500">Smart Locator: <span class="text-green-500 font-semibold">~100% success</span></span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-4">
+                            <a href="https://OmPrakashSingh1704.github.io/DittoMation/" class="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors shadow-lg shadow-primary/25">
+                                Get Started
+                            </a>
+                            <a href="https://github.com/OmPrakashSingh1704/DittoMation" class="bg-gray-100 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                                View on GitHub
+                            </a>
+                        </div>
+                    </div>
+                    <div data-aos="fade-left" class="relative">
+                        <div class="terminal-window bg-gray-900 rounded-xl shadow-2xl overflow-hidden">
+                            <div class="terminal-header flex items-center space-x-2 px-4 py-3 bg-gray-800">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                <span class="ml-4 text-gray-400 text-sm">Terminal</span>
+                            </div>
+                            <div class="terminal-body p-6 font-mono text-sm">
+                                <div class="terminal-line mb-2">
+                                    <span class="text-green-400">$</span>
+                                    <span class="text-white ml-2">ditto run "open settings and enable dark mode"</span>
+                                </div>
+                                <div class="terminal-output text-gray-400 space-y-1" v-if="terminalAnimated">
+                                    <p class="text-cyan-400">Parsing natural language command...</p>
+                                    <p>→ Intent: navigate + toggle_setting</p>
+                                    <p>→ Target: "Settings" app</p>
+                                    <p>→ Action: enable "Dark mode"</p>
+                                    <p class="text-green-400 mt-2">✓ Workflow completed successfully</p>
+                                </div>
+                                <span class="terminal-cursor" v-if="!terminalAnimated">▋</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Problem/Solution Section -->
+        <section class="py-20 px-4 bg-gray-50">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16" data-aos="fade-up">
+                    <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Why Smart Locators?</h2>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">Traditional automation breaks when UI changes. DittoMation adapts.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Coordinate-based (Old Way) -->
+                    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100" data-aos="fade-right">
+                        <div class="flex items-center space-x-3 mb-6">
+                            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                <span class="text-red-500 text-xl">✕</span>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-900">Coordinate-Based</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-3">
+                                <span class="text-red-400">•</span>
+                                <span class="text-gray-600">Fixed pixel coordinates break on different devices</span>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <span class="text-red-400">•</span>
+                                <span class="text-gray-600">UI updates require script rewrites</span>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <span class="text-red-400">•</span>
+                                <span class="text-gray-600">No fallback when elements move</span>
+                            </div>
+                        </div>
+                        <div class="mt-6 p-4 bg-gray-50 rounded-lg font-mono text-sm text-gray-500">
+                            click(x=540, y=1200) <span class="text-red-400">// Fails if button moves!</span>
+                        </div>
+                    </div>
+
+                    <!-- Smart Locator (New Way) -->
+                    <div class="bg-white rounded-2xl p-8 shadow-sm border border-primary/20" data-aos="fade-left">
+                        <div class="flex items-center space-x-3 mb-6">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                <span class="text-green-500 text-xl">✓</span>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-900">Smart Locator</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-3">
+                                <span class="text-green-400">•</span>
+                                <span class="text-gray-600">Multiple fallback strategies</span>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <span class="text-green-400">•</span>
+                                <span class="text-gray-600">Adapts to UI changes automatically</span>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <span class="text-green-400">•</span>
+                                <span class="text-gray-600">AI-powered element matching</span>
+                            </div>
+                        </div>
+
+                        <!-- Fallback Chain Animation -->
+                        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-500 mb-3">Fallback Chain:</p>
+                            <div class="space-y-2">
+                                <div class="fallback-step flex items-center space-x-3" :class="{ 'active': fallbackStep >= 1 }">
+                                    <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium" :class="fallbackStep >= 1 ? 'bg-primary text-white' : ''">1</div>
+                                    <span class="text-sm" :class="fallbackStep >= 1 ? 'text-primary font-medium' : 'text-gray-400'">Resource ID</span>
+                                    <span v-if="fallbackStep === 1" class="text-xs text-yellow-500">miss</span>
+                                </div>
+                                <div class="fallback-step flex items-center space-x-3" :class="{ 'active': fallbackStep >= 2 }">
+                                    <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium" :class="fallbackStep >= 2 ? 'bg-primary text-white' : ''">2</div>
+                                    <span class="text-sm" :class="fallbackStep >= 2 ? 'text-primary font-medium' : 'text-gray-400'">Content Description</span>
+                                    <span v-if="fallbackStep === 2" class="text-xs text-yellow-500">miss</span>
+                                </div>
+                                <div class="fallback-step flex items-center space-x-3" :class="{ 'active': fallbackStep >= 3 }">
+                                    <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium" :class="fallbackStep >= 3 ? 'bg-primary text-white' : ''">3</div>
+                                    <span class="text-sm" :class="fallbackStep >= 3 ? 'text-primary font-medium' : 'text-gray-400'">Text Match</span>
+                                    <span v-if="fallbackStep === 3" class="text-xs text-green-500">✓ found</span>
+                                </div>
+                                <div class="fallback-step flex items-center space-x-3" :class="{ 'active': fallbackStep >= 4 }">
+                                    <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium" :class="fallbackStep >= 4 ? 'bg-primary text-white' : ''">4</div>
+                                    <span class="text-sm" :class="fallbackStep >= 4 ? 'text-primary font-medium' : 'text-gray-400'">Visual AI (OCR/Vision)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16" data-aos="fade-up">
+                    <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Powerful Features</h2>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">Everything you need for robust Android automation</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Natural Language Commands -->
+                    <div class="feature-card bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow" data-aos="fade-up" data-aos-delay="0">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Natural Language Commands</h3>
+                        <p class="text-gray-600 mb-4">Write automation in plain English. No need to learn complex APIs or element hierarchies.</p>
+                        <div class="bg-gray-50 rounded-lg p-4 font-mono text-sm">
+                            <span class="text-gray-500">"</span><span class="text-primary">tap the login button and enter my email</span><span class="text-gray-500">"</span>
+                        </div>
+                    </div>
+
+                    <!-- Smart Locator -->
+                    <div class="feature-card bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow" data-aos="fade-up" data-aos-delay="100">
+                        <div class="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Smart Locator</h3>
+                        <p class="text-gray-600 mb-4">Intelligent element finding with confidence scoring and multiple fallback strategies.</p>
+
+                        <!-- Confidence Bars -->
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-500">Resource ID</span>
+                                    <span class="text-gray-700 font-medium">{{ confidenceScores.resourceId }}%</span>
+                                </div>
+                                <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-primary rounded-full transition-all duration-1000" :style="{ width: confidenceScores.resourceId + '%' }"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-500">Text Match</span>
+                                    <span class="text-gray-700 font-medium">{{ confidenceScores.textMatch }}%</span>
+                                </div>
+                                <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-accent rounded-full transition-all duration-1000" :style="{ width: confidenceScores.textMatch + '%' }"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-500">Visual AI</span>
+                                    <span class="text-gray-700 font-medium">{{ confidenceScores.visualAI }}%</span>
+                                </div>
+                                <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full transition-all duration-1000" :style="{ width: confidenceScores.visualAI + '%' }"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Record/Replay -->
+                    <div class="feature-card bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow" data-aos="fade-up" data-aos-delay="200">
+                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Record & Replay</h3>
+                        <p class="text-gray-600 mb-4">Record your actions once, replay them anywhere with smart element mapping.</p>
+
+                        <!-- Workflow Steps -->
+                        <div class="flex items-center justify-between">
+                            <div class="text-center" :class="{ 'opacity-100': workflowStep >= 1, 'opacity-40': workflowStep < 1 }">
+                                <div class="w-10 h-10 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-2 transition-all" :class="{ 'bg-red-500': workflowStep >= 1 }">
+                                    <span :class="workflowStep >= 1 ? 'text-white' : 'text-red-500'">●</span>
+                                </div>
+                                <span class="text-xs text-gray-500">Record</span>
+                            </div>
+                            <div class="flex-1 h-0.5 bg-gray-200 mx-2">
+                                <div class="h-full bg-primary transition-all duration-500" :style="{ width: workflowStep >= 2 ? '100%' : '0%' }"></div>
+                            </div>
+                            <div class="text-center" :class="{ 'opacity-100': workflowStep >= 2, 'opacity-40': workflowStep < 2 }">
+                                <div class="w-10 h-10 mx-auto bg-yellow-100 rounded-full flex items-center justify-center mb-2 transition-all" :class="{ 'bg-yellow-500': workflowStep >= 2 }">
+                                    <span :class="workflowStep >= 2 ? 'text-white' : 'text-yellow-500'">⚙</span>
+                                </div>
+                                <span class="text-xs text-gray-500">Map</span>
+                            </div>
+                            <div class="flex-1 h-0.5 bg-gray-200 mx-2">
+                                <div class="h-full bg-primary transition-all duration-500" :style="{ width: workflowStep >= 3 ? '100%' : '0%' }"></div>
+                            </div>
+                            <div class="text-center" :class="{ 'opacity-100': workflowStep >= 3, 'opacity-40': workflowStep < 3 }">
+                                <div class="w-10 h-10 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-2 transition-all" :class="{ 'bg-green-500': workflowStep >= 3 }">
+                                    <span :class="workflowStep >= 3 ? 'text-white' : 'text-green-500'">▶</span>
+                                </div>
+                                <span class="text-xs text-gray-500">Replay</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Variables & Control Flow -->
+                    <div class="feature-card bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow" data-aos="fade-up" data-aos-delay="300">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+                            <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">Variables & Control Flow</h3>
+                        <p class="text-gray-600 mb-4">Use variables, loops, and conditionals for complex automation workflows.</p>
+                        <pre class="bg-gray-900 rounded-lg p-4 text-sm overflow-x-auto"><code class="language-json text-gray-300">{
+  "steps": [
+    {"set_variable": {"name": "count", "value": 0}},
+    {"while": {
+      "condition": "count < 5",
+      "do": [{"tap": "next_button"}]
+    }}
+  ]
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Demo Section -->
+        <section id="demo" class="py-20 px-4 bg-gray-50">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Interactive Demo</h2>
+                    <p class="text-xl text-gray-600">Type commands and watch them execute on the simulated Android device</p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-8 items-start">
+                    <!-- Android Phone Simulator -->
+                    <div class="flex justify-center" data-aos="fade-right">
+                        <div class="android-phone">
+                            <!-- Phone Frame -->
+                            <div class="phone-frame bg-gray-900 rounded-[3rem] p-3 shadow-2xl">
+                                <!-- Phone Screen -->
+                                <div class="phone-screen bg-gray-100 rounded-[2.5rem] overflow-hidden relative" style="width: 300px; height: 600px;">
+                                    <!-- Status Bar -->
+                                    <div class="status-bar bg-gray-800 text-white px-6 py-2 flex justify-between items-center text-xs">
+                                        <span>{{ phoneTime }}</span>
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18L12 21z"/></svg>
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+                                        </div>
+                                    </div>
+
+                                    <!-- Phone Content -->
+                                    <div class="phone-content h-full relative">
+                                        <!-- Home Screen -->
+                                        <div v-show="phoneScreen === 'home'" class="home-screen h-full bg-gradient-to-b from-blue-400 to-purple-500 p-4 pt-8">
+                                            <!-- App Grid -->
+                                            <div class="grid grid-cols-4 gap-4 mb-8">
+                                                <div v-for="app in phoneApps" :key="app.name"
+                                                     class="app-icon text-center cursor-pointer transition-transform hover:scale-110"
+                                                     :class="{ 'animate-tap': tappedApp === app.name }"
+                                                     @click="openApp(app.name)">
+                                                    <div class="w-12 h-12 mx-auto rounded-xl flex items-center justify-center text-2xl shadow-lg" :class="app.bg">
+                                                        {{ app.icon }}
+                                                    </div>
+                                                    <span class="text-white text-xs mt-1 block drop-shadow">{{ app.name }}</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Search Bar -->
+                                            <div class="absolute bottom-20 left-4 right-4">
+                                                <div class="bg-white/90 backdrop-blur rounded-full px-4 py-3 flex items-center space-x-3 shadow-lg">
+                                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                                    </svg>
+                                                    <span class="text-gray-400 text-sm">Search...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Settings Screen -->
+                                        <div v-show="phoneScreen === 'settings'" class="settings-screen h-full bg-gray-100">
+                                            <div class="bg-white px-4 py-3 border-b flex items-center space-x-3">
+                                                <button @click="phoneScreen = 'home'" class="p-1">
+                                                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                                    </svg>
+                                                </button>
+                                                <span class="font-semibold text-gray-800">Settings</span>
+                                            </div>
+                                            <div class="p-2 space-y-1 overflow-y-auto" style="height: calc(100% - 100px);">
+                                                <div v-for="setting in settingsItems" :key="setting.name"
+                                                     class="setting-item flex items-center justify-between p-3 bg-white rounded-lg"
+                                                     :class="{ 'ring-2 ring-primary': highlightedSetting === setting.name }">
+                                                    <div class="flex items-center space-x-3">
+                                                        <div class="w-8 h-8 rounded-full flex items-center justify-center" :class="setting.bg">
+                                                            <span class="text-sm">{{ setting.icon }}</span>
+                                                        </div>
+                                                        <span class="text-gray-800 text-sm">{{ setting.name }}</span>
+                                                    </div>
+                                                    <div v-if="setting.toggle" class="relative">
+                                                        <div class="w-10 h-6 rounded-full transition-colors cursor-pointer"
+                                                             :class="setting.enabled ? 'bg-primary' : 'bg-gray-300'"
+                                                             @click="toggleSetting(setting)">
+                                                            <div class="absolute w-5 h-5 bg-white rounded-full top-0.5 transition-all shadow"
+                                                                 :class="setting.enabled ? 'left-4.5' : 'left-0.5'"
+                                                                 :style="{ left: setting.enabled ? '18px' : '2px' }"></div>
+                                                        </div>
+                                                    </div>
+                                                    <svg v-else class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Chrome Screen -->
+                                        <div v-show="phoneScreen === 'chrome'" class="chrome-screen h-full bg-white">
+                                            <div class="bg-gray-100 px-3 py-2 flex items-center space-x-2">
+                                                <button @click="phoneScreen = 'home'" class="p-1">
+                                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                                    </svg>
+                                                </button>
+                                                <div class="flex-1 bg-white rounded-full px-3 py-1.5 text-sm text-gray-600 border">
+                                                    {{ chromeUrl || 'Search or type URL' }}
+                                                </div>
+                                            </div>
+                                            <div class="p-4" v-if="chromeContent">
+                                                <div class="text-sm text-gray-800" v-html="chromeContent"></div>
+                                            </div>
+                                            <div class="p-4 text-center text-gray-400" v-else>
+                                                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                                                </svg>
+                                                <p>Enter a search query</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Messages Screen -->
+                                        <div v-show="phoneScreen === 'messages'" class="messages-screen h-full bg-white">
+                                            <div class="bg-primary px-4 py-3 flex items-center space-x-3">
+                                                <button @click="phoneScreen = 'home'" class="p-1">
+                                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                                    </svg>
+                                                </button>
+                                                <span class="font-semibold text-white">Messages</span>
+                                            </div>
+                                            <div class="p-4 space-y-3">
+                                                <div v-for="msg in messages" :key="msg.id" class="flex items-start space-x-3">
+                                                    <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-semibold">
+                                                        {{ msg.sender[0] }}
+                                                    </div>
+                                                    <div class="flex-1">
+                                                        <div class="flex justify-between">
+                                                            <span class="font-medium text-gray-800 text-sm">{{ msg.sender }}</span>
+                                                            <span class="text-xs text-gray-400">{{ msg.time }}</span>
+                                                        </div>
+                                                        <p class="text-gray-600 text-sm">{{ msg.text }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tap Ripple Effect -->
+                                        <div v-if="tapPosition"
+                                             class="tap-ripple absolute pointer-events-none"
+                                             :style="{ left: tapPosition.x + 'px', top: tapPosition.y + 'px' }">
+                                        </div>
+
+                                        <!-- Action Indicator -->
+                                        <div v-if="actionIndicator"
+                                             class="absolute bottom-24 left-4 right-4 bg-gray-900/80 text-white text-sm py-2 px-4 rounded-lg text-center animate-fade-in">
+                                            {{ actionIndicator }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Navigation Bar -->
+                                    <div class="nav-bar absolute bottom-0 left-0 right-0 bg-gray-800 py-2 px-8 flex justify-between items-center">
+                                        <button @click="phoneScreen = 'home'" class="p-2 text-white/60 hover:text-white">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                            </svg>
+                                        </button>
+                                        <button @click="phoneScreen = 'home'" class="p-2 text-white/60 hover:text-white">
+                                            <div class="w-5 h-5 border-2 border-current rounded-full"></div>
+                                        </button>
+                                        <button class="p-2 text-white/60 hover:text-white">
+                                            <div class="w-5 h-5 border-2 border-current rounded"></div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Command Panel -->
+                    <div class="space-y-6" data-aos="fade-left">
+                        <!-- Command Input -->
+                        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                            <div class="p-6 border-b border-gray-100">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Enter a command:</label>
+                                <div class="relative">
+                                    <input
+                                        type="text"
+                                        v-model="nlCommand"
+                                        @keyup.enter="executeCommand"
+                                        placeholder="e.g., open Settings and enable WiFi"
+                                        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-800"
+                                    >
+                                    <button
+                                        @click="executeCommand"
+                                        :disabled="isExecuting"
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
+                                    >
+                                        <span v-if="!isExecuting">Run</span>
+                                        <span v-else class="flex items-center space-x-1">
+                                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                            </svg>
+                                            <span>Running</span>
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <!-- Quick Commands -->
+                                <div class="mt-4">
+                                    <span class="text-sm text-gray-500">Quick commands:</span>
+                                    <div class="flex flex-wrap gap-2 mt-2">
+                                        <button
+                                            v-for="cmd in quickCommands"
+                                            :key="cmd"
+                                            @click="nlCommand = cmd; executeCommand()"
+                                            class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full transition-colors"
+                                        >
+                                            {{ cmd }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Execution Log -->
+                            <div class="p-6 bg-gray-50 max-h-64 overflow-y-auto" v-if="executionLog.length > 0">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Execution Log:</h4>
+                                <div class="space-y-2 font-mono text-sm">
+                                    <div v-for="(log, index) in executionLog" :key="index"
+                                         class="flex items-start space-x-2"
+                                         :class="log.type === 'success' ? 'text-green-600' : log.type === 'error' ? 'text-red-500' : 'text-gray-600'">
+                                        <span class="text-gray-400">{{ log.time }}</span>
+                                        <span>{{ log.message }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Try Real Device -->
+                        <div class="bg-gradient-to-r from-primary to-accent rounded-2xl p-6 text-white shadow-lg">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-lg mb-1">Try on Real Device</h4>
+                                    <p class="text-white/80 text-sm mb-3">Test with a real Android emulator in your browser</p>
+                                    <button @click="showRealEmulator = true"
+                                       class="inline-flex items-center space-x-2 bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
+                                        <span>Launch Emulator</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Parsed Command Details -->
+                        <div class="bg-white rounded-2xl shadow-lg p-6" v-if="parsedCommand">
+                            <h4 class="text-sm font-medium text-gray-700 mb-4">Parsed Command:</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3">
+                                    <span class="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded">Intent</span>
+                                    <span class="text-gray-800">{{ parsedCommand.intent }}</span>
+                                </div>
+                                <div class="flex items-start space-x-3" v-if="parsedCommand.target">
+                                    <span class="px-2 py-1 bg-cyan-100 text-cyan-700 text-xs font-medium rounded">Target</span>
+                                    <span class="text-gray-800">{{ parsedCommand.target }}</span>
+                                </div>
+                                <div class="flex items-start space-x-3" v-if="parsedCommand.action">
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">Action</span>
+                                    <span class="text-gray-800">{{ parsedCommand.action }}</span>
+                                </div>
+                                <div class="flex items-start space-x-3" v-if="parsedCommand.value">
+                                    <span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded">Value</span>
+                                    <span class="text-gray-800">{{ parsedCommand.value }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Code Examples Section -->
+        <section id="examples" class="py-20 px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Code Examples</h2>
+                    <p class="text-xl text-gray-600">Multiple ways to use DittoMation</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up">
+                    <!-- Tabs -->
+                    <div class="flex border-b border-gray-200">
+                        <button
+                            v-for="tab in codeTabs"
+                            :key="tab.id"
+                            @click="activeCodeTab = tab.id"
+                            class="px-6 py-4 text-sm font-medium transition-colors"
+                            :class="activeCodeTab === tab.id ? 'text-primary border-b-2 border-primary bg-gray-50' : 'text-gray-500 hover:text-gray-700'"
+                        >
+                            {{ tab.label }}
+                        </button>
+                    </div>
+
+                    <!-- Code Content -->
+                    <div class="relative">
+                        <button
+                            @click="copyCode(activeCodeTab)"
+                            class="absolute top-4 right-4 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-md transition-colors flex items-center space-x-1"
+                        >
+                            <span v-if="!codeCopied">Copy</span>
+                            <span v-else class="text-green-400">Copied!</span>
+                        </button>
+
+                        <!-- CLI Tab -->
+                        <div v-show="activeCodeTab === 'cli'" class="p-6">
+                            <pre class="bg-gray-900 rounded-lg p-4 overflow-x-auto"><code class="language-bash text-gray-300"># Run a natural language command
+ditto run "open settings and enable wifi"
+
+# Record a workflow
+ditto record --output my_workflow.json
+
+# Replay a recorded workflow
+ditto replay my_workflow.json
+
+# Run with variables
+ditto run workflow.json --var username=test@email.com</code></pre>
+                        </div>
+
+                        <!-- Python Tab -->
+                        <div v-show="activeCodeTab === 'python'" class="p-6">
+                            <pre class="bg-gray-900 rounded-lg p-4 overflow-x-auto"><code class="language-python text-gray-300">from dittomatic import DittoMation
+
+# Initialize
+ditto = DittoMation()
+
+# Run natural language command
+ditto.run("open Chrome and search for weather")
+
+# Use smart locator
+element = ditto.find_element(
+    text="Login",
+    fallback_strategies=["resource_id", "content_desc", "ocr"]
+)
+element.tap()
+
+# Record and replay
+ditto.start_recording()
+# ... perform actions ...
+workflow = ditto.stop_recording()
+workflow.save("login_flow.json")
+
+# Replay with variables
+ditto.replay("login_flow.json", variables={
+    "username": "test@example.com",
+    "password": "secure123"
+})</code></pre>
+                        </div>
+
+                        <!-- JSON Tab -->
+                        <div v-show="activeCodeTab === 'json'" class="p-6">
+                            <pre class="bg-gray-900 rounded-lg p-4 overflow-x-auto"><code class="language-json text-gray-300">{
+  "name": "Login Workflow",
+  "variables": {
+    "username": "",
+    "password": ""
+  },
+  "steps": [
+    {
+      "action": "tap",
+      "locator": {
+        "text": "Login",
+        "resource_id": "btn_login",
+        "confidence_threshold": 0.8
+      }
+    },
+    {
+      "action": "input_text",
+      "locator": {"resource_id": "input_username"},
+      "value": "${username}"
+    },
+    {
+      "action": "input_text",
+      "locator": {"resource_id": "input_password"},
+      "value": "${password}"
+    },
+    {
+      "action": "tap",
+      "locator": {"text": "Submit"}
+    }
+  ]
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section class="py-20 px-4 bg-gray-50">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">How DittoMation Compares</h2>
+                    <p class="text-xl text-gray-600">Feature comparison with traditional automation tools</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Feature</th>
+                                <th class="px-6 py-4 text-center text-sm font-semibold text-primary">DittoMation</th>
+                                <th class="px-6 py-4 text-center text-sm font-semibold text-gray-500">Traditional</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr v-for="row in comparisonData" :key="row.feature">
+                                <td class="px-6 py-4 text-gray-700">{{ row.feature }}</td>
+                                <td class="px-6 py-4 text-center">
+                                    <span v-if="row.ditto === true" class="text-green-500 text-lg">✓</span>
+                                    <span v-else-if="row.ditto === false" class="text-red-400 text-lg">✕</span>
+                                    <span v-else class="text-gray-700">{{ row.ditto }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span v-if="row.traditional === true" class="text-green-500 text-lg">✓</span>
+                                    <span v-else-if="row.traditional === false" class="text-red-400 text-lg">✕</span>
+                                    <span v-else class="text-gray-500">{{ row.traditional }}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Success Rate Chart -->
+                <div class="mt-12 bg-white rounded-2xl shadow-lg p-8" data-aos="fade-up">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-6 text-center">Success Rate Comparison</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-700 font-medium">DittoMation (Smart Locator)</span>
+                                <span class="text-green-500 font-bold">~98%</span>
+                            </div>
+                            <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full animate-pulse-slow" style="width: 98%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-700 font-medium">Coordinate-Based Tools</span>
+                                <span class="text-red-400 font-bold">~70%</span>
+                            </div>
+                            <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-red-300 to-red-400 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 text-center mt-4">* Based on tests across multiple device types and UI variations</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section id="quickstart" class="py-20 px-4">
+            <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Quick Start</h2>
+                    <p class="text-xl text-gray-600">Get up and running in minutes</p>
+                </div>
+
+                <div class="space-y-6" data-aos="fade-up">
+                    <!-- Step 1 -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900 mb-2">Install DittoMation</h3>
+                                <pre class="bg-gray-900 rounded-lg p-4 overflow-x-auto"><code class="language-bash text-gray-300">pip install dittomatic</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900 mb-2">Connect your device</h3>
+                                <pre class="bg-gray-900 rounded-lg p-4 overflow-x-auto"><code class="language-bash text-gray-300"># Enable USB debugging on your Android device
+adb devices  # Verify connection</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900 mb-2">Run your first command</h3>
+                                <pre class="bg-gray-900 rounded-lg p-4 overflow-x-auto"><code class="language-bash text-gray-300">ditto run "open settings"</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">4</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900 mb-2">Or use Python</h3>
+                                <pre class="bg-gray-900 rounded-lg p-4 overflow-x-auto"><code class="language-python text-gray-300">from dittomatic import DittoMation
+
+ditto = DittoMation()
+ditto.run("tap the search icon and type hello world")</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-10">
+                    <a href="https://OmPrakashSingh1704.github.io/DittoMation/" class="inline-flex items-center space-x-2 bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors shadow-lg shadow-primary/25">
+                        <span>Read Full Documentation</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feedback Section -->
+        <section id="feedback" class="py-20 px-4 bg-gray-50">
+            <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Share Your Thoughts</h2>
+                    <p class="text-xl text-gray-600">Help us improve DittoMation with your feedback</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up">
+                    <!-- Success Message -->
+                    <div v-if="feedbackSubmitted" class="p-12 text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-2">Thank You!</h3>
+                        <p class="text-gray-600 mb-6">Your feedback has been received. We appreciate you taking the time to help us improve.</p>
+                        <button @click="feedbackSubmitted = false; resetFeedbackForm()" class="text-primary hover:text-primary-dark font-medium">
+                            Submit another response
+                        </button>
+                    </div>
+
+                    <!-- Feedback Form -->
+                    <form v-else @submit.prevent="submitFeedback" class="p-8 space-y-6">
+                        <!-- Feedback Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">What type of feedback do you have?</label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <label v-for="type in feedbackTypes" :key="type.value"
+                                       class="relative flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition-all"
+                                       :class="feedback.type === type.value ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'">
+                                    <input type="radio" :value="type.value" v-model="feedback.type" class="sr-only">
+                                    <div class="text-center">
+                                        <span class="text-2xl block mb-1">{{ type.icon }}</span>
+                                        <span class="text-sm" :class="feedback.type === type.value ? 'text-primary font-medium' : 'text-gray-600'">{{ type.label }}</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Rating -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">How would you rate your experience?</label>
+                            <div class="flex items-center space-x-2">
+                                <button v-for="star in 5" :key="star" type="button"
+                                        @click="feedback.rating = star"
+                                        class="text-3xl transition-transform hover:scale-110 focus:outline-none"
+                                        :class="star <= feedback.rating ? 'text-yellow-400' : 'text-gray-300'">
+                                    ★
+                                </button>
+                                <span class="ml-3 text-sm text-gray-500" v-if="feedback.rating">
+                                    {{ ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][feedback.rating] }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Name (Optional) -->
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Name <span class="text-gray-400">(optional)</span></label>
+                                <input type="text" v-model="feedback.name" placeholder="Your name"
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email <span class="text-gray-400">(optional)</span></label>
+                                <input type="email" v-model="feedback.email" placeholder="your@email.com"
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Message -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Your thoughts <span class="text-red-500">*</span></label>
+                            <textarea v-model="feedback.message" rows="4" required
+                                      placeholder="Tell us what you think about DittoMation, suggest features, report issues, or share your experience..."
+                                      class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"></textarea>
+                        </div>
+
+                        <!-- Feature Checkboxes -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Which features interest you most? <span class="text-gray-400">(optional)</span></label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label v-for="feature in interestFeatures" :key="feature"
+                                       class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" :value="feature" v-model="feedback.interests"
+                                           class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
+                                    <span class="text-sm text-gray-700">{{ feature }}</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div v-if="feedbackError" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                            {{ feedbackError }}
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                            <button type="submit"
+                                    :disabled="feedbackLoading"
+                                    class="flex-1 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <template v-if="feedbackLoading">
+                                    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg>
+                                    <span>Submitting...</span>
+                                </template>
+                                <template v-else>
+                                    <span>Submit Feedback</span>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                    </svg>
+                                </template>
+                            </button>
+                            <a :href="githubIssueUrl" target="_blank"
+                               class="flex-1 bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                </svg>
+                                <span>Open GitHub Issue</span>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Recent Feedback (Demo) -->
+                <div class="mt-8" v-if="recentFeedback.length > 0">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Feedback</h3>
+                    <div class="space-y-4">
+                        <div v-for="(item, index) in recentFeedback" :key="index"
+                             class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                        <span class="text-primary font-medium text-sm">{{ item.name ? item.name[0].toUpperCase() : 'A' }}</span>
+                                    </div>
+                                    <span class="font-medium text-gray-900">{{ item.name || 'Anonymous' }}</span>
+                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{{ item.type }}</span>
+                                </div>
+                                <div class="text-yellow-400 text-sm">
+                                    {{ '★'.repeat(item.rating) }}{{ '☆'.repeat(5 - item.rating) }}
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm">{{ item.message }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Real Emulator Modal -->
+        <div v-if="showRealEmulator" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click.self="showRealEmulator = false">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto overscroll-contain">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">Real Android Emulator</h3>
+                        <p class="text-sm text-gray-500">Powered by Appetize.io - Interact directly with a real Android device</p>
+                    </div>
+                    <button @click="showRealEmulator = false" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="grid lg:grid-cols-3 gap-6 p-6">
+                    <!-- Emulator Options -->
+                    <div class="lg:col-span-2">
+                        <!-- Emulator Selection Tabs -->
+                        <div class="flex space-x-2 mb-4">
+                            <button @click="emulatorTab = 'browser'"
+                                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                    :class="emulatorTab === 'browser' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
+                                Browser Emulator
+                            </button>
+                            <button @click="emulatorTab = 'local'"
+                                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                    :class="emulatorTab === 'local' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
+                                Local Device
+                            </button>
+                        </div>
+
+                        <!-- Browser Emulator Tab -->
+                        <div v-show="emulatorTab === 'browser'" class="flex justify-center">
+                            <div class="text-center">
+                                <!-- Android Studio Web Emulator Alternative -->
+                                <div class="bg-gray-900 rounded-[2.5rem] p-3 shadow-2xl inline-block">
+                                    <div class="bg-gray-800 rounded-[2rem] overflow-hidden" style="width: 300px; height: 600px;">
+                                        <!-- Status bar -->
+                                        <div class="bg-gray-900 text-white px-4 py-2 flex justify-between items-center text-xs">
+                                            <span>{{ phoneTime }}</span>
+                                            <div class="flex items-center space-x-1">
+                                                <span>5G</span>
+                                                <span>100%</span>
+                                            </div>
+                                        </div>
+                                        <!-- Content -->
+                                        <div class="h-full bg-gradient-to-b from-indigo-500 to-purple-600 flex flex-col items-center justify-center text-white p-6">
+                                            <div class="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                                </svg>
+                                            </div>
+                                            <h4 class="text-xl font-bold mb-2">Real Device Required</h4>
+                                            <p class="text-white/80 text-sm text-center mb-6">
+                                                DittoMation connects to real Android devices via ADB for automation
+                                            </p>
+                                            <div class="space-y-3 w-full">
+                                                <a href="https://appetize.io/demo?device=pixel4&osVersion=11.0" target="_blank"
+                                                   class="block w-full bg-white text-indigo-600 py-3 rounded-xl font-medium hover:bg-gray-100 transition-colors text-center">
+                                                    Try Appetize.io Demo
+                                                </a>
+                                                <a href="https://developer.android.com/studio/run/emulator" target="_blank"
+                                                   class="block w-full bg-white/20 text-white py-3 rounded-xl font-medium hover:bg-white/30 transition-colors text-center">
+                                                    Get Android Emulator
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-3">Click buttons above to access real emulators</p>
+                            </div>
+                        </div>
+
+                        <!-- Local Device Tab -->
+                        <div v-show="emulatorTab === 'local'" class="space-y-4">
+                            <div class="bg-green-50 border border-green-200 rounded-xl p-5">
+                                <h4 class="font-semibold text-green-900 mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Recommended: Connect Real Device
+                                </h4>
+                                <ol class="text-sm text-green-800 space-y-3 list-decimal list-inside">
+                                    <li>Enable <strong>Developer Options</strong> on your Android device</li>
+                                    <li>Enable <strong>USB Debugging</strong> in Developer Options</li>
+                                    <li>Connect device via USB cable</li>
+                                    <li>Run commands below to verify connection</li>
+                                </ol>
+                            </div>
+
+                            <div class="bg-gray-900 rounded-xl p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-gray-400 text-sm">Terminal</span>
+                                    <button @click="copyAdbCommands" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded">
+                                        {{ adbCopied ? 'Copied!' : 'Copy' }}
+                                    </button>
+                                </div>
+                                <pre class="text-green-400 text-sm font-mono overflow-x-auto"><code># Check connected devices
+adb devices
+
+# Install DittoMation
+pip install dittomatic
+
+# Run your first command
+ditto run "open settings"
+
+# Or use Python
+python -c "from dittomatic import DittoMation; DittoMation().run('open settings')"</code></pre>
+                            </div>
+
+                            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                <h4 class="font-semibold text-blue-900 mb-2">Using Android Studio Emulator</h4>
+                                <p class="text-sm text-blue-800 mb-2">
+                                    You can also use the Android Studio emulator, which connects via ADB automatically:
+                                </p>
+                                <pre class="bg-blue-100 text-blue-900 p-2 rounded text-xs overflow-x-auto"><code># List available emulators
+emulator -list-avds
+
+# Start an emulator
+emulator -avd Pixel_4_API_30
+
+# Verify connection
+adb devices</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instructions Panel -->
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                            <h4 class="font-semibold text-blue-900 mb-2">How to use with DittoMation</h4>
+                            <ol class="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+                                <li>Interact with the emulator manually to explore</li>
+                                <li>Note the app package names and element texts</li>
+                                <li>Use those in your DittoMation commands</li>
+                            </ol>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h4 class="font-semibold text-gray-900 mb-3">Connect Your Own Device</h4>
+                            <p class="text-sm text-gray-600 mb-3">For full DittoMation testing, connect a real device:</p>
+                            <pre class="bg-gray-900 text-gray-300 p-3 rounded-lg text-xs overflow-x-auto"><code># Connect via USB
+adb devices
+
+# Or connect wirelessly
+adb tcpip 5555
+adb connect &lt;device-ip&gt;:5555
+
+# Run DittoMation
+ditto run "open settings"</code></pre>
+                        </div>
+
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                            <h4 class="font-semibold text-amber-900 mb-2">Note</h4>
+                            <p class="text-sm text-amber-800">
+                                The browser emulator is for exploration only. DittoMation commands execute on devices connected via ADB, not browser emulators.
+                            </p>
+                        </div>
+
+                        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                            <h4 class="font-semibold text-purple-900 mb-2">Set Up Your Own Emulator</h4>
+                            <p class="text-sm text-purple-800 mb-2">
+                                Upload your APK to Appetize.io for a custom embedded emulator:
+                            </p>
+                            <a href="https://appetize.io/upload" target="_blank"
+                               class="inline-flex items-center text-sm text-purple-700 hover:text-purple-900 font-medium">
+                                Go to Appetize.io
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 text-gray-400 py-12 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid md:grid-cols-4 gap-8">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-4">
+                            <div class="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">D</span>
+                            </div>
+                            <span class="font-bold text-xl text-white">DittoMation</span>
+                        </div>
+                        <p class="text-sm">Smart Android automation powered by AI. Write less code, achieve more.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white mb-4">Documentation</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="https://OmPrakashSingh1704.github.io/DittoMation/" class="hover:text-white transition-colors">Getting Started</a></li>
+                            <li><a href="https://OmPrakashSingh1704.github.io/DittoMation/features/natural-language/" class="hover:text-white transition-colors">Natural Language</a></li>
+                            <li><a href="https://OmPrakashSingh1704.github.io/DittoMation/features/smart-locator/" class="hover:text-white transition-colors">Smart Locator</a></li>
+                            <li><a href="https://OmPrakashSingh1704.github.io/DittoMation/features/record-replay/" class="hover:text-white transition-colors">Record & Replay</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white mb-4">Resources</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="https://github.com/OmPrakashSingh1704/DittoMation" class="hover:text-white transition-colors">GitHub Repository</a></li>
+                            <li><a href="https://github.com/OmPrakashSingh1704/DittoMation/issues" class="hover:text-white transition-colors">Issue Tracker</a></li>
+                            <li><a href="https://github.com/OmPrakashSingh1704/DittoMation/releases" class="hover:text-white transition-colors">Releases</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white mb-4">Legal</h4>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="https://github.com/OmPrakashSingh1704/DittoMation/blob/main/LICENSE" class="hover:text-white transition-colors">MIT License</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
+                    <p>Built with Vue.js and Tailwind CSS. Open source under MIT License.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- App Script -->
+    <script src="js/app.js"></script>
+</body>
+</html>

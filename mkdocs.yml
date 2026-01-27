@@ -8,6 +8,8 @@ repo_url: https://github.com/OmPrakashSingh1704/DittoMation
 
 theme:
   name: material
+  logo: assets/logo.jpeg
+  favicon: assets/logo.jpeg
   palette:
     - scheme: default
       primary: indigo
