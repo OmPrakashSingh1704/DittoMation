@@ -1,0 +1,40 @@
+title: "[Show & Tell]: "
+labels:
+  - showcase
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Show off what you've built with DittoMation! We'd love to see your projects.
+
+  - type: textarea
+    id: project
+    attributes:
+      label: Project Description
+      description: Tell us about what you built
+      placeholder: I used DittoMation to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: how
+    attributes:
+      label: How You Used DittoMation
+      description: What features did you use? Any interesting techniques?
+      placeholder: I used the natural language commands to...
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code / Commands
+      description: Share relevant code or commands
+      render: python
+
+  - type: textarea
+    id: links
+    attributes:
+      label: Links
+      description: Link to your project, video, or demo
+      placeholder: |
+        - GitHub:
+        - Demo:

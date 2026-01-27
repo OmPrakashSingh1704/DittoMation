@@ -1,30 +1,162 @@
-# DittoMation
+<p align="center">
+  <img src="logo/DittoMation.jpeg" alt="DittoMation Logo" width="150" height="150" style="border-radius: 20px;">
+</p>
 
-[![PyPI version](https://img.shields.io/pypi/v/dittomation.svg)](https://pypi.org/project/dittomation/)
-[![Python versions](https://img.shields.io/pypi/pyversions/dittomation.svg)](https://pypi.org/project/dittomation/)
-[![CI](https://github.com/OmPrakashSingh1704/DittoMation/actions/workflows/ci.yml/badge.svg)](https://github.com/OmPrakashSingh1704/DittoMation/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/OmPrakashSingh1704/DittoMation/branch/main/graph/badge.svg)](https://codecov.io/gh/OmPrakashSingh1704/DittoMation)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<h1 align="center">DittoMation</h1>
 
-Android automation framework that records touch interactions, maps them to UI elements, and replays them using smart element location. Supports natural language commands for intuitive automation.
+<p align="center">
+  <strong>Smart Android Automation with Natural Language Commands</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/OmPrakashSingh1704/DittoMation/stargazers"><img src="https://img.shields.io/github/stars/OmPrakashSingh1704/DittoMation?style=social" alt="GitHub Stars"></a>
+  <a href="https://github.com/OmPrakashSingh1704/DittoMation/network/members"><img src="https://img.shields.io/github/forks/OmPrakashSingh1704/DittoMation?style=social" alt="GitHub Forks"></a>
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/dittomation/"><img src="https://img.shields.io/pypi/v/dittomation.svg" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/dittomation/"><img src="https://img.shields.io/pypi/pyversions/dittomation.svg" alt="Python versions"></a>
+  <a href="https://github.com/OmPrakashSingh1704/DittoMation/actions/workflows/ci.yml"><img src="https://github.com/OmPrakashSingh1704/DittoMation/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+</p>
+
+<p align="center">
+  <a href="https://omprakashsingh1704.github.io/DittoMation/demo/">Try Interactive Demo</a> •
+  <a href="https://omprakashsingh1704.github.io/DittoMation/">Documentation</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#features">Features</a>
+</p>
+
+---
+
+## Why DittoMation?
+
+Traditional Android automation breaks constantly:
+
+| Problem | Coordinate-based | DittoMation |
+|---------|------------------|-------------|
+| Screen size changes | **Breaks** | Works |
+| UI layout updates | **Breaks** | Works |
+| Element ID renamed | **Breaks** | Works |
+| **Success Rate** | ~70% | **~98%** |
+
+**DittoMation uses smart element location** with multiple fallback strategies, so your automation scripts keep working even when the UI changes.
+
+---
+
+## Interactive Demo
+
+**[Try DittoMation in your browser](https://omprakashsingh1704.github.io/DittoMation/demo/)** - no installation required!
+
+Type natural language commands and watch them execute on a simulated Android device.
+
+---
+
+## Quick Start
+
+### Installation
+
+```bash
+pip install dittomation
+```
+
+### Your First Command
+
+```bash
+# Natural language - just describe what you want
+ditto nl "open YouTube, search for cats, play first video"
+```
+
+### Or Use Python
+
+```python
+from dittomatic import DittoMation
+
+ditto = DittoMation()
+ditto.run("open settings and enable dark mode")
+```
+
+---
 
 ## Features
 
-- **Record** touch gestures (tap, swipe, long press, scroll, pinch) from Android device
+### Natural Language Commands
+
+Control your Android device with plain English:
+
+```bash
+ditto nl "Open Chrome, search for weather, tap first result"
+ditto nl "Set alarm for 7:30 am"
+ditto nl "Call mom and wait 30 seconds"
+```
+
+### Smart Locator
+
+Never worry about brittle selectors again. DittoMation automatically tries multiple strategies:
+
+```
+resource-id → content-desc → text → xpath → visual AI → coordinates
+```
+
+### Record & Replay
+
+```bash
+# Record your actions
+ditto record --output my_workflow.json
+
+# Replay anywhere
+ditto run my_workflow.json
+```
+
+### Variables & Control Flow
+
+```json
+{
+  "variables": { "username": "testuser" },
+  "steps": [
+    { "action": "tap", "text": "Login" },
+    { "action": "type", "value": "{{username}}" },
+    { "action": "if", "expr": "element_exists(text='Welcome')",
+      "then_steps": [{ "action": "log", "message": "Success!" }]
+    }
+  ]
+}
+```
+
+---
+
+## Full Feature List
+
+- **Record** touch gestures (tap, swipe, long press, scroll, pinch)
 - **Replay** recorded workflows with smart element location
-- **Natural Language** command execution - describe actions in plain English
-- **Smart Locators** - fallback chain (resource-id → content-desc → text → xpath → coordinates)
-- **Intent-based App Launching** - reliable app opening via Android intents
-- **Variables & Expressions** - dynamic scripts with `{{variable}}` syntax and safe expression evaluation
-- **Control Flow** - if/else conditions, for/while/until loops for complex automation
+- **Natural Language** - describe actions in plain English
+- **Smart Locators** - fallback chain for reliable element finding
+- **Intent-based App Launching** - reliable app opening
+- **Variables & Expressions** - dynamic scripts with `{{variable}}` syntax
+- **Control Flow** - if/else conditions, for/while/until loops
+- **Cloud Ready** - AWS Device Farm & Firebase Test Lab support
 
-## Requirements
+---
 
-- Python 3.8+
-- Android SDK with ADB (Android Debug Bridge)
-- Android device/emulator with USB debugging enabled
+## Supported Commands
 
-## Installation
+| Command | Example |
+|---------|---------|
+| Open app | `open YouTube` |
+| Tap element | `tap Login button` |
+| Type text | `type "hello world"` |
+| Swipe | `swipe up`, `swipe left` |
+| Scroll | `scroll down` |
+| Long press | `long press Settings` |
+| Search | `search for "cats"` |
+| Navigate | `back`, `home` |
+| Wait | `wait 5 seconds` |
+| Call | `call 1234567890` |
+| Set alarm | `set alarm for 8:00` |
+
+---
+
+## Installation Options
 
 ### From PyPI (Recommended)
 
@@ -32,7 +164,7 @@ Android automation framework that records touch interactions, maps them to UI el
 pip install dittomation
 ```
 
-With optional cloud provider support:
+With cloud provider support:
 
 ```bash
 pip install dittomation[aws]      # AWS Device Farm
@@ -42,213 +174,52 @@ pip install dittomation[all]      # All extras
 
 ### From Source
 
-1. Clone the repository:
-
 ```bash
 git clone https://github.com/OmPrakashSingh1704/DittoMation.git
 cd DittoMation
-```
-
-2. Install the package:
-
-```bash
 pip install -e .
 ```
 
-For development:
+### Requirements
 
-```bash
-pip install -e .[dev]
-```
+- Python 3.8+
+- Android SDK with ADB
+- Android device/emulator with USB debugging enabled
 
-### Verify Installation
+---
 
-Ensure ADB is accessible:
+## Documentation
 
-```bash
-adb devices  # Should show your connected device
-```
+- [Getting Started Guide](https://omprakashsingh1704.github.io/DittoMation/getting-started/)
+- [Smart Locator](https://omprakashsingh1704.github.io/DittoMation/features/smart-locator/)
+- [Natural Language](https://omprakashsingh1704.github.io/DittoMation/features/natural-language/)
+- [Record & Replay](https://omprakashsingh1704.github.io/DittoMation/features/record-replay/)
+- [Variables & Control Flow](https://omprakashsingh1704.github.io/DittoMation/variables-and-control-flow/)
 
-## Project Structure
-
-```
-DittoMation/
-├── recorder/
-│   ├── adb_wrapper.py       # ADB command utilities
-│   ├── event_listener.py    # Touch event capture via getevent
-│   ├── ui_dumper.py         # UI hierarchy capture & parsing
-│   ├── element_matcher.py   # Coordinate to element mapping
-│   ├── gesture_classifier.py # Gesture recognition (tap/swipe/etc)
-│   ├── workflow.py          # Workflow storage & management
-│   ├── main.py              # Recording CLI
-│   └── interactive_recorder.py # Manual step-by-step recording
-├── replayer/
-│   ├── locator.py           # Smart element location
-│   ├── executor.py          # Gesture execution via ADB
-│   ├── main.py              # Replay CLI
-│   ├── text_runner.py       # Plain text command execution
-│   └── nl_runner.py         # Natural language execution
-├── docs/
-│   └── approach.md          # Technical approach documentation
-├── output/                  # Generated workflow files
-└── README.md
-```
-
-## Usage
-
-### Natural Language Runner (Recommended)
-
-Execute Android actions using natural language:
-
-```bash
-# Single command
-python replayer/nl_runner.py "Open YouTube, search for 'Mr. Beast', play latest video"
-
-# Interactive mode
-python replayer/nl_runner.py --interactive
-
-# From file
-python replayer/nl_runner.py --file instructions.txt
-```
-
-**Supported Commands:**
-- `open [app]` - Open an app (Clock, YouTube, Settings, etc.)
-- `tap [element]` - Tap on element by text/description
-- `long press [element]` - Long press on element
-- `swipe up/down/left/right` - Swipe gestures
-- `scroll up/down` - Scroll gestures
-- `type "text"` - Input text
-- `search for "query"` - Search within current app
-- `back` / `home` - Navigation
-- `wait [seconds]` - Pause execution
-- `call [number]` - Make a phone call
-- `set alarm for 8:00` - Set an alarm
-- `go to [url]` - Open URL in browser
-- `play first/latest video` - Play video results
-- `copy last number I called` - Copy to clipboard
-- `search for that number you copied` - Use clipboard
-
-### Recording Workflows
-
-```bash
-# Interactive recording (recommended for emulators)
-python recorder/interactive_recorder.py --output my_workflow.json
-
-# Automated recording via getevent (physical devices)
-python recorder/main.py --output my_workflow.json
-```
-
-### Replaying Workflows
-
-```bash
-# Replay a recorded workflow
-python replayer/main.py --workflow my_workflow.json
-
-# With custom delay between steps
-python replayer/main.py --workflow my_workflow.json --delay 1000
-```
-
-### Scripted Automation with Variables
-
-Run automation scripts with variables and control flow:
-
-```bash
-# Basic script execution
-ditto run script.json
-
-# With command-line variables
-ditto run login.json --var username=myuser --var password=secret
-
-# With variables file
-ditto run script.json --vars-file config.json --verbose
-```
-
-Example script with variables and conditions (`login.json`):
-
-```json
-{
-  "name": "smart_login",
-  "variables": {
-    "username": "testuser",
-    "max_retries": 3
-  },
-  "steps": [
-    {"action": "open", "app": "MyApp"},
-    {
-      "action": "if",
-      "expr": "element_exists(text='Welcome')",
-      "then_steps": [
-        {"action": "log", "message": "Already logged in"}
-      ],
-      "else_steps": [
-        {"action": "tap", "text": "Login"},
-        {"action": "type", "value": "{{username}}"},
-        {"action": "tap", "text": "Submit"}
-      ]
-    }
-  ]
-}
-```
-
-See [Variables and Control Flow Guide](docs/variables-and-control-flow.md) for complete documentation.
-
-### Text-based Commands
-
-```bash
-# Simple text commands
-python replayer/text_runner.py "tap Phone; tap Contacts; swipe down"
-
-# From file
-python replayer/text_runner.py commands.txt
-```
-
-## Examples
-
-### Open YouTube and Play a Video
-```bash
-python replayer/nl_runner.py "Open YouTube, search for 'cooking tutorial', play first video"
-```
-
-### Make a Phone Call
-```bash
-python replayer/nl_runner.py "Call 1234567890, wait 30, end call"
-```
-
-### Set an Alarm
-```bash
-python replayer/nl_runner.py "Open clock, set alarm for 7:30 am"
-```
-
-### Copy and Search
-```bash
-python replayer/nl_runner.py "Open phone, copy last number I called, go home, open youtube, search for that number you copied"
-```
-
-## How It Works
-
-See [docs/approach.md](docs/approach.md) for detailed technical documentation.
-
-## Troubleshooting
-
-### ADB not found
-Set the `ANDROID_HOME` environment variable or add ADB to your PATH.
-
-### UI dump timeout
-The device may be busy. The tool will retry automatically. You can also:
-```bash
-adb shell pkill -f uiautomator
-```
-
-### Text input drops characters
-This can happen on slow devices. The tool types in chunks with delays to mitigate this.
-
-### App not found
-Use the exact app name as it appears on the device, or use one of the supported intent-based apps (clock, settings, youtube, etc.).
+---
 
 ## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
+---
+
+## Support
+
+- [GitHub Issues](https://github.com/OmPrakashSingh1704/DittoMation/issues) - Bug reports & feature requests
+- [Interactive Demo Feedback](https://omprakashsingh1704.github.io/DittoMation/demo/#feedback) - Share your thoughts
+
+---
+
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">
+  <strong>If DittoMation helps you, please consider giving it a star!</strong><br>
+  <a href="https://github.com/OmPrakashSingh1704/DittoMation/stargazers">
+    <img src="https://img.shields.io/github/stars/OmPrakashSingh1704/DittoMation?style=social" alt="GitHub Stars">
+  </a>
+</p>

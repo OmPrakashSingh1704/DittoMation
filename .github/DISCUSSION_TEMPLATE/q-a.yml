@@ -1,0 +1,35 @@
+title: "[Q&A]: "
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask the community for help! Someone might have faced the same issue.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What do you need help with?
+      placeholder: How do I...?
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What I've Tried
+      description: What have you already attempted?
+      placeholder: I tried... but it didn't work because...
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Share relevant details about your setup
+      placeholder: |
+        - OS: Windows 11
+        - Python: 3.10
+        - DittoMation: 0.1.0
+        - Android: 13

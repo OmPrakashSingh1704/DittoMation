@@ -1,0 +1,31 @@
+title: "[Idea]: "
+labels:
+  - idea
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share your ideas for improving DittoMation!
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your Idea
+      description: Describe your idea or suggestion
+      placeholder: What if DittoMation could...
+    validations:
+      required: true
+
+  - type: textarea
+    id: benefits
+    attributes:
+      label: Benefits
+      description: How would this help users?
+      placeholder: This would help because...
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Possible Implementation
+      description: Any thoughts on how this could be implemented?
+      placeholder: This could work by...

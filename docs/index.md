@@ -9,7 +9,7 @@
 !!! tip "Try the Interactive Demo"
     Experience DittoMation with our interactive Android simulator. Type natural language commands and watch them execute in real-time.
 
-    **[Launch Interactive Demo →](demo/index.html)**
+    **[Launch Interactive Demo →](demo/)**
 
 ---
 
@@ -97,7 +97,7 @@ Tested across 4 UI versions (original, layout shift, redesign, tablet):
 
 ## Links
 
-- [Interactive Demo](demo/index.html)
+- [Interactive Demo](demo/)
 - [GitHub Repository](https://github.com/OmPrakashSingh1704/DittoMation)
 - [PyPI Package](https://pypi.org/project/dittomation/)
 - [Getting Started Guide](getting-started.md)

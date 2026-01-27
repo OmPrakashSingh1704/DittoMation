@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://omprakashsingh1704.github.io/DittoMation/
+    about: Check the documentation for guides and API reference
+  - name: Interactive Demo
+    url: https://omprakashsingh1704.github.io/DittoMation/demo/
+    about: Try DittoMation in your browser
+  - name: Discussions
+    url: https://github.com/OmPrakashSingh1704/DittoMation/discussions
+    about: Ask questions and share ideas with the community
