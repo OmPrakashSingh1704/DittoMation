@@ -198,6 +198,18 @@ pip install -e .
 
 ---
 
+## Security
+
+DittoMation takes security seriously. We regularly audit dependencies and follow security best practices.
+
+- **No Known Vulnerabilities**: DittoMation has no published CVEs or documented security vulnerabilities
+- **Dependency Audits**: Regular security scans with `pip-audit` and `bandit`
+- **Responsible Disclosure**: Report security issues via [GitHub Security Advisories](https://github.com/OmPrakashSingh1704/DittoMation/security/advisories/new)
+
+For more details, see our [Security Policy](SECURITY.md).
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.

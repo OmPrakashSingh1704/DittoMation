@@ -32,36 +32,36 @@ classifiers = [
 ]
 
 dependencies = [
-    "click>=8.0.0",
+    "click>=8.0.0,<9.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "black>=23.0.0",
-    "ruff>=0.1.0",
-    "mypy>=1.0.0",
-    "pre-commit>=3.0.0",
-    "bandit>=1.7.0",
+    "pytest>=7.0.0,<9.0",
+    "pytest-cov>=4.0.0,<7.0",
+    "black>=23.0.0,<25.0",
+    "ruff>=0.1.0,<1.0",
+    "mypy>=1.0.0,<2.0",
+    "pre-commit>=3.0.0,<5.0",
+    "bandit>=1.7.0,<2.0",
 ]
 cloud = [
-    "boto3>=1.26.0",              # AWS Device Farm
-    "google-cloud-storage>=2.0.0", # Firebase Test Lab artifacts
-    "requests>=2.28.0",           # HTTP requests for artifact download
+    "boto3>=1.26.0,<2.0",              # AWS Device Farm
+    "google-cloud-storage>=2.0.0,<3.0", # Firebase Test Lab artifacts
+    "requests>=2.28.0,<3.0",           # HTTP requests for artifact download
 ]
 aws = [
-    "boto3>=1.26.0",
-    "requests>=2.28.0",
+    "boto3>=1.26.0,<2.0",
+    "requests>=2.28.0,<3.0",
 ]
 firebase = [
-    "google-cloud-storage>=2.0.0",
+    "google-cloud-storage>=2.0.0,<3.0",
 ]
 all = [
-    "boto3>=1.26.0",
-    "google-cloud-storage>=2.0.0",
-    "requests>=2.28.0",
-    "pyyaml>=6.0.0",
+    "boto3>=1.26.0,<2.0",
+    "google-cloud-storage>=2.0.0,<3.0",
+    "requests>=2.28.0,<3.0",
+    "pyyaml>=6.0.0,<7.0",
 ]
 
 [project.scripts]
