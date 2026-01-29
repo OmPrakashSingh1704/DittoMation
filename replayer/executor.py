@@ -27,89 +27,6 @@ from recorder.adb_wrapper import run_adb
 logger = get_logger("executor")
 
 
-def _escape_text_for_shell(text: str) -> str:
-    """
-    Escape text for safe shell input.
-
-    Args:
-        text: Raw text to escape
-
-    Returns:
-        Escaped text safe for shell command
-    """
-    escaped = ""
-    for char in text:
-        if char == " ":
-            escaped += "%s"
-        elif char in "'\"&<>()|;\\`$!#*?[]{}.\n\r\t":
-            # Add backslash escaping for shell-sensitive chars
-            escaped += "\\" + char
-        else:
-            # Only allow printable ASCII characters
-            if ord(char) >= 32 and ord(char) < 127:
-                escaped += char
-            # Skip non-printable characters for security
-    return escaped
-
-
-def _clear_text_field() -> None:
-    """Clear the current text field by selecting all and deleting."""
-    run_adb(["shell", "input", "keyevent", "KEYCODE_MOVE_END"])
-    run_adb(["shell", "input", "keyevent", "--longpress", "KEYCODE_DEL"])
-    time.sleep(0.2)
-
-
-def _parse_coordinates(coord: Any, default: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
-    """
-    Parse coordinates from various formats.
-
-    Args:
-        coord: Coordinate in list/tuple format [x, y]
-        default: Default coordinate if parsing fails
-
-    Returns:
-        Tuple of (x, y) coordinates
-    """
-    if isinstance(coord, (list, tuple)) and len(coord) >= 2:
-        return coord[0], coord[1]
-    logger.warning(f"Invalid coordinates: {coord}, using default {default}")
-    return default
-
-
-def _calculate_relative_end(
-    start_x: int, start_y: int, gesture: Dict[str, Any]
-) -> Tuple[int, int]:
-    """
-    Calculate end coordinates relative to a new start position.
-
-    Args:
-        start_x: New start X coordinate
-        start_y: New start Y coordinate
-        gesture: Gesture dict containing original start/end
-
-    Returns:
-        Tuple of (end_x, end_y) coordinates
-    """
-    orig_start = gesture.get("start", [0, 0])
-    end = gesture.get("end", [start_x, start_y])
-
-    # Calculate delta if both coordinates are valid
-    if (
-        isinstance(orig_start, (list, tuple))
-        and len(orig_start) >= 2
-        and isinstance(end, (list, tuple))
-        and len(end) >= 2
-    ):
-        dx = end[0] - orig_start[0]
-        dy = end[1] - orig_start[1]
-        return start_x + dx, start_y + dy
-
-    # Fallback to original end coordinates
-    return _parse_coordinates(end, (start_x, start_y))
-
-
-
-
 def tap(x: int, y: int) -> bool:
     """
     Execute tap gesture.
@@ -292,12 +209,32 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
 
         # Optionally clear existing text first
         if clear_first:
-            _clear_text_field()
+            # Select all and delete
+            run_adb(["shell", "input", "keyevent", "KEYCODE_MOVE_END"])
+            run_adb(["shell", "input", "keyevent", "--longpress", "KEYCODE_DEL"])
+            time.sleep(0.2)
 
         # Type in chunks to avoid dropped characters
         for i in range(0, len(text), chunk_size):
             chunk = text[i : i + chunk_size]
-            escaped = _escape_text_for_shell(chunk)
+
+            # Escape special characters for shell
+            # Using shlex-like approach for better security
+            escaped = ""
+            for char in chunk:
+                if char == " ":
+                    escaped += "%s"
+                elif char in "'\"&<>()|;\\`$!#*?[]{}.\n\r\t":
+                    # Add backslash escaping for shell-sensitive chars
+                    escaped += "\\" + char
+                else:
+                    # Only allow printable ASCII characters
+                    if ord(char) >= 32 and ord(char) < 127:
+                        escaped += char
+                    else:
+                        # Skip non-printable characters for security
+                        continue
+
             run_adb(["shell", "input", "text", escaped])
 
             # Small delay between chunks
@@ -416,14 +353,26 @@ def execute_gesture(gesture: Dict[str, Any], coordinates: Optional[Tuple[int, in
     """
     gesture_type = gesture.get("type", "tap")
 
-    # Get start coordinates (use override or gesture coordinates)
+    # Get coordinates (use override or gesture coordinates)
     if coordinates:
         x, y = coordinates
     else:
-        x, y = _parse_coordinates(gesture.get("start", [0, 0]), (0, 0))
+        start = gesture.get("start", [0, 0])
+        # Ensure start has at least 2 elements
+        if isinstance(start, (list, tuple)) and len(start) >= 2:
+            x, y = start[0], start[1]
+        else:
+            logger.warning(f"Invalid gesture start coordinates: {start}, using (0, 0)")
+            x, y = 0, 0
 
-    # Get end coordinates for swipe/scroll gestures
-    end_x, end_y = _parse_coordinates(gesture.get("end", [x, y]), (x, y))
+    # Get end coordinates for swipe/scroll
+    end = gesture.get("end", [x, y])
+    # Ensure end has at least 2 elements
+    if isinstance(end, (list, tuple)) and len(end) >= 2:
+        end_x, end_y = end[0], end[1]
+    else:
+        logger.warning(f"Invalid gesture end coordinates: {end}, using start coordinates")
+        end_x, end_y = x, y
 
     # Get duration
     duration_ms = gesture.get("duration_ms", 100)
@@ -433,20 +382,45 @@ def execute_gesture(gesture: Dict[str, Any], coordinates: Optional[Tuple[int, in
         return tap(x, y)
 
     elif gesture_type == "long_press":
+        # Use at least 500ms for long press
         press_duration = max(duration_ms, 500)
         return long_press(x, y, press_duration)
 
     elif gesture_type == "swipe":
         # Calculate end point relative to new start if coordinates were overridden
         if coordinates:
-            end_x, end_y = _calculate_relative_end(x, y, gesture)
+            orig_start = gesture.get("start", [0, 0])
+            # Ensure both orig_start and end are valid before calculating delta
+            if (
+                isinstance(orig_start, (list, tuple))
+                and len(orig_start) >= 2
+                and isinstance(end, (list, tuple))
+                and len(end) >= 2
+            ):
+                dx = end[0] - orig_start[0]
+                dy = end[1] - orig_start[1]
+                end_x = x + dx
+                end_y = y + dy
+
         swipe_duration = max(duration_ms, 200)
         return swipe(x, y, end_x, end_y, swipe_duration)
 
     elif gesture_type == "scroll":
-        # Calculate end point relative to new start if coordinates were overridden
+        # Similar to swipe
         if coordinates:
-            end_x, end_y = _calculate_relative_end(x, y, gesture)
+            orig_start = gesture.get("start", [0, 0])
+            # Ensure both orig_start and end are valid before calculating delta
+            if (
+                isinstance(orig_start, (list, tuple))
+                and len(orig_start) >= 2
+                and isinstance(end, (list, tuple))
+                and len(end) >= 2
+            ):
+                dx = end[0] - orig_start[0]
+                dy = end[1] - orig_start[1]
+                end_x = x + dx
+                end_y = y + dy
+
         scroll_duration = max(duration_ms, 300)
         return scroll(x, y, end_x, end_y, scroll_duration)
 
@@ -457,7 +431,6 @@ def execute_gesture(gesture: Dict[str, Any], coordinates: Optional[Tuple[int, in
     else:
         logger.warning(f"Unknown gesture type: {gesture_type}")
         return False
-
 
 
 class GestureExecutor:
