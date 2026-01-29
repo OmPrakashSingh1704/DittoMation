@@ -111,4 +111,11 @@ def validate_chunk_size(chunk_size: int, min_size: int = 1, max_size: int = 50) 
     Returns:
         Validated chunk size
     """
-    return max(min_size, min(chunk_size, max_size))
+    if chunk_size < min_size or chunk_size > max_size:
+        clamped = max(min_size, min(chunk_size, max_size))
+        logger.warning(
+            f"Chunk size {chunk_size} out of range [{min_size}, {max_size}], "
+            f"clamping to {clamped}"
+        )
+        return clamped
+    return chunk_size
