@@ -14,6 +14,13 @@ from typing import Any, Dict, Optional, Tuple
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.logging_config import get_logger
+from core.validators import (
+    validate_chunk_size,
+    validate_coordinates,
+    validate_phone_number,
+    validate_swipe_coordinates,
+    validate_text_input,
+)
 from recorder.adb_wrapper import run_adb
 
 # Module logger
@@ -33,10 +40,7 @@ def tap(x: int, y: int) -> bool:
     """
     try:
         # Validate coordinates
-        if x < 0 or y < 0:
-            logger.warning(f"Invalid negative coordinates ({x}, {y}), clamping to 0")
-            x = max(0, x)
-            y = max(0, y)
+        x, y = validate_coordinates(x, y)
 
         run_adb(["shell", "input", "tap", str(x), str(y)])
         return True
@@ -61,10 +65,7 @@ def long_press(x: int, y: int, duration_ms: int = 1000) -> bool:
     """
     try:
         # Validate coordinates
-        if x < 0 or y < 0:
-            logger.warning(f"Invalid negative coordinates ({x}, {y}), clamping to 0")
-            x = max(0, x)
-            y = max(0, y)
+        x, y = validate_coordinates(x, y)
 
         # Long press is simulated as a swipe with same start/end point
         run_adb(["shell", "input", "swipe", str(x), str(y), str(x), str(y), str(duration_ms)])
@@ -90,12 +91,7 @@ def swipe(x1: int, y1: int, x2: int, y2: int, duration_ms: int = 300) -> bool:
     """
     try:
         # Validate coordinates
-        if x1 < 0 or y1 < 0 or x2 < 0 or y2 < 0:
-            logger.warning("Invalid negative coordinates, clamping to 0")
-            x1 = max(0, x1)
-            y1 = max(0, y1)
-            x2 = max(0, x2)
-            y2 = max(0, y2)
+        x1, y1, x2, y2 = validate_swipe_coordinates(x1, y1, x2, y2)
 
         run_adb(["shell", "input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duration_ms)])
         return True
@@ -208,12 +204,8 @@ def input_text(text: str, chunk_size: int = 10, clear_first: bool = False) -> bo
         if not text:
             return True  # Empty string is valid, just return success
 
-        if len(text) > 5000:
-            logger.warning("Text too long, truncating to 5000 characters")
-            text = text[:5000]
-
-        # Ensure chunk_size is reasonable
-        chunk_size = max(1, min(chunk_size, 50))
+        text = validate_text_input(text)
+        chunk_size = validate_chunk_size(chunk_size)
 
         # Optionally clear existing text first
         if clear_first:
@@ -306,17 +298,10 @@ def make_call(phone_number: str) -> bool:
         True if successful
     """
     try:
-        # Clean and validate the number
-        number = "".join(c for c in phone_number if c.isdigit() or c == "+")
-
-        # Basic validation: must have at least 3 digits
-        if len(number.replace("+", "")) < 3:
-            logger.error(f"Invalid phone number: {phone_number}")
-            return False
-
-        # Limit length to prevent abuse
-        if len(number) > 20:
-            logger.error(f"Phone number too long: {phone_number}")
+        # Validate the number
+        is_valid, number, error_msg = validate_phone_number(phone_number)
+        if not is_valid:
+            logger.error(error_msg)
             return False
 
         run_adb(["shell", "am", "start", "-a", "android.intent.action.CALL", "-d", f"tel:{number}"])
@@ -342,17 +327,10 @@ def dial_number(phone_number: str) -> bool:
         True if successful
     """
     try:
-        # Clean and validate the number
-        number = "".join(c for c in phone_number if c.isdigit() or c == "+")
-
-        # Basic validation: must have at least 3 digits
-        if len(number.replace("+", "")) < 3:
-            logger.error(f"Invalid phone number: {phone_number}")
-            return False
-
-        # Limit length to prevent abuse
-        if len(number) > 20:
-            logger.error(f"Phone number too long: {phone_number}")
+        # Validate the number
+        is_valid, number, error_msg = validate_phone_number(phone_number)
+        if not is_valid:
+            logger.error(error_msg)
             return False
 
         run_adb(["shell", "am", "start", "-a", "android.intent.action.DIAL", "-d", f"tel:{number}"])
