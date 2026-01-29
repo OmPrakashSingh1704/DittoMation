@@ -402,14 +402,9 @@ def select_best_match(
     if not candidates:
         return None
 
-    # Separate clickable and non-clickable in a single pass (O(n) instead of O(n²))
-    clickable = []
-    non_clickable = []
-    for e in candidates:
-        if e.get("clickable") or e.get("long_clickable"):
-            clickable.append(e)
-        else:
-            non_clickable.append(e)
+    # Separate clickable and non-clickable
+    clickable = [e for e in candidates if e.get("clickable") or e.get("long_clickable")]
+    non_clickable = [e for e in candidates if e not in clickable]
 
     # Sort by area (ascending - smaller first)
     clickable.sort(key=calculate_element_area)

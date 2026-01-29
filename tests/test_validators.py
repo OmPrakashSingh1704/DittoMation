@@ -1,5 +1,7 @@
 """Tests for the validators module."""
 
+import pytest
+
 from core.validators import (
     validate_chunk_size,
     validate_coordinates,
