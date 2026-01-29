@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 from replayer.executor import (
+    _escape_text_for_shell,
     input_text,
     long_press,
     pinch,
@@ -14,6 +15,66 @@ from replayer.executor import (
     swipe,
     tap,
 )
+
+
+class TestEscapeTextForShell:
+    """Tests for _escape_text_for_shell helper function."""
+
+    def test_normal_text(self):
+        """Test that normal text is returned unchanged."""
+        result = _escape_text_for_shell("hello")
+        assert result == "hello"
+
+    def test_spaces_escaped(self):
+        """Test that spaces are escaped with %s."""
+        result = _escape_text_for_shell("hello world")
+        assert result == "hello%sworld"
+
+    def test_newline_replaced_with_escaped_space(self):
+        """Test that newlines are replaced with %s."""
+        result = _escape_text_for_shell("hello\nworld")
+        assert result == "hello%sworld"
+
+    def test_carriage_return_replaced_with_escaped_space(self):
+        """Test that carriage returns are replaced with %s."""
+        result = _escape_text_for_shell("hello\rworld")
+        assert result == "hello%sworld"
+
+    def test_tab_replaced_with_escaped_space(self):
+        """Test that tabs are replaced with %s."""
+        result = _escape_text_for_shell("hello\tworld")
+        assert result == "hello%sworld"
+
+    def test_multiple_control_characters(self):
+        """Test that multiple control characters are all replaced."""
+        result = _escape_text_for_shell("hello\n\r\tworld")
+        assert result == "hello%s%s%sworld"
+
+    def test_shell_special_characters_escaped(self):
+        """Test that shell special characters are backslash-escaped."""
+        result = _escape_text_for_shell("test$var")
+        assert result == "test\\$var"
+
+    def test_quotes_escaped(self):
+        """Test that quotes are backslash-escaped."""
+        result = _escape_text_for_shell('test"value"')
+        assert result == 'test\\"value\\"'
+
+    def test_mixed_special_characters(self):
+        """Test escaping of mixed special characters and control chars."""
+        result = _escape_text_for_shell("hello world\n$var")
+        assert result == "hello%sworld%s\\$var"
+
+    def test_non_printable_characters_removed(self):
+        """Test that non-printable characters are removed."""
+        # ASCII 1 is non-printable and should be removed
+        result = _escape_text_for_shell("hello\x01world")
+        assert result == "helloworld"
+
+    def test_empty_string(self):
+        """Test that empty string is handled."""
+        result = _escape_text_for_shell("")
+        assert result == ""
 
 
 class TestTap:
