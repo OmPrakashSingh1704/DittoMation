@@ -76,7 +76,9 @@ def _parse_coordinates(coord: Any, default: Tuple[int, int] = (0, 0)) -> Tuple[i
     return default
 
 
-def _calculate_relative_end(start_x: int, start_y: int, gesture: Dict[str, Any]) -> Tuple[int, int]:
+def _calculate_relative_end(
+    start_x: int, start_y: int, gesture: Dict[str, Any]
+) -> Tuple[int, int]:
     """
     Calculate end coordinates relative to a new start position.
 
@@ -104,6 +106,8 @@ def _calculate_relative_end(start_x: int, start_y: int, gesture: Dict[str, Any])
 
     # Fallback to original end coordinates
     return _parse_coordinates(end, (start_x, start_y))
+
+
 
 
 def tap(x: int, y: int) -> bool:
@@ -453,6 +457,7 @@ def execute_gesture(gesture: Dict[str, Any], coordinates: Optional[Tuple[int, in
     else:
         logger.warning(f"Unknown gesture type: {gesture_type}")
         return False
+
 
 
 class GestureExecutor:

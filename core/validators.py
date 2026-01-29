@@ -29,7 +29,9 @@ def validate_coordinates(x: int, y: int) -> Tuple[int, int]:
     return x, y
 
 
-def validate_swipe_coordinates(x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int, int, int]:
+def validate_swipe_coordinates(
+    x1: int, y1: int, x2: int, y2: int
+) -> Tuple[int, int, int, int]:
     """
     Validate and clamp swipe coordinates to non-negative values.
 
