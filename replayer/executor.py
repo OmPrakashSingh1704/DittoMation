@@ -37,23 +37,27 @@ def _escape_text_for_shell(text: str) -> str:
     Returns:
         Escaped text safe for shell command
     """
-    escaped = ""
+    escaped_parts = []
     for char in text:
-        if char == " ":
-            escaped += "%s"
-        elif char in "'\"&<>()|;\\`$!#*?[]{}.\n\r\t":
+        # Replace control characters with a space to avoid breaking the shell command
+        if char in "\n\r\t":
+            escaped_parts.append(" ")
+        elif char == " ":
+            escaped_parts.append("%s")
+        elif char in "'\"&<>()|;\\`$!#*?[]{}.":
             # Add backslash escaping for shell-sensitive chars
-            escaped += "\\" + char
+            escaped_parts.append("\\" + char)
         else:
             # Only allow printable ASCII characters
-            if ord(char) >= 32 and ord(char) < 127:
-                escaped += char
+            code_point = ord(char)
+            if 32 <= code_point < 127:
+                escaped_parts.append(char)
             # Skip non-printable characters for security
-    return escaped
+    return "".join(escaped_parts)
 
 
 def _clear_text_field() -> None:
-    """Clear the current text field by selecting all and deleting."""
+    """Clear the current text field by moving to the end and long-pressing delete."""
     run_adb(["shell", "input", "keyevent", "KEYCODE_MOVE_END"])
     run_adb(["shell", "input", "keyevent", "--longpress", "KEYCODE_DEL"])
     time.sleep(0.2)

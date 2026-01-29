@@ -127,6 +127,30 @@ class TestValidatePhoneNumber:
         assert cleaned == "123"
         assert error == ""
 
+    def test_multiple_plus_signs(self):
+        """Test that multiple '+' characters are rejected."""
+        is_valid, cleaned, error = validate_phone_number("++123456789")
+        assert is_valid is False
+        assert "multiple '+'" in error
+
+    def test_plus_sign_in_middle(self):
+        """Test that '+' not at the start is rejected."""
+        is_valid, cleaned, error = validate_phone_number("123+456789")
+        assert is_valid is False
+        assert "'+' must be at the start" in error
+
+    def test_plus_sign_at_end(self):
+        """Test that '+' at the end is rejected."""
+        is_valid, cleaned, error = validate_phone_number("123456789+")
+        assert is_valid is False
+        assert "'+' must be at the start" in error
+
+    def test_multiple_plus_signs_scattered(self):
+        """Test that multiple scattered '+' characters are rejected."""
+        is_valid, cleaned, error = validate_phone_number("12+34+56789")
+        assert is_valid is False
+        assert "multiple '+'" in error
+
 
 class TestValidateTextInput:
     """Tests for validate_text_input function."""

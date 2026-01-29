@@ -67,6 +67,14 @@ def validate_phone_number(phone_number: str) -> Tuple[bool, str, str]:
     # Clean the number - keep only digits and +
     cleaned = "".join(c for c in phone_number if c.isdigit() or c == "+")
 
+    # Check for misplaced '+' character
+    # '+' is only allowed at the start and at most once
+    plus_count = cleaned.count("+")
+    if plus_count > 1:
+        return False, cleaned, f"Invalid phone number: multiple '+' characters: {phone_number}"
+    if plus_count == 1 and not cleaned.startswith("+"):
+        return False, cleaned, f"Invalid phone number: '+' must be at the start: {phone_number}"
+
     # Basic validation: must have at least 3 digits
     if len(cleaned.replace("+", "")) < 3:
         return False, cleaned, f"Invalid phone number: {phone_number}"
