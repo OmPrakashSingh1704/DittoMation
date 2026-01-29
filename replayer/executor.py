@@ -41,7 +41,7 @@ def _escape_text_for_shell(text: str) -> str:
     for char in text:
         # Replace control characters with a space to avoid breaking the shell command
         if char in "\n\r\t":
-            escaped_parts.append(" ")
+            escaped_parts.append("%s")
         elif char == " ":
             escaped_parts.append("%s")
         elif char in "'\"&<>()|;\\`$!#*?[]{}.":
