@@ -64,7 +64,7 @@ def _parse_coordinates(coord: Any, default: Tuple[int, int] = (0, 0)) -> Tuple[i
     Parse coordinates from various formats.
 
     Args:
-        coord: Coordinate in list/tuple format [x, y]
+        coord: Coordinate value in various formats (typically list/tuple [x, y])
         default: Default coordinate if parsing fails
 
     Returns:
